@@ -52,6 +52,10 @@ func (r *ListingRepository) UpsertScrapedItems(items []scraper.ScrapedItem, keyw
 
 	var listings []model.Listing
 	for _, it := range items {
+		// Strictly filter out foreign and corrupt prices
+		if it.Price < 10000 || strings.Contains(it.Location, ", CA") || strings.Contains(it.Location, " CA") || strings.Contains(it.Location, "Los Angeles") || strings.Contains(it.Location, "San Francisco") || strings.Contains(it.Location, "Monterey") || strings.Contains(it.Location, "Carmel") {
+			continue
+		}
 		imgJSON, _ := json.Marshal(it.Images)
 
 		// Calculate deal score: 1.0 = super cheap (>30% below avg), 0.5 = fair, <0.4 = expensive
@@ -132,7 +136,7 @@ func (r *ListingRepository) UpsertScrapedItems(items []scraper.ScrapedItem, keyw
 }
 
 func (r *ListingRepository) Search(req dto.SearchRequest) ([]model.Listing, int64, float64, float64, float64, error) {
-	query := r.db.Model(&model.Listing{})
+	query := r.db.Model(&model.Listing{}).Where("price >= 10000 AND location NOT ILIKE '% CA%' AND location NOT ILIKE '%Los Angeles%' AND location NOT ILIKE '%San Francisco%' AND location NOT ILIKE '%Monterey%' AND location NOT ILIKE '%Carmel%'")
 
 	if req.Keyword != "" {
 		terms := strings.Fields(strings.ToLower(req.Keyword))

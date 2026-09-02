@@ -25,20 +25,77 @@ func NewFacebookScraper(headless bool) *FacebookScraper {
 	}
 }
 
-// Search queries Facebook Marketplace for listings
-func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, minPrice, maxPrice *float64) ([]ScrapedItem, error) {
-	citySlug := "jakarta"
-	if location != "" {
-		citySlug = strings.ToLower(strings.ReplaceAll(strings.TrimSpace(location), " ", ""))
+// Maps Indonesian addresses/districts to valid canonical Facebook Marketplace city slugs
+func toFacebookCitySlug(loc string) string {
+	l := strings.ToLower(loc)
+	switch {
+	case strings.Contains(l, "tangerang"), strings.Contains(l, "bintaro"), strings.Contains(l, "serpong"), strings.Contains(l, "bsd"), strings.Contains(l, "ciputat"), strings.Contains(l, "pamulang"):
+		return "tangerang"
+	case strings.Contains(l, "bekasi"):
+		return "bekasi"
+	case strings.Contains(l, "depok"):
+		return "depok"
+	case strings.Contains(l, "bogor"):
+		return "bogor"
+	case strings.Contains(l, "bandung"):
+		return "bandung"
+	case strings.Contains(l, "surabaya"):
+		return "surabaya"
+	case strings.Contains(l, "semarang"):
+		return "semarang"
+	case strings.Contains(l, "yogyakarta"), strings.Contains(l, "jogja"):
+		return "yogyakarta"
+	case strings.Contains(l, "medan"):
+		return "medan"
+	case strings.Contains(l, "bali"), strings.Contains(l, "denpasar"):
+		return "denpasar"
+	default:
+		// Default to jakarta for all Jabodetabek and Indonesian general searches
+		return "jakarta"
+	}
+}
+
+// Checks if a listing is foreign or priced in foreign currency
+func isForeignListing(loc, text string, price float64) bool {
+	lowerLoc := strings.ToLower(loc)
+	lowerText := strings.ToLower(text)
+
+	foreignKeywords := []string{
+		", ca", " ca ", "california", "los angeles", "san francisco", "monterey", "carmel",
+		", ny", " ny ", "new york", ", tx", " tx ", "texas", ", fl", "florida",
+		"united states", "usa", "uk", "london", "sydney", "australia",
 	}
 
-	// Always scrape broad query on Facebook so we don't miss items due to Facebook's strict URL filters
+	for _, kw := range foreignKeywords {
+		if strings.Contains(lowerLoc, kw) || strings.Contains(lowerText, kw) {
+			return true
+		}
+	}
+
+	// Dollar sign indicator
+	if strings.Contains(text, "$") || strings.Contains(text, "USD") {
+		return true
+	}
+
+	// Any price below Rp 10.000 for gadgets/electronics is abnormal in Indonesia (usually foreign dollar parses like $40 -> Rp 40)
+	if price < 10000 {
+		return true
+	}
+
+	return false
+}
+
+// Search queries Facebook Marketplace for listings
+func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, minPrice, maxPrice *float64) ([]ScrapedItem, error) {
+	citySlug := toFacebookCitySlug(location)
+
+	// Always scrape valid city query on Facebook Marketplace
 	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search/?query=%s",
 		url.PathEscape(citySlug),
 		url.QueryEscape(keyword),
 	)
 
-	log.Printf("[Scraper] Initiating FB Marketplace query for '%s' in '%s' -> %s", keyword, location, searchURL)
+	log.Printf("[Scraper] Initiating FB Marketplace query for '%s' in '%s' (slug: %s) -> %s", keyword, location, citySlug, searchURL)
 
 	items, err := s.scrapeWithRod(ctx, searchURL, keyword, location)
 	if err != nil || len(items) == 0 {
@@ -50,7 +107,7 @@ func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, 
 }
 
 func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword, defaultLocation string) ([]ScrapedItem, error) {
-	// Setup launcher with stealth flags
+	// Setup launcher with stealth flags and Indonesian language
 	path, _ := launcher.LookPath()
 	u := launcher.New().
 		Bin(path).
@@ -58,6 +115,7 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 		Set("no-sandbox").
 		Set("disable-setuid-sandbox").
 		Set("disable-blink-features", "AutomationControlled").
+		Set("lang", "id-ID,id,en-US,en").
 		Set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36").
 		MustLaunch()
 
@@ -84,7 +142,7 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 
 	var results []ScrapedItem
 	seenIDs := make(map[string]bool)
-	priceRegex := regexp.MustCompile(`(?:Rp\.?|IDR|\$)\s*([\d\.,]+)`)
+	priceRegex := regexp.MustCompile(`(?:Rp\.?|IDR)\s*([\d\.,]+)`)
 
 	for _, link := range links {
 		href, _ := link.Attribute("href")
@@ -120,6 +178,11 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 
 		price := parsePrice(text, priceRegex)
 		title, loc := parseTitleAndLocation(text, keyword, defaultLocation, priceRegex)
+
+		// Filter out foreign or dollar-parsed items immediately
+		if isForeignListing(loc, text, price) {
+			continue
+		}
 
 		if title == "" {
 			title = fmt.Sprintf("%s Pilihan", titleCase(keyword))
@@ -193,6 +256,11 @@ func parseTitleAndLocation(raw, keyword, defaultLoc string, re *regexp.Regexp) (
 }
 
 func parsePrice(raw string, re *regexp.Regexp) float64 {
+	// If it contains dollar sign, skip (do not parse as IDR)
+	if strings.Contains(raw, "$") || strings.Contains(strings.ToLower(raw), "usd") {
+		return 0
+	}
+
 	matches := re.FindStringSubmatch(raw)
 	if len(matches) > 1 {
 		cleaned := strings.ReplaceAll(matches[1], ".", "")
@@ -203,3 +271,5 @@ func parsePrice(raw string, re *regexp.Regexp) float64 {
 	}
 	return 0
 }
+
+

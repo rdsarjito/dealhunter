@@ -10,7 +10,7 @@ out/
 # Binaries
 dealhunter-backend
 test-server
-server
+/server
 *.exe
 *.exe~
 *.dll

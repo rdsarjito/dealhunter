@@ -1,6 +1,6 @@
 dealhunter-backend
-test-server
-server
+test-/server
+/server
 .env
 .env.local
 *.log

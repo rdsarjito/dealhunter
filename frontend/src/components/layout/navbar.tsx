@@ -98,6 +98,7 @@ export function Navbar({
             <span className="text-[10px] text-[#606060] dark:text-[#AAAAAA] font-normal uppercase tracking-wider ml-0.5 hidden xs:inline">
               ID
             </span>
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" title="Server Live" />
           </Link>
         </div>
 

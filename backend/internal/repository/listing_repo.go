@@ -13,6 +13,39 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// Comprehensive list of US/foreign location indicators
+var foreignLocationIndicators = []string{
+	", CA", " CA ", "California", "Los Angeles", "San Francisco", "Monterey", "Carmel",
+	"Daly City", "Walnut Creek", "Pacifica", "Oakland", "San Jose", "San Diego",
+	"Sacramento", "Fremont", "Berkeley", "Palo Alto", "Santa Clara", "Sunnyvale",
+	", NY", " NY ", "New York", "Brooklyn", "Manhattan", "Queens",
+	", TX", " TX ", "Texas", "Houston", "Dallas", "Austin",
+	", FL", " FL ", "Florida", "Miami", "Orlando", "Tampa",
+	", WA", " WA ", "Seattle", "Portland",
+	", IL", " IL ", "Chicago",
+	"United States", "USA", "U.S.A",
+}
+
+// isForeignLocation checks if a location string indicates a foreign (non-Indonesian) listing
+func isForeignLocation(loc string) bool {
+	upper := strings.ToUpper(loc)
+	for _, indicator := range foreignLocationIndicators {
+		if strings.Contains(upper, strings.ToUpper(indicator)) {
+			return true
+		}
+	}
+	return false
+}
+
+// foreignLocationSQL returns SQL WHERE clause to exclude foreign locations
+func foreignLocationSQL() string {
+	clauses := []string{}
+	for _, ind := range foreignLocationIndicators {
+		clauses = append(clauses, "location NOT ILIKE '%"+strings.ReplaceAll(ind, "'", "''") +"%'")
+	}
+	return "(" + strings.Join(clauses, " AND ") + ")"
+}
+
 type ListingRepository struct {
 	db *gorm.DB
 }
@@ -52,8 +85,8 @@ func (r *ListingRepository) UpsertScrapedItems(items []scraper.ScrapedItem, keyw
 
 	var listings []model.Listing
 	for _, it := range items {
-		// Strictly filter out foreign and corrupt prices
-		if it.Price < 10000 || strings.Contains(it.Location, ", CA") || strings.Contains(it.Location, " CA") || strings.Contains(it.Location, "Los Angeles") || strings.Contains(it.Location, "San Francisco") || strings.Contains(it.Location, "Monterey") || strings.Contains(it.Location, "Carmel") {
+		// Reject any listing that is clearly foreign (US/international) or has corrupt price
+		if it.Price < 10000 || isForeignLocation(it.Location) {
 			continue
 		}
 		imgJSON, _ := json.Marshal(it.Images)
@@ -136,7 +169,7 @@ func (r *ListingRepository) UpsertScrapedItems(items []scraper.ScrapedItem, keyw
 }
 
 func (r *ListingRepository) Search(req dto.SearchRequest) ([]model.Listing, int64, float64, float64, float64, error) {
-	query := r.db.Model(&model.Listing{}).Where("price >= 10000 AND location NOT ILIKE '% CA%' AND location NOT ILIKE '%Los Angeles%' AND location NOT ILIKE '%San Francisco%' AND location NOT ILIKE '%Monterey%' AND location NOT ILIKE '%Carmel%'")
+	query := r.db.Model(&model.Listing{}).Where("price >= 10000 AND " + foreignLocationSQL())
 
 	if req.Keyword != "" {
 		terms := strings.Fields(strings.ToLower(req.Keyword))

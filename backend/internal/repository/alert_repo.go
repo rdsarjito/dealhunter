@@ -42,7 +42,7 @@ func (r *AlertRepository) GetByID(id uuid.UUID) (*model.PriceAlert, error) {
 func (r *AlertRepository) GetMatchingListings(alert *model.PriceAlert) ([]model.Listing, error) {
 	var listings []model.Listing
 	// Only show listings scraped AFTER the alert was created
-	query := r.db.Model(&model.Listing{}).Where("price > 0 AND price <= ? AND created_at >= ?", alert.MaxPrice, alert.CreatedAt)
+	query := r.db.Model(&model.Listing{}).Where("price >= 10000 AND price <= ? AND created_at >= ? AND " + foreignLocationSQL(), alert.MaxPrice, alert.CreatedAt)
 
 	if alert.Keyword != "" {
 		terms := strings.Fields(strings.ToLower(alert.Keyword))
@@ -62,7 +62,7 @@ func (r *AlertRepository) GetMatchingListings(alert *model.PriceAlert) ([]model.
 
 	// Fallback to broader search if location-specific yielded no rows
 	var fallbackListings []model.Listing
-	fbQuery := r.db.Model(&model.Listing{}).Where("price > 0 AND price <= ? AND created_at >= ?", alert.MaxPrice, alert.CreatedAt)
+	fbQuery := r.db.Model(&model.Listing{}).Where("price >= 10000 AND price <= ? AND created_at >= ? AND " + foreignLocationSQL(), alert.MaxPrice, alert.CreatedAt)
 	if alert.Keyword != "" {
 		terms := strings.Fields(strings.ToLower(alert.Keyword))
 		for _, term := range terms {

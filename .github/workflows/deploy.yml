@@ -1,0 +1,43 @@
+name: 🚀 Deploy DealHunter (CI/CD)
+
+# CI/CD otomatis menggunakan Self-Hosted Runner di Server Lenovo.
+# Setiap push ke branch 'main', server otomatis pull kode terbaru dan rebuild Docker.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Auto Deploy ke Server Lenovo
+    runs-on: self-hosted
+
+    steps:
+      - name: 🔄 Sync Code & Rebuild Docker Containers
+        run: |
+          set -e
+          echo "========================================="
+          echo "🚀 Memulai Auto Deploy DealHunter"
+          echo "========================================="
+
+          cd ~/dealhunter-dev
+          echo "📥 Menarik kode terbaru dari GitHub..."
+          git fetch origin main
+          git reset --hard origin/main
+
+          # Pastikan .env tersedia
+          if [ ! -f .env ]; then
+            echo "⚠️ File .env tidak ditemukan, menyalin dari .env.example..."
+            cp .env.example .env
+          fi
+
+          echo "📦 Menjalankan Docker Compose Build..."
+          docker compose up -d --build
+
+          echo "========================================="
+          echo "✅ Status Kontainer Terkini:"
+          echo "========================================="
+          docker compose ps
+          echo "🎉 Auto Deployment Berhasil!"

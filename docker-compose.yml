@@ -13,8 +13,8 @@ services:
       TZ: Asia/Jakarta
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "${DB_PORT:-5432}:5432"
+    expose:
+      - "5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-dealhunter} -d ${DB_NAME:-dealhunter}"]
       interval: 5s
@@ -22,7 +22,7 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - dealhunter-network
+      default: {}
 
   # -------------------------------------------------------------
   # Go Fiber Backend API Service (with Rod Scraper)
@@ -47,10 +47,13 @@ services:
       DB_SSLMODE: disable
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TZ: Asia/Jakarta
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     networks:
-      - dealhunter-network
+      default: {}
+      edge:
+        aliases:
+          - dealhunter-backend
 
   # -------------------------------------------------------------
   # Next.js 16 Frontend Web App (Standalone YouTube UI)
@@ -60,7 +63,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080/api/v1}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://dealhunter-api.ramadhaninursarjito.tech/api/v1}
     container_name: dealhunter-frontend
     restart: unless-stopped
     depends_on:
@@ -68,18 +71,23 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     networks:
-      - dealhunter-network
+      default: {}
+      edge:
+        aliases:
+          - dealhunter-frontend
 
 # -------------------------------------------------------------
-# Persistent Volumes & Network
+# Persistent Volumes & Network (Connected to EDGE Stack)
 # -------------------------------------------------------------
 volumes:
   postgres_data:
     driver: local
 
 networks:
-  dealhunter-network:
+  default:
     driver: bridge
+  edge:
+    external: true

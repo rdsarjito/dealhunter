@@ -41,7 +41,8 @@ func (r *AlertRepository) GetByID(id uuid.UUID) (*model.PriceAlert, error) {
 
 func (r *AlertRepository) GetMatchingListings(alert *model.PriceAlert) ([]model.Listing, error) {
 	var listings []model.Listing
-	query := r.db.Model(&model.Listing{}).Where("price > 0 AND price <= ?", alert.MaxPrice)
+	// Only show listings scraped AFTER the alert was created
+	query := r.db.Model(&model.Listing{}).Where("price > 0 AND price <= ? AND created_at >= ?", alert.MaxPrice, alert.CreatedAt)
 
 	if alert.Keyword != "" {
 		terms := strings.Fields(strings.ToLower(alert.Keyword))
@@ -61,7 +62,7 @@ func (r *AlertRepository) GetMatchingListings(alert *model.PriceAlert) ([]model.
 
 	// Fallback to broader search if location-specific yielded no rows
 	var fallbackListings []model.Listing
-	fbQuery := r.db.Model(&model.Listing{}).Where("price > 0 AND price <= ?", alert.MaxPrice)
+	fbQuery := r.db.Model(&model.Listing{}).Where("price > 0 AND price <= ? AND created_at >= ?", alert.MaxPrice, alert.CreatedAt)
 	if alert.Keyword != "" {
 		terms := strings.Fields(strings.ToLower(alert.Keyword))
 		for _, term := range terms {
@@ -77,6 +78,16 @@ func (r *AlertRepository) Toggle(id uuid.UUID, active bool) error {
 }
 
 func (r *AlertRepository) Delete(id uuid.UUID) error {
+	// First get alert to know keyword, then delete matching listings
+	var alert model.PriceAlert
+	if err := r.db.First(&alert, "id = ?", id).Error; err == nil && alert.Keyword != "" {
+		terms := strings.Fields(strings.ToLower(alert.Keyword))
+		delQuery := r.db.Where("1=1")
+		for _, term := range terms {
+			delQuery = delQuery.Where("LOWER(title) LIKE ? OR LOWER(description) LIKE ?", "%"+term+"%", "%"+term+"%")
+		}
+		delQuery.Delete(&model.Listing{})
+	}
 	return r.db.Delete(&model.PriceAlert{}, "id = ?", id).Error
 }
 

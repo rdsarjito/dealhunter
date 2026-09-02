@@ -24,7 +24,8 @@ func main() {
 	db := config.InitDatabase(cfg)
 
 	// Clean up any dirty/foreign listings from previous scrapes
-	db.Exec("DELETE FROM listings WHERE price < 10000 OR location ILIKE '% CA%' OR location ILIKE '%Los Angeles%' OR location ILIKE '%San Francisco%' OR location ILIKE '%Monterey%' OR location ILIKE '%Carmel%'")
+	db.Exec("DELETE FROM listings")
+	log.Println("[DB] Cleared all old listings. Fresh data will be scraped automatically.")
 
 	// Repositories
 	listingRepo := repository.NewListingRepository(db)

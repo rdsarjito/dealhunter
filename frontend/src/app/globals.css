@@ -1,0 +1,133 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* YouTube Signature Tokens */
+  --color-yt-red: #FF0000;
+  --color-yt-red-dark: #CC0000;
+  --color-yt-black: #0F0F0F;
+  --color-yt-white: #FFFFFF;
+  --color-yt-grey-light: #F2F2F2;
+  --color-yt-grey-dark: #272727;
+  --color-yt-border-light: #E5E5E5;
+  --color-yt-border-dark: #303030;
+  --color-yt-text-secondary: #606060;
+}
+
+:root {
+  /* YouTube Classic Light Theme (White, Red, Grey, Black) */
+  --background: #FFFFFF;
+  --foreground: #0F0F0F;
+  
+  --card: #FFFFFF;
+  --card-foreground: #0F0F0F;
+  
+  --popover: #FFFFFF;
+  --popover-foreground: #0F0F0F;
+  
+  --primary: #FF0000;
+  --primary-foreground: #FFFFFF;
+  
+  --secondary: #F2F2F2;
+  --secondary-foreground: #0F0F0F;
+  
+  --muted: #F2F2F2;
+  --muted-foreground: #606060;
+  
+  --accent: #F2F2F2;
+  --accent-foreground: #0F0F0F;
+  
+  --destructive: #CC0000;
+  --border: #E5E5E5;
+  --input: #CCCCCC;
+  --ring: #FF0000;
+}
+
+.dark {
+  /* YouTube Signature Dark Theme */
+  --background: #0F0F0F;
+  --foreground: #F1F1F1;
+  
+  --card: #0F0F0F;
+  --card-foreground: #F1F1F1;
+  
+  --popover: #212121;
+  --popover-foreground: #F1F1F1;
+  
+  --primary: #FF0000;
+  --primary-foreground: #FFFFFF;
+  
+  --secondary: #272727;
+  --secondary-foreground: #F1F1F1;
+  
+  --muted: #272727;
+  --muted-foreground: #AAAAAA;
+  
+  --accent: #272727;
+  --accent-foreground: #F1F1F1;
+  
+  --destructive: #FF4E45;
+  --border: #303030;
+  --input: #303030;
+  --ring: #FF0000;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-[#FF0000] selection:text-white;
+    font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", Arial, sans-serif;
+  }
+}
+
+/* YouTube Clean Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CCCCCC;
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #383838;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #909090;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #505050;
+}
+
+.tabular-price {
+  font-variant-numeric: tabular-nums;
+}

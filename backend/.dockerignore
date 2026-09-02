@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+.env.local
+dealhunter-backend
+test-server
+*.log
+tmp/
+vendor/
+.vscode/
+.idea/

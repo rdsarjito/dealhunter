@@ -1,0 +1,7 @@
+dealhunter-backend
+test-server
+server
+.env
+.env.local
+*.log
+vendor/

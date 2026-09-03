@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 	"log"
 	"sync"
 	"time"
@@ -124,17 +125,25 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 		// Save new listings to DB
 		savedListings, _ := w.listingRepo.UpsertScrapedItems(items, alert.Keyword)
 
-		// Check for price matches
+		// Check for price and location matches
 		for _, item := range savedListings {
 			if item.Price > 0 && item.Price <= alert.MaxPrice {
-				// Don't repeat notification if sent within the last 3 hours for the same item
-				if alert.LastMatchedItem == item.Title && alert.LastTriggeredAt != nil &&
-					time.Since(*alert.LastTriggeredAt) < 3*time.Hour {
+				// Don't re-match if this listing was already captured by this alert
+				if w.alertRepo.HasMatch(alert.ID, item.ID) {
+					continue
+				}
+
+				// Check location if alert specified location
+				if alert.Location != "" && !matchesAlertLocation(alert.Location, alert.RadiusKM, item.Location) {
 					continue
 				}
 
 				log.Printf("[AlertWatcher] 🚨 NEW DEAL DETECTED! '%s' Rp %.0f <= Rp %.0f (Alert: %s)",
 					item.Title, item.Price, alert.MaxPrice, alert.Keyword)
+
+				// Capture this listing into this alert
+				_ = w.alertRepo.AddMatchedListing(alert.ID, item.ID)
+				_ = w.alertRepo.RecordTrigger(alert.ID, item.Title)
 
 				// Determine targets
 				var targetChats []string
@@ -148,9 +157,7 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 					_ = w.notifier.SendDealAlert(cid, &alert, &item)
 				}
 
-				_ = w.alertRepo.RecordTrigger(alert.ID, item.Title)
 				totalTriggered++
-				break // Alert once per keyword per cycle to avoid spamming
 			}
 		}
 
@@ -160,4 +167,18 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 
 	log.Printf("[AlertWatcher] Scan finished. %d alerts triggered.", totalTriggered)
 	return totalTriggered
+}
+
+func matchesAlertLocation(alertLoc string, radiusKM int, itemLoc string) bool {
+	if alertLoc == "" || itemLoc == "" {
+		return true
+	}
+	al := strings.ToLower(alertLoc)
+	il := strings.ToLower(itemLoc)
+
+	if (strings.Contains(al, "jakarta") || strings.Contains(al, "kebayoran")) && radiusKM >= 15 {
+		return strings.Contains(il, "jakarta") || strings.Contains(il, "tangerang") || strings.Contains(il, "depok") || strings.Contains(il, "bekasi") || strings.Contains(il, "bogor") || strings.Contains(il, "jawa barat")
+	}
+
+	return strings.Contains(il, al) || strings.Contains(al, il)
 }

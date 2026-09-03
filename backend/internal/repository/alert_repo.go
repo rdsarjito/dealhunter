@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -47,49 +46,31 @@ func (r *AlertRepository) GetByID(id uuid.UUID) (*model.PriceAlert, error) {
 	return &alert, err
 }
 
+func (r *AlertRepository) HasMatch(alertID, listingID uuid.UUID) bool {
+	var count int64
+	r.db.Model(&model.AlertMatchedListing{}).
+		Where("alert_id = ? AND listing_id = ?", alertID, listingID).
+		Count(&count)
+	return count > 0
+}
+
+func (r *AlertRepository) AddMatchedListing(alertID, listingID uuid.UUID) error {
+	match := model.AlertMatchedListing{
+		AlertID:   alertID,
+		ListingID: listingID,
+	}
+	return r.db.Create(&match).Error
+}
+
 func (r *AlertRepository) GetMatchingListings(alert *model.PriceAlert) ([]model.Listing, error) {
 	var listings []model.Listing
-	baseQuery := r.db.Model(&model.Listing{}).Where("price >= 10000 AND price <= ? AND " + foreignLocationSQL(), alert.MaxPrice)
-
-	if alert.Keyword != "" {
-		terms := strings.Fields(strings.ToLower(alert.Keyword))
-		for _, term := range terms {
-			baseQuery = baseQuery.Where("LOWER(title) LIKE ? OR LOWER(description) LIKE ?", "%"+term+"%", "%"+term+"%")
-		}
-	}
-
-	// First try location filter if provided
-	if alert.Location != "" {
-		locQuery := baseQuery
-		// If user specified Jakarta / Kebayoran / etc, match primary city
-		lowerLoc := strings.ToLower(alert.Location)
-		if (strings.Contains(lowerLoc, "jakarta") || strings.Contains(lowerLoc, "kebayoran")) && alert.RadiusKM >= 15 {
-			locQuery = locQuery.Where("LOWER(location) LIKE ? OR LOWER(location) LIKE ? OR LOWER(location) LIKE ? OR LOWER(location) LIKE ? OR LOWER(location) LIKE ? OR LOWER(location) LIKE ?", 
-				"%jakarta%", "%tangerang%", "%depok%", "%bekasi%", "%bogor%", "%jawa barat%")
-		} else if strings.Contains(lowerLoc, "jakarta") {
-			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%jakarta%")
-		} else if strings.Contains(lowerLoc, "tangerang") {
-			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%tangerang%")
-		} else if strings.Contains(lowerLoc, "bekasi") {
-			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%bekasi%")
-		} else if strings.Contains(lowerLoc, "depok") {
-			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%depok%")
-		} else if strings.Contains(lowerLoc, "bogor") {
-			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%bogor%")
-		} else if strings.Contains(lowerLoc, "bandung") {
-			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%bandung%")
-		} else {
-			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%"+lowerLoc+"%")
-		}
-
-		err := locQuery.Order("deal_score DESC, created_at DESC").Limit(100).Find(&listings).Error
-		if err == nil && len(listings) > 0 {
-			return listings, nil
-		}
-	}
-
-	// Fallback to all Indonesian listings matching keyword and max price
-	err := baseQuery.Order("deal_score DESC, created_at DESC").Limit(100).Find(&listings).Error
+	// Query listings specifically captured by this alert radar
+	err := r.db.Table("listings").
+		Select("listings.*").
+		Joins("JOIN alert_matched_listings ON alert_matched_listings.listing_id = listings.id").
+		Where("alert_matched_listings.alert_id = ?", alert.ID).
+		Order("alert_matched_listings.created_at DESC").
+		Find(&listings).Error
 	return listings, err
 }
 
@@ -98,16 +79,8 @@ func (r *AlertRepository) Toggle(id uuid.UUID, active bool) error {
 }
 
 func (r *AlertRepository) Delete(id uuid.UUID) error {
-	// First get alert to know keyword, then delete matching listings (hard delete)
-	var alert model.PriceAlert
-	if err := r.db.First(&alert, "id = ?", id).Error; err == nil && alert.Keyword != "" {
-		terms := strings.Fields(strings.ToLower(alert.Keyword))
-		delQuery := r.db.Unscoped().Where("1=1")
-		for _, term := range terms {
-			delQuery = delQuery.Where("LOWER(title) LIKE ? OR LOWER(description) LIKE ?", "%"+term+"%", "%"+term+"%")
-		}
-		delQuery.Delete(&model.Listing{})
-	}
+	// Clean up matched listings for this alert
+	_ = r.db.Where("alert_id = ?", id).Delete(&model.AlertMatchedListing{}).Error
 	return r.db.Unscoped().Delete(&model.PriceAlert{}, "id = ?", id).Error
 }
 
@@ -129,15 +102,18 @@ func NewTelegramSettingRepository(db *gorm.DB) *TelegramSettingRepository {
 	return &TelegramSettingRepository{db: db}
 }
 
-func (r *TelegramSettingRepository) Save(chatID, username string) (*model.TelegramSetting, error) {
-	return r.Upsert(chatID, username)
+func (r *TelegramSettingRepository) Save(chatID, username, botToken string) (*model.TelegramSetting, error) {
+	return r.Upsert(chatID, username, botToken)
 }
 
-func (r *TelegramSettingRepository) Upsert(chatID, username string) (*model.TelegramSetting, error) {
+func (r *TelegramSettingRepository) Upsert(chatID, username, botToken string) (*model.TelegramSetting, error) {
 	var setting model.TelegramSetting
 	err := r.db.Where("chat_id = ?", chatID).First(&setting).Error
 	if err == nil {
 		setting.Username = username
+		if botToken != "" {
+			setting.BotToken = botToken
+		}
 		setting.IsActive = true
 		r.db.Save(&setting)
 		return &setting, nil
@@ -146,6 +122,7 @@ func (r *TelegramSettingRepository) Upsert(chatID, username string) (*model.Tele
 	setting = model.TelegramSetting{
 		ChatID:   chatID,
 		Username: username,
+		BotToken: botToken,
 		IsActive: true,
 	}
 	err = r.db.Create(&setting).Error

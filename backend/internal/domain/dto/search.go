@@ -33,6 +33,7 @@ type SearchResponse struct {
 type ConnectTelegramRequest struct {
 	ChatID   string `json:"chat_id"`
 	Username string `json:"username"`
+	BotToken string `json:"bot_token"`
 }
 
 type TestTelegramRequest struct {

@@ -25,6 +25,10 @@ func NewTelegramNotifier(botToken string) *TelegramNotifier {
 	}
 }
 
+func (t *TelegramNotifier) SetBotToken(token string) {
+	t.botToken = token
+}
+
 // SendDealAlert formats and sends a Telegram notification for a matched deal
 func (t *TelegramNotifier) SendDealAlert(chatID string, alert *model.PriceAlert, listing *model.Listing) error {
 	if t.botToken == "" || chatID == "" {

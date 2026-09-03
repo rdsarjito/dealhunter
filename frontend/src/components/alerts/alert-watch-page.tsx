@@ -7,6 +7,7 @@ import { formatRupiah, parseImages, formatTimeAgo } from '@/lib/format';
 import { DealBadge } from '@/components/listing/deal-badge';
 import { 
   ArrowLeft, 
+  Radio, 
   ExternalLink, 
   Bookmark, 
   Check, 
@@ -103,21 +104,37 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
   if (listings.length === 0) {
     return (
       <div className="py-20 text-center max-w-md mx-auto space-y-4 px-4">
-        <div className="h-14 w-14 rounded-full bg-[#F2F2F2] dark:bg-[#272727] text-[#FF0000] flex items-center justify-center mx-auto shadow-xs">
-          <Play className="h-6 w-6 fill-[#FF0000]" />
+        <div className="h-14 w-14 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto shadow-xs">
+          <Radio className="h-7 w-7 animate-pulse text-emerald-500" />
         </div>
-        <div className="space-y-1">
-          <h3 className="text-lg font-bold text-foreground">Belum Ada Iklan Terdeteksi</h3>
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+            <span>Radar Aktif Mengintai 24/7</span>
+          </div>
+          <h3 className="text-lg font-bold text-foreground">Menunggu Iklan Baru Diposting</h3>
           <p className="text-xs text-[#606060] dark:text-[#AAAAAA] leading-relaxed">
-            Robot scanner sedang memantau Facebook Marketplace di background. Saat ada iklan &le; {formatRupiah(alert.max_price)}, iklannya akan langsung muncul di sini.
+            Belum ada penjual yang baru memposting iklan <strong>“{alert.keyword}”</strong> dengan harga &le; {formatRupiah(alert.max_price)} di area {alert.location || 'sekitar Anda'}.
+          </p>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Robot mengintai Facebook Marketplace setiap 2 menit. Detik ketika ada orang baru yang upload iklan cocok, iklannya langsung disambar masuk ke sini dan dikabari ke Telegram Anda!
           </p>
         </div>
-        <button
-          onClick={onBack}
-          className="px-5 h-9 rounded-full bg-[#0F0F0F] dark:bg-[#F1F1F1] text-white dark:text-[#0F0F0F] text-xs font-bold"
-        >
-          Kembali ke Daftar Alert
-        </button>
+        <div className="flex justify-center gap-3 pt-2">
+          <button
+            onClick={loadListings}
+            className="px-4 h-9 rounded-full border border-[#E5E5E5] dark:border-[#303030] text-xs font-semibold hover:bg-muted inline-flex items-center gap-1.5"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span>Periksa Radar</span>
+          </button>
+          <button
+            onClick={onBack}
+            className="px-5 h-9 rounded-full bg-[#0F0F0F] dark:bg-[#F1F1F1] text-white dark:text-[#0F0F0F] text-xs font-bold"
+          >
+            Kembali ke Daftar Alert
+          </button>
+        </div>
       </div>
     );
   }

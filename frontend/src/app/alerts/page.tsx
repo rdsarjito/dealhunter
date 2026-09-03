@@ -202,12 +202,21 @@ export default function AlertsPage() {
                           <span>{a.location || 'Jakarta'}</span>
                         </div>
 
-                        <div className="flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
-                          <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                          </span>
-                          <span>{a.match_count !== undefined ? a.match_count : 10} barang murah ditemukan</span>
+                        <div className="flex items-center gap-1.5 font-bold">
+                          {(a.match_count && a.match_count > 0) ? (
+                            <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                              <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                              </span>
+                              <span>{a.match_count} iklan baru tertangkap!</span>
+                            </span>
+                          ) : (
+                            <span className="text-[#606060] dark:text-[#AAAAAA] flex items-center gap-1.5">
+                              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                              <span>Radar aktif mengintai (0 temuan)</span>
+                            </span>
+                          )}
                         </div>
 
                         {a.last_matched_item && (
@@ -228,7 +237,7 @@ export default function AlertsPage() {
                         title="Buka tampilan Watch Page ala YouTube"
                       >
                         <Play className="h-3 w-3 fill-white" />
-                        <span>Tonton Hasil ({a.match_count !== undefined ? a.match_count : a.trigger_count})</span>
+                        <span>Tonton Hasil ({a.match_count || 0})</span>
                         <ChevronRight className="h-3.5 w-3.5" />
                       </button>
 

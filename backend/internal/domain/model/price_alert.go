@@ -28,6 +28,7 @@ type PriceAlert struct {
 type TelegramSetting struct {
 	ID        uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
 	ChatID    string    `gorm:"type:varchar(100);uniqueIndex;not null" json:"chat_id"`
+	BotToken  string    `gorm:"type:text" json:"bot_token"`
 	Username  string    `gorm:"type:varchar(100)" json:"username"`
 	IsActive  bool      `gorm:"default:true" json:"is_active"`
 	CreatedAt time.Time `json:"created_at"`
@@ -43,4 +44,12 @@ type FacebookSetting struct {
 	AccountName string    `gorm:"type:varchar(255)" json:"account_name"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type AlertMatchedListing struct {
+	ID        uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	AlertID   uuid.UUID `gorm:"type:uuid;index;not null" json:"alert_id"`
+	ListingID uuid.UUID `gorm:"type:uuid;index;not null" json:"listing_id"`
+	Listing   Listing   `gorm:"foreignKey:ListingID" json:"listing"`
+	CreatedAt time.Time `json:"created_at"`
 }

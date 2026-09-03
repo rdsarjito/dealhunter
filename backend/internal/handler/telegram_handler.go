@@ -35,7 +35,11 @@ func (h *TelegramHandler) Connect(c *fiber.Ctx) error {
 		})
 	}
 
-	setting, err := h.repo.Save(req.ChatID, req.Username)
+	if req.BotToken != "" {
+		h.notifier.SetBotToken(req.BotToken)
+	}
+
+	setting, err := h.repo.Save(req.ChatID, req.Username, req.BotToken)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  false,

@@ -140,11 +140,11 @@ export async function getAlertListings(alertId: string): Promise<{ alert: PriceA
   };
 }
 
-export async function connectTelegram(chatId: string, username: string = ''): Promise<TelegramSetting> {
+export async function connectTelegram(chatId: string, username: string = '', botToken: string = ''): Promise<TelegramSetting> {
   const res = await fetch(`${API_BASE}/telegram/connect`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, username }),
+    body: JSON.stringify({ chat_id: chatId, username, bot_token: botToken }),
   });
   if (!res.ok) throw new Error('Gagal menghubungkan Telegram');
   const json = await res.json();

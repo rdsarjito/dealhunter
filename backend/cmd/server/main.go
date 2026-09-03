@@ -41,6 +41,15 @@ func main() {
 		log.Printf("[FB] Restored active session for %s (c_user: %s)", fbSetting.AccountName, fbSetting.CUser)
 	}
 	telegramNotifier := notifier.NewTelegramNotifier(cfg.TelegramBotToken)
+	if tgSettings, err := telegramRepo.GetActive(); err == nil && len(tgSettings) > 0 {
+		for _, s := range tgSettings {
+			if s.BotToken != "" {
+				telegramNotifier.SetBotToken(s.BotToken)
+				log.Printf("[Telegram] Restored bot token from database for chat %s", s.ChatID)
+				break
+			}
+		}
+	}
 
 	// Services
 	searchService := service.NewSearchService(listingRepo, alertRepo, telegramRepo, fbScraper, telegramNotifier)

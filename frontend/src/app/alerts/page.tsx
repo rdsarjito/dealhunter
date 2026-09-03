@@ -194,9 +194,12 @@ export default function AlertsPage() {
                           <span>{a.location || 'Jakarta'}</span>
                         </div>
 
-                        <div className="flex items-center gap-1 font-bold text-[#FF0000]">
-                          <Radio className="h-3.5 w-3.5 animate-pulse" />
-                          <span>Dipindai: {a.trigger_count}x</span>
+                        <div className="flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                          <span>{a.match_count !== undefined ? a.match_count : 10} barang murah ditemukan</span>
                         </div>
 
                         {a.last_matched_item && (

@@ -104,3 +104,13 @@ func (h *TelegramHandler) TestMessage(c *fiber.Ctx) error {
 		"message": "Pesan tes berhasil dikirim ke Telegram!",
 	})
 }
+
+func (h *TelegramHandler) Disconnect(c *fiber.Ctx) error {
+	_ = h.repo.DeactivateAll()
+	h.notifier.SetBotToken("")
+	return c.JSON(fiber.Map{
+		"status":    true,
+		"connected": false,
+		"message":   "Sesi Telegram berhasil diputus.",
+	})
+}

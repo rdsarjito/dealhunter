@@ -25,7 +25,8 @@ func main() {
 
 	// Clean up any dirty/foreign listings from previous scrapes
 	db.Exec("DELETE FROM listings WHERE price < 10000 OR location ILIKE '%CA%' OR location ILIKE '%NY%' OR location ILIKE '%TX%' OR location ILIKE '%FL%' OR location ILIKE '%San Francisco%' OR location ILIKE '%Los Angeles%' OR location ILIKE '%Daly City%' OR location ILIKE '%Monterey%' OR location ILIKE '%Carmel%' OR location ILIKE '%Walnut Creek%' OR location ILIKE '%Pacifica%' OR location ILIKE '%United States%' OR location ILIKE '%USA%'")
-	log.Println("[DB] Cleaned up foreign/invalid listings from database.")
+	db.Exec("UPDATE telegram_settings SET is_active = false WHERE chat_id = '999999999'")
+	log.Println("[DB] Cleaned up foreign/invalid listings and dummy telegram records from database.")
 
 	// Repositories
 	listingRepo := repository.NewListingRepository(db)
@@ -125,6 +126,7 @@ func main() {
 	// Telegram Settings & Test
 	api.Get("/telegram/status", telegramHandler.GetStatus)
 	api.Post("/telegram/connect", telegramHandler.Connect)
+	api.Post("/telegram/disconnect", telegramHandler.Disconnect)
 	api.Post("/telegram/test", telegramHandler.TestMessage)
 
 	// Facebook Session Settings

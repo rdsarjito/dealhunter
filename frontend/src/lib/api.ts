@@ -195,3 +195,10 @@ export async function disconnectFacebook(): Promise<any> {
   if (!res.ok) throw new Error(json.message || 'Gagal memutus akun Facebook');
   return json;
 }
+
+export async function disconnectTelegram(): Promise<void> {
+  const res = await fetch(`${API_BASE}/telegram/disconnect`, {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error('Gagal memutuskan koneksi Telegram');
+}

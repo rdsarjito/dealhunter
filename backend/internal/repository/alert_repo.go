@@ -134,3 +134,7 @@ func (r *TelegramSettingRepository) GetActive() ([]model.TelegramSetting, error)
 	err := r.db.Where("is_active = ?", true).Find(&settings).Error
 	return settings, err
 }
+
+func (r *TelegramSettingRepository) DeactivateAll() error {
+	return r.db.Model(&model.TelegramSetting{}).Where("1=1").Update("is_active", false).Error
+}

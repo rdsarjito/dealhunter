@@ -14,7 +14,7 @@ import {
 interface LocationMapPickerProps {
   initialLocation?: string;
   initialRadiusKm?: number;
-  onChange: (location: string, radiusKm: number) => void;
+  onChange: (location: string, radiusKm: number, lat?: number, lng?: number) => void;
 }
 
 interface AutocompleteResult {
@@ -47,6 +47,10 @@ export function LocationMapPicker({
   const [currentCity, setCurrentCity] = useState(
     initialLocation === 'Jakarta' ? USER_EXACT_LOCATION.name : initialLocation
   );
+  const [coords, setCoords] = useState<{ lat: number; lng: number }>({
+    lat: USER_EXACT_LOCATION.lat,
+    lng: USER_EXACT_LOCATION.lng,
+  });
   const [radiusKm, setRadiusKm] = useState(initialRadiusKm);
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState<AutocompleteResult[]>([]);
@@ -128,7 +132,8 @@ export function LocationMapPicker({
       circleRef.current = circle;
 
       setCurrentCity(savedName);
-      onChange(savedName, initialRadiusKm);
+      setCoords({ lat: savedLat, lng: savedLng });
+      onChange(savedName, initialRadiusKm, savedLat, savedLng);
 
       // Map Click: move pin
       map.on('click', async (e: any) => {
@@ -163,7 +168,7 @@ export function LocationMapPicker({
   useEffect(() => {
     if (circleRef.current) {
       circleRef.current.setRadius(radiusKm * 1000);
-      onChange(currentCity, radiusKm);
+      onChange(currentCity, radiusKm, coords.lat, coords.lng);
     }
   }, [radiusKm, currentCity, onChange]);
 
@@ -211,7 +216,8 @@ export function LocationMapPicker({
     const distHome = Math.hypot(USER_EXACT_LOCATION.lat - lat, USER_EXACT_LOCATION.lng - lng);
     if (distHome < 0.005) {
       setCurrentCity(USER_EXACT_LOCATION.name);
-      onChange(USER_EXACT_LOCATION.name, radiusKm);
+      setCoords({ lat: USER_EXACT_LOCATION.lat, lng: USER_EXACT_LOCATION.lng });
+      onChange(USER_EXACT_LOCATION.name, radiusKm, USER_EXACT_LOCATION.lat, USER_EXACT_LOCATION.lng);
       return;
     }
 
@@ -237,7 +243,8 @@ export function LocationMapPicker({
         }).trim();
 
         setCurrentCity(cleanLabel);
-        onChange(cleanLabel, radiusKm);
+        setCoords({ lat, lng });
+        onChange(cleanLabel, radiusKm, lat, lng);
 
         try {
           localStorage.setItem('dealhunter_my_location', JSON.stringify({ lat, lng, name: cleanLabel }));
@@ -256,7 +263,8 @@ export function LocationMapPicker({
     markerRef.current.setLatLng([lat, lng]);
     circleRef.current.setLatLng([lat, lng]);
     setCurrentCity(labelName);
-    onChange(labelName, radiusKm);
+    setCoords({ lat, lng });
+    onChange(labelName, radiusKm, lat, lng);
     setSuggestions([]);
     setSearchQuery('');
 

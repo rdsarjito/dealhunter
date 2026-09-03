@@ -37,6 +37,8 @@ export interface SavedSearch {
   min_price?: number;
   max_price?: number;
   location: string;
+  latitude?: number;
+  longitude?: number;
   radius_km: number;
   category: string;
   condition: string;
@@ -50,6 +52,8 @@ export interface PriceAlert {
   keyword: string;
   max_price: number;
   location: string;
+  latitude?: number;
+  longitude?: number;
   radius_km: number;
   category: string;
   is_active: boolean;

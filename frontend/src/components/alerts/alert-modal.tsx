@@ -35,6 +35,10 @@ export function AlertModal({
   const [keyword, setKeyword] = useState(defaultKeyword);
   const [maxPrice, setMaxPrice] = useState<number>(0);
   const [location, setLocation] = useState(defaultLocation);
+  const [coords, setCoords] = useState<{ lat: number; lng: number }>({
+    lat: -6.2464309,
+    lng: 106.7707263,
+  });
   const [radiusKm, setRadiusKm] = useState(50);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -62,6 +66,8 @@ export function AlertModal({
         keyword: keyword.trim(),
         max_price: Number(maxPrice),
         location: location.trim(),
+        latitude: coords.lat,
+        longitude: coords.lng,
         radius_km: radiusKm,
         category: 'Semua',
       });
@@ -133,9 +139,12 @@ export function AlertModal({
               <LocationMapPicker
                 initialLocation={location}
                 initialRadiusKm={radiusKm}
-                onChange={(loc, rad) => {
+                onChange={(loc, rad, lat, lng) => {
                   setLocation(loc);
                   setRadiusKm(rad);
+                  if (lat !== undefined && lng !== undefined) {
+                    setCoords({ lat, lng });
+                  }
                 }}
               />
             </div>

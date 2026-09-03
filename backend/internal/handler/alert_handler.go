@@ -49,6 +49,22 @@ func (h *AlertHandler) Create(c *fiber.Ctx) error {
 		})
 	}
 
+	if a.Location == "" {
+		a.Location = "Kebayoran Lama, Jakarta Selatan"
+	}
+	if a.RadiusKM <= 0 {
+		a.RadiusKM = 25
+	}
+
+	defaultLat := -6.2464309
+	defaultLon := 106.7707263
+	if a.Latitude == nil || *a.Latitude == 0 {
+		a.Latitude = &defaultLat
+	}
+	if a.Longitude == nil || *a.Longitude == 0 {
+		a.Longitude = &defaultLon
+	}
+
 	a.IsActive = true
 	if err := h.repo.Create(&a); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

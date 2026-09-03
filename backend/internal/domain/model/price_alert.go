@@ -12,6 +12,8 @@ type PriceAlert struct {
 	Keyword           string         `gorm:"type:varchar(255);not null" json:"keyword"`
 	MaxPrice          float64        `gorm:"type:decimal(15,2);not null" json:"max_price"`
 	Location          string         `gorm:"type:varchar(255)" json:"location"`
+	Latitude          *float64       `gorm:"type:decimal(10,7)" json:"latitude"`
+	Longitude         *float64       `gorm:"type:decimal(10,7)" json:"longitude"`
 	RadiusKM          int            `gorm:"default:50" json:"radius_km"`
 	Category          string         `gorm:"type:varchar(100)" json:"category"`
 	IsActive          bool           `gorm:"default:true" json:"is_active"`

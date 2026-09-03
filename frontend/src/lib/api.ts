@@ -1,4 +1,4 @@
-import { Listing, WatchlistItem, SavedSearch, PriceAlert, SearchResponse, TelegramSetting } from '@/types';
+import { Listing, WatchlistItem, SavedSearch, PriceAlert, SearchResponse, TelegramSetting, WatcherStatus } from '@/types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
@@ -201,4 +201,18 @@ export async function disconnectTelegram(): Promise<void> {
     method: 'POST',
   });
   if (!res.ok) throw new Error('Gagal memutuskan koneksi Telegram');
+}
+
+export async function getWatcherStatus(): Promise<WatcherStatus> {
+  const res = await fetch(`${API_BASE}/alerts/watcher/status`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Gagal mengambil status watcher');
+  const json = await res.json();
+  return json.data;
+}
+
+export async function scanNow(): Promise<void> {
+  const res = await fetch(`${API_BASE}/alerts/scan-now`, {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error('Gagal memicu pemindaian');
 }

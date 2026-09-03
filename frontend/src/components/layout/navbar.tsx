@@ -1,5 +1,7 @@
 'use client';
 
+import { ScraperStatusBar } from '@/components/alerts/scraper-status-bar';
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -186,6 +188,9 @@ export function Navbar({
             <Bell className="h-5 w-5" />
             <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-[#FF0000]" />
           </Link>
+
+          {/* Scraper Live Status Badge */}
+          <ScraperStatusBar compact />
 
           {/* Facebook Session Button */}
           <button

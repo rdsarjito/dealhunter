@@ -82,3 +82,13 @@ export interface TelegramSetting {
   is_active: boolean;
   created_at: string;
 }
+
+export interface WatcherStatus {
+  is_scanning: boolean;
+  current_keyword?: string;
+  last_scan_at?: string;
+  last_scan_duration_ms?: number;
+  last_items_found?: number;
+  interval_minutes?: number;
+  next_scan_at?: string;
+}

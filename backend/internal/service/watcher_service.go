@@ -12,15 +12,30 @@ import (
 	"github.com/rdsarjito/dealhunter-backend/internal/scraper"
 )
 
+type WatcherStatus struct {
+	IsScanning         bool       `json:"is_scanning"`
+	CurrentKeyword     string     `json:"current_keyword"`
+	LastScanAt         *time.Time `json:"last_scan_at"`
+	LastScanDurationMs int64      `json:"last_scan_duration_ms"`
+	LastItemsFound     int        `json:"last_items_found"`
+	IntervalMinutes    int        `json:"interval_minutes"`
+	NextScanAt         *time.Time `json:"next_scan_at"`
+}
+
 type AlertWatcher struct {
-	alertRepo    *repository.AlertRepository
-	listingRepo  *repository.ListingRepository
-	telegramRepo *repository.TelegramSettingRepository
-	scraper      scraper.MarketplaceScraper
-	notifier     *notifier.TelegramNotifier
-	interval     time.Duration
-	mu           sync.Mutex
-	isScanning   bool
+	alertRepo        *repository.AlertRepository
+	listingRepo      *repository.ListingRepository
+	telegramRepo     *repository.TelegramSettingRepository
+	scraper          scraper.MarketplaceScraper
+	notifier         *notifier.TelegramNotifier
+	interval         time.Duration
+	mu               sync.Mutex
+	isScanning       bool
+	currentKeyword   string
+	lastScanAt       *time.Time
+	lastScanDuration time.Duration
+	lastItemsFound   int
+	nextScanAt       *time.Time
 }
 
 func NewAlertWatcher(
@@ -78,11 +93,21 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 		return 0
 	}
 	w.isScanning = true
+	w.currentKeyword = "Menyiapkan browser..."
+	start := time.Now()
 	w.mu.Unlock()
 
+	totalItemsScraped := 0
 	defer func() {
 		w.mu.Lock()
 		w.isScanning = false
+		w.currentKeyword = ""
+		now := time.Now()
+		w.lastScanAt = &now
+		w.lastScanDuration = time.Since(start)
+		w.lastItemsFound = totalItemsScraped
+		next := now.Add(w.interval)
+		w.nextScanAt = &next
 		w.mu.Unlock()
 	}()
 
@@ -113,6 +138,10 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 		default:
 		}
 
+		w.mu.Lock()
+		w.currentKeyword = alert.Keyword
+		w.mu.Unlock()
+
 		log.Printf("[AlertWatcher] Checking alert: '%s' in '%s' (Target <= Rp %.0f)",
 			alert.Keyword, alert.Location, alert.MaxPrice)
 
@@ -121,6 +150,7 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 		if err != nil || len(items) == 0 {
 			continue
 		}
+		totalItemsScraped += len(items)
 
 		// Save new listings to DB
 		savedListings, _ := w.listingRepo.UpsertScrapedItems(items, alert.Keyword)
@@ -181,4 +211,27 @@ func matchesAlertLocation(alertLoc string, radiusKM int, itemLoc string) bool {
 	}
 
 	return strings.Contains(il, al) || strings.Contains(al, il)
+}
+
+func (w *AlertWatcher) GetStatus() WatcherStatus {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	var nextScan *time.Time
+	if w.nextScanAt != nil {
+		nextScan = w.nextScanAt
+	} else if w.lastScanAt != nil {
+		t := w.lastScanAt.Add(w.interval)
+		nextScan = &t
+	}
+
+	return WatcherStatus{
+		IsScanning:         w.isScanning,
+		CurrentKeyword:     w.currentKeyword,
+		LastScanAt:         w.lastScanAt,
+		LastScanDurationMs: w.lastScanDuration.Milliseconds(),
+		LastItemsFound:     w.lastItemsFound,
+		IntervalMinutes:    int(w.interval.Minutes()),
+		NextScanAt:         nextScan,
+	}
 }

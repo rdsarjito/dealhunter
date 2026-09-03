@@ -121,6 +121,7 @@ func main() {
 	api.Put("/alerts/:id/toggle", alertHandler.Toggle)
 	api.Delete("/alerts/:id", alertHandler.Delete)
 	api.Post("/alerts/scan-now", alertHandler.ScanNow)
+	api.Get("/alerts/watcher/status", alertHandler.GetWatcherStatus)
 	api.Get("/alerts/:id/listings", alertHandler.GetAlertListings)
 
 	// Telegram Settings & Test

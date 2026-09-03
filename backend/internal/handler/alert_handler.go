@@ -169,3 +169,18 @@ func (h *AlertHandler) GetAlertListings(c *fiber.Ctx) error {
 		"data":   listings,
 	})
 }
+
+func (h *AlertHandler) GetWatcherStatus(c *fiber.Ctx) error {
+	if h.watcher == nil {
+		return c.JSON(fiber.Map{
+			"status": true,
+			"data": fiber.Map{
+				"is_scanning": false,
+			},
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status": true,
+		"data":   h.watcher.GetStatus(),
+	})
+}

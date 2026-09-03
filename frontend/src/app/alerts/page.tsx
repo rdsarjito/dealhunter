@@ -1,5 +1,7 @@
 'use client';
 
+import { ScraperStatusBar } from '@/components/alerts/scraper-status-bar';
+
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/navbar';
 import { YouTubeSidebar } from '@/components/layout/youtube-sidebar';
@@ -131,6 +133,9 @@ export default function AlertsPage() {
                 {telegramConnected ? 'Pengaturan Bot' : 'Hubungkan Telegram'}
               </button>
             </div>
+
+            {/* Scraper Live Status & Control Bar */}
+            <ScraperStatusBar onScanTriggered={loadAlerts} />
 
             {/* Loading */}
             {isLoading && (

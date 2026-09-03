@@ -84,7 +84,7 @@ export function AlertModal({
           <div>
             <DialogTitle className="text-base font-bold text-foreground">Pasang Price Alert Baru</DialogTitle>
             <DialogDescription className="text-xs text-[#606060] dark:text-[#AAAAAA]">
-              Robot scanner memantau Facebook Marketplace otomatis setiap 2 menit.
+              Robot scanner memantau Facebook Marketplace otomatis setiap 15 menit.
             </DialogDescription>
           </div>
         </DialogHeader>

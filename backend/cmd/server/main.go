@@ -55,8 +55,8 @@ func main() {
 	// Services
 	searchService := service.NewSearchService(listingRepo, alertRepo, telegramRepo, fbScraper, telegramNotifier)
 
-	// Background Alert Watcher (Automatically scans Facebook Marketplace every 2 minutes)
-	alertWatcher := service.NewAlertWatcher(alertRepo, listingRepo, telegramRepo, fbScraper, telegramNotifier, 2*time.Minute)
+	// Background Alert Watcher (Automatically scans Facebook Marketplace every 15 minutes)
+	alertWatcher := service.NewAlertWatcher(alertRepo, listingRepo, telegramRepo, fbScraper, telegramNotifier, 15*time.Minute)
 	alertWatcher.Start(context.Background())
 
 	// Handlers

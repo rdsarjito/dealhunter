@@ -53,7 +53,7 @@ func (s *SearchService) Search(ctx context.Context, req dto.SearchRequest) (*dto
 	// If no results or user requested live scrape, trigger scraper
 	if err != nil || total == 0 || req.LiveScrape {
 		log.Printf("[SearchService] Triggering scraper for keyword='%s', location='%s'", req.Keyword, req.Location)
-		items, err := s.scraper.Search(ctx, req.Keyword, req.Location, req.MinPrice, req.MaxPrice)
+		items, err := s.scraper.Search(ctx, req.Keyword, req.Location, req.RadiusKM, req.MinPrice, req.MaxPrice)
 		if err == nil && len(items) > 0 {
 			scrapedLive = true
 			_, _ = s.listingRepo.UpsertScrapedItems(items, req.Keyword)

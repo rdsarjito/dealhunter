@@ -117,7 +117,7 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 			alert.Keyword, alert.Location, alert.MaxPrice)
 
 		// Search Facebook Marketplace
-		items, err := w.scraper.Search(ctx, alert.Keyword, alert.Location, nil, nil)
+		items, err := w.scraper.Search(ctx, alert.Keyword, alert.Location, alert.RadiusKM, nil, nil)
 		if err != nil || len(items) == 0 {
 			continue
 		}

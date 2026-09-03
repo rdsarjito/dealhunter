@@ -117,7 +117,7 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
             Belum ada penjual yang baru memposting iklan <strong>“{alert.keyword}”</strong> dengan harga &le; {formatRupiah(alert.max_price)} di area {alert.location || 'sekitar Anda'}.
           </p>
           <p className="text-[11px] text-muted-foreground leading-relaxed">
-            Robot mengintai Facebook Marketplace setiap 2 menit. Detik ketika ada orang baru yang upload iklan cocok, iklannya langsung disambar masuk ke sini dan dikabari ke Telegram Anda!
+            Robot mengintai Facebook Marketplace setiap 15 menit. Detik ketika ada orang baru yang upload iklan cocok, iklannya langsung disambar masuk ke sini dan dikabari ke Telegram Anda!
           </p>
         </div>
         <div className="flex justify-center gap-3 pt-2">

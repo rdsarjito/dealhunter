@@ -102,29 +102,33 @@ func isForeignListing(loc, text string, price float64) bool {
 	return false
 }
 
-// Search queries Facebook Marketplace for fresh new listings only (Strictly Newest / Just Listed)
-func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, minPrice, maxPrice *float64) ([]ScrapedItem, error) {
+// Search queries Facebook Marketplace by distance_ascend within user radius
+func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, radiusKM int, minPrice, maxPrice *float64) ([]ScrapedItem, error) {
 	citySlug := toFacebookCitySlug(location)
+	if radiusKM <= 0 {
+		radiusKM = 20
+	}
 
-	// Strictly fetch newest listings posted in the last minutes
-	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search/?query=%s&sortBy=creation_time_descend",
+	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search?daysSinceListed=1&sortBy=distance_ascend&query=%s&exact=false&radius=%d",
 		url.PathEscape(citySlug),
 		url.QueryEscape(keyword),
+		radiusKM,
 	)
 
-	log.Printf("[Scraper] Patrolling newest FB listings for '%s' in '%s' -> %s", keyword, location, searchURL)
+	log.Printf("[Scraper] Patrolling FB Marketplace (Radius: %d km, daysSinceListed=1, distance_ascend): '%s' in '%s' -> %s",
+		radiusKM, keyword, location, searchURL)
 
-	items, err := s.scrapeWithRod(ctx, searchURL, keyword, location)
+	items, err := s.scrapeWithRod(ctx, searchURL, keyword, location, radiusKM)
 	if err != nil {
 		log.Printf("[Scraper] Scrape error for '%s': %v", keyword, err)
 		return nil, nil
 	}
 
-	log.Printf("[Scraper] Found %d freshly listed items for '%s'", len(items), keyword)
+	log.Printf("[Scraper] Found %d matching '%s' items within %d km", len(items), keyword, radiusKM)
 	return items, nil
 }
 
-func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword, defaultLocation string) ([]ScrapedItem, error) {
+func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword, defaultLocation string, radiusKM int) ([]ScrapedItem, error) {
 	// Setup launcher with stealth flags and Indonesian language
 	path, _ := launcher.LookPath()
 	u := launcher.New().
@@ -162,87 +166,107 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 	// Wait up to 5 seconds for content
 	_ = page.Timeout(5 * time.Second).WaitLoad()
 
-	// Scroll down multiple times to load deeper listings from past hours
-	for s := 0; s < 3; s++ {
-		_ = page.Mouse.Scroll(0, 800, 4)
-		time.Sleep(1 * time.Second)
-	}
-
-	links, err := page.Elements("a[href*='/marketplace/item/']")
-	if err != nil || len(links) == 0 {
-		return nil, fmt.Errorf("no marketplace listing elements found")
-	}
-
 	var results []ScrapedItem
 	seenIDs := make(map[string]bool)
 	priceRegex := regexp.MustCompile(`(?:Rp\.?|IDR)\s*([\d\.,]+)`)
+	distRegex := regexp.MustCompile(`(?i)(\d+(?:\.\d+)?)\s*(?:km|kilometer)`)
 
-	for _, link := range links {
-		href, _ := link.Attribute("href")
-		if href == nil || *href == "" {
-			continue
-		}
+	stopScraping := false
 
-		fullURL := *href
-		if !strings.HasPrefix(fullURL, "http") {
-			fullURL = "https://www.facebook.com" + fullURL
-		}
+	// Continuously scroll and scrape until radius limit is exceeded
+	for scrollAttempt := 0; scrollAttempt < 15; scrollAttempt++ {
+		links, err := page.Elements("a[href*='/marketplace/item/']")
+		if err == nil && len(links) > 0 {
+			for _, link := range links {
+				text, _ := link.Text()
 
-		parts := strings.Split(*href, "/marketplace/item/")
-		if len(parts) < 2 {
-			continue
-		}
-		idParts := strings.Split(parts[1], "/")
-		itemID := strings.Trim(idParts[0], "?&")
-		if itemID == "" || seenIDs[itemID] {
-			continue
-		}
-		seenIDs[itemID] = true
+				// If item distance is explicitly stated and exceeds radius limit, stop scraping!
+				if match := distRegex.FindStringSubmatch(text); len(match) > 1 {
+					if distVal, err := strconv.ParseFloat(match[1], 64); err == nil {
+						if distVal > float64(radiusKM) {
+							log.Printf("[Scraper] Item distance %.1f km exceeds radius limit %d km. Stopping scrape!", distVal, radiusKM)
+							stopScraping = true
+							break
+						}
+					}
+				}
 
-		text, _ := link.Text()
-		imgEl, _ := link.Element("img")
-		imgSrc := ""
-		if imgEl != nil {
-			src, _ := imgEl.Attribute("src")
-			if src != nil {
-				imgSrc = *src
+				href, _ := link.Attribute("href")
+				if href == nil || *href == "" {
+					continue
+				}
+
+				parts := strings.Split(*href, "/marketplace/item/")
+				if len(parts) < 2 {
+					continue
+				}
+				idParts := strings.Split(parts[1], "/")
+				itemID := strings.Trim(idParts[0], "?&")
+				if itemID == "" || seenIDs[itemID] {
+					continue
+				}
+				seenIDs[itemID] = true
+
+				price := parsePrice(text, priceRegex)
+				title, loc := parseTitleAndLocation(text, keyword, defaultLocation, priceRegex)
+
+				// Strict check: Title MUST contain the keyword (e.g. 'monitor')
+				if !strings.Contains(strings.ToLower(title), strings.ToLower(keyword)) {
+					continue
+				}
+
+				// Filter out foreign listings
+				if isForeignListing(loc, text, price) {
+					continue
+				}
+
+				if title == "" {
+					title = fmt.Sprintf("%s Pilihan", titleCase(keyword))
+				}
+				if loc == "" {
+					loc = defaultLocation
+				}
+
+				imgEl, _ := link.Element("img")
+				imgSrc := ""
+				if imgEl != nil {
+					src, _ := imgEl.Attribute("src")
+					if src != nil {
+						imgSrc = *src
+					}
+				}
+
+				fullURL := *href
+				if !strings.HasPrefix(fullURL, "http") {
+					fullURL = "https://www.facebook.com" + fullURL
+				}
+
+				now := time.Now()
+				results = append(results, ScrapedItem{
+					FBListingID: itemID,
+					Title:       title,
+					Description: fmt.Sprintf("Listing %s di %s. Cek kondisi dan tawar via Facebook Marketplace.", title, loc),
+					Price:       price,
+					Currency:    "IDR",
+					Location:    loc,
+					Category:    detectCategory(keyword),
+					Condition:   "Bekas - Siap Pakai",
+					SellerName:  "Penjual FB Marketplace",
+					Images:      []string{imgSrc},
+					FBURL:       fullURL,
+					ListedAt:    &now,
+				})
 			}
 		}
 
-		price := parsePrice(text, priceRegex)
-		title, loc := parseTitleAndLocation(text, keyword, defaultLocation, priceRegex)
-
-		// Filter out foreign or dollar-parsed items immediately
-		if isForeignListing(loc, text, price) {
-			continue
-		}
-
-		if title == "" {
-			title = fmt.Sprintf("%s Pilihan", titleCase(keyword))
-		}
-		if loc == "" {
-			loc = defaultLocation
-		}
-
-		now := time.Now()
-		results = append(results, ScrapedItem{
-			FBListingID: itemID,
-			Title:       title,
-			Description: fmt.Sprintf("Listing %s di %s. Cek kondisi dan tawar via Facebook Marketplace.", title, loc),
-			Price:       price,
-			Currency:    "IDR",
-			Location:    loc,
-			Category:    detectCategory(keyword),
-			Condition:   "Bekas - Siap Pakai",
-			SellerName:  "Penjual FB Marketplace",
-			Images:      []string{imgSrc},
-			FBURL:       fullURL,
-			ListedAt:    &now,
-		})
-
-		if len(results) >= 50 {
+		if stopScraping {
+			log.Printf("[Scraper] Reached radius threshold (%d km). Stopped at %d items.", radiusKM, len(results))
 			break
 		}
+
+		// Scroll down to load further distance items
+		_ = page.Mouse.Scroll(0, 1000, 4)
+		time.Sleep(1 * time.Second)
 	}
 
 	return results, nil

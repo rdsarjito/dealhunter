@@ -98,7 +98,7 @@ func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, 
 	citySlug := toFacebookCitySlug(location)
 
 	// Always scrape valid city query on Facebook Marketplace
-	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search/?query=%s",
+	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search/?query=%s&sortBy=creation_time_descend",
 		url.PathEscape(citySlug),
 		url.QueryEscape(keyword),
 	)
@@ -139,9 +139,11 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 	// Wait up to 5 seconds for content
 	_ = page.Timeout(5 * time.Second).WaitLoad()
 
-	// Scroll slightly to load content
-	_ = page.Mouse.Scroll(0, 400, 4)
-	time.Sleep(1 * time.Second)
+	// Scroll down multiple times to load deeper listings from past hours
+	for s := 0; s < 3; s++ {
+		_ = page.Mouse.Scroll(0, 800, 4)
+		time.Sleep(1 * time.Second)
+	}
 
 	links, err := page.Elements("a[href*='/marketplace/item/']")
 	if err != nil || len(links) == 0 {
@@ -215,7 +217,7 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 			ListedAt:    &now,
 		})
 
-		if len(results) >= 24 {
+		if len(results) >= 50 {
 			break
 		}
 	}

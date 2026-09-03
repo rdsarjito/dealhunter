@@ -196,7 +196,7 @@ export default function AlertsPage() {
 
                         <div className="flex items-center gap-1 font-bold text-[#FF0000]">
                           <Radio className="h-3.5 w-3.5 animate-pulse" />
-                          <span>Dideteksi: {a.trigger_count}x</span>
+                          <span>Dipindai: {a.trigger_count}x</span>
                         </div>
 
                         {a.last_matched_item && (
@@ -217,7 +217,7 @@ export default function AlertsPage() {
                         title="Buka tampilan Watch Page ala YouTube"
                       >
                         <Play className="h-3 w-3 fill-white" />
-                        <span>Tonton Hasil ({a.trigger_count})</span>
+                        <span>Tonton Hasil ({a.match_count !== undefined ? a.match_count : a.trigger_count})</span>
                         <ChevronRight className="h-3.5 w-3.5" />
                       </button>
 

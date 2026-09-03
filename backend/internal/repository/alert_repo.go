@@ -24,7 +24,15 @@ func (r *AlertRepository) Create(a *model.PriceAlert) error {
 func (r *AlertRepository) GetAll() ([]model.PriceAlert, error) {
 	var alerts []model.PriceAlert
 	err := r.db.Order("created_at DESC").Find(&alerts).Error
-	return alerts, err
+	if err != nil {
+		return alerts, err
+	}
+	for i := range alerts {
+		if listings, err := r.GetMatchingListings(&alerts[i]); err == nil {
+			alerts[i].MatchCount = len(listings)
+		}
+	}
+	return alerts, nil
 }
 
 func (r *AlertRepository) GetActive() ([]model.PriceAlert, error) {

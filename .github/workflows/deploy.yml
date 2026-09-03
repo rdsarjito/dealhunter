@@ -25,17 +25,23 @@ jobs:
             cp .env.example .env
           fi
 
-          echo "📦 Building & deploying containers..."
-          # Retry up to 3 times in case of transient Docker Hub network errors
+          echo "📦 Building & deploying containers with --force-recreate..."
+          SUCCESS=0
           for attempt in 1 2 3; do
-            if docker compose up -d --build; then
+            if docker compose up -d --build --force-recreate; then
               echo "✅ Build succeeded on attempt $attempt"
+              SUCCESS=1
               break
             else
-              echo "⚠️ Build failed on attempt $attempt, retrying in 15s..."
-              sleep 15
+              echo "⚠️ Build failed on attempt $attempt, retrying in 10s..."
+              sleep 10
             fi
           done
+
+          if [ $SUCCESS -ne 1 ]; then
+            echo "❌ Docker Compose Build failed after 3 attempts!"
+            exit 1
+          fi
 
           docker compose ps
           echo "🎉 Deployment complete!"

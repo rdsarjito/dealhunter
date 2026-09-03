@@ -2,6 +2,7 @@ package repository
 
 import (
 	"encoding/json"
+	"regexp"
 	"strings"
 	"time"
 
@@ -13,37 +14,34 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// Comprehensive list of US/foreign location indicators
-var foreignLocationIndicators = []string{
-	", CA", " CA ", "California", "Los Angeles", "San Francisco", "Monterey", "Carmel",
-	"Daly City", "Walnut Creek", "Pacifica", "Oakland", "San Jose", "San Diego",
-	"Sacramento", "Fremont", "Berkeley", "Palo Alto", "Santa Clara", "Sunnyvale",
-	", NY", " NY ", "New York", "Brooklyn", "Manhattan", "Queens",
-	", TX", " TX ", "Texas", "Houston", "Dallas", "Austin",
-	", FL", " FL ", "Florida", "Miami", "Orlando", "Tampa",
-	", WA", " WA ", "Seattle", "Portland",
-	", IL", " IL ", "Chicago",
-	"United States", "USA", "U.S.A",
+var usStateRegex = regexp.MustCompile(`(?i),\s*(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b`)
+
+var foreignWords = []string{
+	"california", "los angeles", "san francisco", "texas", "florida", "new york",
+	"united states", "usa", "u.s.a", "australia", "sydney", "london", "singapore",
+	"berkeley", "sacramento", "downey", "olivehurst", "azusa", "los banos", "pittsburg",
 }
 
 // isForeignLocation checks if a location string indicates a foreign (non-Indonesian) listing
 func isForeignLocation(loc string) bool {
-	upper := strings.ToUpper(loc)
-	for _, indicator := range foreignLocationIndicators {
-		if strings.Contains(upper, strings.ToUpper(indicator)) {
+	if loc == "" {
+		return false
+	}
+	if usStateRegex.MatchString(loc) {
+		return true
+	}
+	lower := strings.ToLower(loc)
+	for _, w := range foreignWords {
+		if strings.Contains(lower, w) {
 			return true
 		}
 	}
 	return false
 }
 
-// foreignLocationSQL returns SQL WHERE clause to exclude foreign locations
+// foreignLocationSQL returns SQL WHERE clause to exclude foreign locations using Postgres regex and keywords
 func foreignLocationSQL() string {
-	clauses := []string{}
-	for _, ind := range foreignLocationIndicators {
-		clauses = append(clauses, "location NOT ILIKE '%"+strings.ReplaceAll(ind, "'", "''") +"%'")
-	}
-	return "(" + strings.Join(clauses, " AND ") + ")"
+	return "(location NOT ILIKE '%, CA%' AND location NOT ILIKE '%, NY%' AND location NOT ILIKE '%, TX%' AND location NOT ILIKE '%, FL%' AND location NOT ILIKE '%California%' AND location NOT ILIKE '%Los Angeles%' AND location NOT ILIKE '%San Francisco%' AND location NOT ILIKE '%Berkeley%' AND location NOT ILIKE '%Sacramento%' AND location NOT ILIKE '%Downey%' AND location NOT ILIKE '%Azusa%' AND location NOT ILIKE '%Los Banos%' AND location NOT ILIKE '%Olivehurst%' AND location NOT ILIKE '%USA%' AND location NOT ILIKE '%United States%')"
 }
 
 type ListingRepository struct {

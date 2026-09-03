@@ -112,6 +112,23 @@ func main() {
 	api.Post("/telegram/connect", telegramHandler.Connect)
 	api.Post("/telegram/test", telegramHandler.TestMessage)
 
+	// Admin / Maintenance API
+	api.Post("/admin/purge-foreign", func(c *fiber.Ctx) error {
+		res := db.Exec("DELETE FROM listings WHERE price < 10000 OR location ILIKE '%, CA%' OR location ILIKE '%, NY%' OR location ILIKE '%, TX%' OR location ILIKE '%, FL%' OR location ILIKE '%California%' OR location ILIKE '%Los Angeles%' OR location ILIKE '%San Francisco%' OR location ILIKE '%Berkeley%' OR location ILIKE '%Sacramento%' OR location ILIKE '%Downey%' OR location ILIKE '%Azusa%' OR location ILIKE '%Los Banos%' OR location ILIKE '%Olivehurst%' OR location ILIKE '%USA%' OR location ILIKE '%United States%'")
+		return c.JSON(fiber.Map{
+			"status":       true,
+			"deleted_rows": res.RowsAffected,
+			"message":      "Pembersihan listing asing dan harga abnormal berhasil dijalankan.",
+		})
+	})
+	api.Post("/admin/clear-all", func(c *fiber.Ctx) error {
+		db.Exec("TRUNCATE listings, price_histories CASCADE; DELETE FROM price_alerts;")
+		return c.JSON(fiber.Map{
+			"status":  true,
+			"message": "Semua data listings, riwayat harga, dan alerts berhasil dibersihkan total.",
+		})
+	})
+
 	port := fmt.Sprintf(":%s", cfg.AppPort)
 	log.Printf("DealHunter server starting on port %s", port)
 	if err := app.Listen(port); err != nil {

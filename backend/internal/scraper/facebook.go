@@ -55,15 +55,23 @@ func toFacebookCitySlug(loc string) string {
 	}
 }
 
+var usStateRegex = regexp.MustCompile(`(?i),\s*(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b`)
+
 // Checks if a listing is foreign or priced in foreign currency
 func isForeignListing(loc, text string, price float64) bool {
+	// 1. Any US state code in location or raw card text (e.g. 'Berkeley, CA', 'Downey, CA', 'Dallas, TX')
+	if usStateRegex.MatchString(loc) || usStateRegex.MatchString(text) {
+		return true
+	}
+
 	lowerLoc := strings.ToLower(loc)
 	lowerText := strings.ToLower(text)
 
 	foreignKeywords := []string{
-		", ca", " ca ", "california", "los angeles", "san francisco", "monterey", "carmel",
-		", ny", " ny ", "new york", ", tx", " tx ", "texas", ", fl", "florida",
-		"united states", "usa", "uk", "london", "sydney", "australia",
+		"california", "los angeles", "san francisco", "monterey", "carmel",
+		"berkeley", "sacramento", "downey", "olivehurst", "azusa", "los banos", "pittsburg",
+		"new york", "texas", "florida", "united states", "usa", "u.s.a",
+		"uk", "london", "sydney", "australia", "singapore",
 	}
 
 	for _, kw := range foreignKeywords {
@@ -73,7 +81,7 @@ func isForeignListing(loc, text string, price float64) bool {
 	}
 
 	// Dollar sign indicator
-	if strings.Contains(text, "$") || strings.Contains(text, "USD") {
+	if strings.Contains(text, "$") || strings.Contains(text, "USD") || strings.Contains(text, "US$") {
 		return true
 	}
 

@@ -178,11 +178,19 @@ func (h *AlertHandler) GetAlertListings(c *fiber.Ctx) error {
 		})
 	}
 
+	// Filter strictly by geographic Haversine distance radius from alert anchor
+	var validListings []model.Listing
+	for _, it := range listings {
+		if service.MatchesAlertLocation(alert, it.Location) {
+			validListings = append(validListings, it)
+		}
+	}
+
 	return c.JSON(fiber.Map{
 		"status": true,
 		"alert":  alert,
-		"count":  len(listings),
-		"data":   listings,
+		"count":  len(validListings),
+		"data":   validListings,
 	})
 }
 

@@ -167,7 +167,7 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 				}
 
 				// Check location if alert specified location
-				if alert.Location != "" && !matchesAlertLocation(&alert, item.Location) {
+				if alert.Location != "" && !MatchesAlertLocation(&alert, item.Location) {
 					continue
 				}
 
@@ -199,7 +199,7 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 		kw := "%" + strings.ToLower(alert.Keyword) + "%"
 		if err := w.listingRepo.DB().Where("LOWER(title) LIKE ? AND price >= 10000 AND price <= ?", kw, alert.MaxPrice).Find(&existingListings).Error; err == nil {
 			for _, exItem := range existingListings {
-				if !w.alertRepo.HasMatch(alert.ID, exItem.ID) && matchesAlertLocation(&alert, exItem.Location) {
+				if !w.alertRepo.HasMatch(alert.ID, exItem.ID) && MatchesAlertLocation(&alert, exItem.Location) {
 					_ = w.alertRepo.AddMatchedListing(alert.ID, exItem.ID)
 					log.Printf("[AlertWatcher] Linked existing match '%s' to alert %s", exItem.Title, alert.ID)
 				}
@@ -335,7 +335,7 @@ func resolveLocation(loc string) (GeoCoord, bool) {
 	return GeoCoord{}, false
 }
 
-func matchesAlertLocation(alert *model.PriceAlert, itemLoc string) bool {
+func MatchesAlertLocation(alert *model.PriceAlert, itemLoc string) bool {
 	if alert.Location == "" || itemLoc == "" {
 		return true
 	}

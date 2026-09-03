@@ -41,36 +41,45 @@ func (r *AlertRepository) GetByID(id uuid.UUID) (*model.PriceAlert, error) {
 
 func (r *AlertRepository) GetMatchingListings(alert *model.PriceAlert) ([]model.Listing, error) {
 	var listings []model.Listing
-	// Only show listings scraped AFTER the alert was created
-	query := r.db.Model(&model.Listing{}).Where("price >= 10000 AND price <= ? AND created_at >= ? AND " + foreignLocationSQL(), alert.MaxPrice, alert.CreatedAt)
+	baseQuery := r.db.Model(&model.Listing{}).Where("price >= 10000 AND price <= ? AND " + foreignLocationSQL(), alert.MaxPrice)
 
 	if alert.Keyword != "" {
 		terms := strings.Fields(strings.ToLower(alert.Keyword))
 		for _, term := range terms {
-			query = query.Where("LOWER(title) LIKE ? OR LOWER(description) LIKE ?", "%"+term+"%", "%"+term+"%")
+			baseQuery = baseQuery.Where("LOWER(title) LIKE ? OR LOWER(description) LIKE ?", "%"+term+"%", "%"+term+"%")
 		}
 	}
 
+	// First try location filter if provided
 	if alert.Location != "" {
-		query = query.Where("LOWER(location) LIKE ?", "%"+strings.ToLower(alert.Location)+"%")
-	}
+		locQuery := baseQuery
+		// If user specified Jakarta / Kebayoran / etc, match primary city
+		lowerLoc := strings.ToLower(alert.Location)
+		if strings.Contains(lowerLoc, "jakarta") {
+			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%jakarta%")
+		} else if strings.Contains(lowerLoc, "tangerang") {
+			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%tangerang%")
+		} else if strings.Contains(lowerLoc, "bekasi") {
+			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%bekasi%")
+		} else if strings.Contains(lowerLoc, "depok") {
+			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%depok%")
+		} else if strings.Contains(lowerLoc, "bogor") {
+			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%bogor%")
+		} else if strings.Contains(lowerLoc, "bandung") {
+			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%bandung%")
+		} else {
+			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%"+lowerLoc+"%")
+		}
 
-	err := query.Order("deal_score DESC, created_at DESC").Limit(100).Find(&listings).Error
-	if err == nil && len(listings) > 0 {
-		return listings, nil
-	}
-
-	// Fallback to broader search if location-specific yielded no rows
-	var fallbackListings []model.Listing
-	fbQuery := r.db.Model(&model.Listing{}).Where("price >= 10000 AND price <= ? AND created_at >= ? AND " + foreignLocationSQL(), alert.MaxPrice, alert.CreatedAt)
-	if alert.Keyword != "" {
-		terms := strings.Fields(strings.ToLower(alert.Keyword))
-		for _, term := range terms {
-			fbQuery = fbQuery.Where("LOWER(title) LIKE ? OR LOWER(description) LIKE ?", "%"+term+"%", "%"+term+"%")
+		err := locQuery.Order("deal_score DESC, created_at DESC").Limit(100).Find(&listings).Error
+		if err == nil && len(listings) > 0 {
+			return listings, nil
 		}
 	}
-	err = fbQuery.Order("deal_score DESC, created_at DESC").Limit(100).Find(&fallbackListings).Error
-	return fallbackListings, err
+
+	// Fallback to all Indonesian listings matching keyword and max price
+	err := baseQuery.Order("deal_score DESC, created_at DESC").Limit(100).Find(&listings).Error
+	return listings, err
 }
 
 func (r *AlertRepository) Toggle(id uuid.UUID, active bool) error {
@@ -78,17 +87,17 @@ func (r *AlertRepository) Toggle(id uuid.UUID, active bool) error {
 }
 
 func (r *AlertRepository) Delete(id uuid.UUID) error {
-	// First get alert to know keyword, then delete matching listings
+	// First get alert to know keyword, then delete matching listings (hard delete)
 	var alert model.PriceAlert
 	if err := r.db.First(&alert, "id = ?", id).Error; err == nil && alert.Keyword != "" {
 		terms := strings.Fields(strings.ToLower(alert.Keyword))
-		delQuery := r.db.Where("1=1")
+		delQuery := r.db.Unscoped().Where("1=1")
 		for _, term := range terms {
 			delQuery = delQuery.Where("LOWER(title) LIKE ? OR LOWER(description) LIKE ?", "%"+term+"%", "%"+term+"%")
 		}
 		delQuery.Delete(&model.Listing{})
 	}
-	return r.db.Delete(&model.PriceAlert{}, "id = ?", id).Error
+	return r.db.Unscoped().Delete(&model.PriceAlert{}, "id = ?", id).Error
 }
 
 func (r *AlertRepository) RecordTrigger(id uuid.UUID, matchedTitle string) error {

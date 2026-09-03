@@ -135,13 +135,13 @@ func (r *ListingRepository) UpsertScrapedItems(items []scraper.ScrapedItem, keyw
 			ScrapedAt:       time.Now(),
 		}
 
-		// Upsert based on FBListingID
-		err := r.db.Clauses(clause.OnConflict{
+		// Upsert based on FBListingID (unscoped to revive any soft-deleted rows)
+		err := r.db.Unscoped().Clauses(clause.OnConflict{
 			Columns: []clause.Column{{Name: "fb_listing_id"}},
 			DoUpdates: clause.AssignmentColumns([]string{
 				"title", "description", "price", "location", "category",
 				"condition", "images", "fb_url", "deal_score", "deal_rating",
-				"market_avg_price", "discount_percent", "scraped_at",
+				"market_avg_price", "discount_percent", "scraped_at", "deleted_at",
 			}),
 		}).Create(&l).Error
 

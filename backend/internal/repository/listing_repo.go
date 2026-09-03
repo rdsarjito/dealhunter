@@ -146,7 +146,11 @@ func (r *ListingRepository) UpsertScrapedItems(items []scraper.ScrapedItem, keyw
 		}).Create(&l).Error
 
 		if err == nil {
-			listings = append(listings, l)
+			var dbListing model.Listing
+			if r.db.Select("id").Where("fb_listing_id = ?", it.FBListingID).First(&dbListing).Error == nil {
+				l.ID = dbListing.ID
+				listings = append(listings, l)
+			}
 		}
 	}
 
@@ -287,4 +291,8 @@ func (r *ListingRepository) GetWatchlist() ([]model.Watchlist, error) {
 
 func (r *ListingRepository) RemoveFromWatchlist(id uuid.UUID) error {
 	return r.db.Delete(&model.Watchlist{}, "id = ? OR listing_id = ?", id, id).Error
+}
+
+func (r *ListingRepository) DB() *gorm.DB {
+	return r.db
 }

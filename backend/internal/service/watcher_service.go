@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/rdsarjito/dealhunter-backend/internal/domain/model"
 	"github.com/rdsarjito/dealhunter-backend/internal/notifier"
 	"github.com/rdsarjito/dealhunter-backend/internal/repository"
 	"github.com/rdsarjito/dealhunter-backend/internal/scraper"
@@ -188,6 +189,18 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 				}
 
 				totalTriggered++
+			}
+		}
+
+		// Also link any valid existing database listings matching alert keyword, price, & location
+		var existingListings []model.Listing
+		kw := "%" + strings.ToLower(alert.Keyword) + "%"
+		if err := w.listingRepo.DB().Where("LOWER(title) LIKE ? AND price >= 10000 AND price <= ?", kw, alert.MaxPrice).Find(&existingListings).Error; err == nil {
+			for _, exItem := range existingListings {
+				if !w.alertRepo.HasMatch(alert.ID, exItem.ID) && matchesAlertLocation(alert.Location, alert.RadiusKM, exItem.Location) {
+					_ = w.alertRepo.AddMatchedListing(alert.ID, exItem.ID)
+					log.Printf("[AlertWatcher] Linked existing match '%s' to alert %s", exItem.Title, alert.ID)
+				}
 			}
 		}
 

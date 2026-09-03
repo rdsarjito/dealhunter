@@ -102,25 +102,39 @@ func isForeignListing(loc, text string, price float64) bool {
 	return false
 }
 
-// Search queries Facebook Marketplace for listings
+// Search queries Facebook Marketplace for listings (dual scrape: latest minutes + earlier today)
 func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, minPrice, maxPrice *float64) ([]ScrapedItem, error) {
 	citySlug := toFacebookCitySlug(location)
 
-	// Always scrape valid city query on Facebook Marketplace
-	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search/?query=%s&sortBy=creation_time_descend",
+	// 1. Standard search captures best deals from earlier today (1 to 8 hours ago)
+	stdURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search/?query=%s",
 		url.PathEscape(citySlug),
 		url.QueryEscape(keyword),
 	)
 
-	log.Printf("[Scraper] Initiating FB Marketplace query for '%s' in '%s' (slug: %s) -> %s", keyword, location, citySlug, searchURL)
+	// 2. Newest search captures brand new listings posted just minutes ago
+	newestURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search/?query=%s&sortBy=creation_time_descend",
+		url.PathEscape(citySlug),
+		url.QueryEscape(keyword),
+	)
 
-	items, err := s.scrapeWithRod(ctx, searchURL, keyword, location)
-	if err != nil {
-		log.Printf("[Scraper] Live browser scrape encountered error for '%s': %v", keyword, err)
-		return nil, nil // Return empty list, never generate fake mock data
+	log.Printf("[Scraper] Initiating dual FB search for '%s' in '%s'...", keyword, location)
+
+	items1, _ := s.scrapeWithRod(ctx, stdURL, keyword, location)
+	items2, _ := s.scrapeWithRod(ctx, newestURL, keyword, location)
+
+	// Merge unique by FBListingID
+	seen := make(map[string]bool)
+	var combined []ScrapedItem
+	for _, it := range append(items2, items1...) {
+		if !seen[it.FBListingID] {
+			seen[it.FBListingID] = true
+			combined = append(combined, it)
+		}
 	}
 
-	return items, nil
+	log.Printf("[Scraper] Dual scrape finished: %d unique live items found for '%s'", len(combined), keyword)
+	return combined, nil
 }
 
 func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword, defaultLocation string) ([]ScrapedItem, error) {

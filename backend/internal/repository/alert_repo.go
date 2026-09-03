@@ -63,7 +63,10 @@ func (r *AlertRepository) GetMatchingListings(alert *model.PriceAlert) ([]model.
 		locQuery := baseQuery
 		// If user specified Jakarta / Kebayoran / etc, match primary city
 		lowerLoc := strings.ToLower(alert.Location)
-		if strings.Contains(lowerLoc, "jakarta") {
+		if (strings.Contains(lowerLoc, "jakarta") || strings.Contains(lowerLoc, "kebayoran")) && alert.RadiusKM >= 15 {
+			locQuery = locQuery.Where("LOWER(location) LIKE ? OR LOWER(location) LIKE ? OR LOWER(location) LIKE ? OR LOWER(location) LIKE ? OR LOWER(location) LIKE ? OR LOWER(location) LIKE ?", 
+				"%jakarta%", "%tangerang%", "%depok%", "%bekasi%", "%bogor%", "%jawa barat%")
+		} else if strings.Contains(lowerLoc, "jakarta") {
 			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%jakarta%")
 		} else if strings.Contains(lowerLoc, "tangerang") {
 			locQuery = locQuery.Where("LOWER(location) LIKE ?", "%tangerang%")

@@ -19,13 +19,17 @@ import { useSearchStore } from '@/stores/search-store';
 interface NavbarProps {
   onOpenTelegram?: () => void;
   telegramConnected?: boolean;
+  onOpenFacebook?: () => void;
+  facebookConnected?: boolean;
   onOpenAlertModal?: () => void;
   onSearchSubmit?: (keyword: string) => void;
 }
 
 export function Navbar({ 
   onOpenTelegram, 
-  telegramConnected, 
+  telegramConnected,
+  onOpenFacebook,
+  facebookConnected, 
   onOpenAlertModal, 
   onSearchSubmit 
 }: NavbarProps) {
@@ -182,6 +186,17 @@ export function Navbar({
             <Bell className="h-5 w-5" />
             <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-[#FF0000]" />
           </Link>
+
+          {/* Facebook Session Button */}
+          <button
+            type="button"
+            onClick={onOpenFacebook}
+            title={facebookConnected ? 'Akun Facebook Terhubung' : 'Hubungkan Akun Facebook Asli'}
+            className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-full border border-[#E5E5E5] dark:border-[#303030] hover:bg-[#F2F2F2] dark:hover:bg-[#272727] text-foreground flex items-center gap-1.5 transition-colors text-xs font-semibold"
+          >
+            <div className={`h-2 w-2 rounded-full ${facebookConnected ? 'bg-[#1877F2] animate-pulse' : 'bg-[#9E9E9E]'}`} />
+            <span className="hidden sm:inline">{facebookConnected ? 'FB Terhubung' : 'Login FB'}</span>
+          </button>
 
           {/* YouTube Profile Avatar Circle */}
           <button

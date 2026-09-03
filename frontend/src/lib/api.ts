@@ -169,3 +169,29 @@ export async function sendTestTelegram(chatId?: string): Promise<void> {
     throw new Error(json.message || 'Gagal mengirim pesan tes');
   }
 }
+
+export async function getFacebookStatus(): Promise<{ is_connected: boolean; account_name?: string; c_user?: string }> {
+  const res = await fetch(`${API_BASE}/facebook/status`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Gagal memeriksa status Facebook');
+  return res.json();
+}
+
+export async function connectFacebook(rawCookie: string, cUser: string = '', xsToken: string = ''): Promise<any> {
+  const res = await fetch(`${API_BASE}/facebook/connect`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ raw_cookie: rawCookie, c_user: cUser, xs_token: xsToken }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Gagal menghubungkan akun Facebook');
+  return json;
+}
+
+export async function disconnectFacebook(): Promise<any> {
+  const res = await fetch(`${API_BASE}/facebook/disconnect`, {
+    method: 'POST',
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Gagal memutus akun Facebook');
+  return json;
+}

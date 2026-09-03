@@ -15,6 +15,7 @@ import {
   Gamepad2, 
   Send,
   Play,
+  KeyRound,
   Flame,
   ChevronRight,
   Menu
@@ -24,9 +25,11 @@ import { useSearchStore } from '@/stores/search-store';
 interface YouTubeSidebarProps {
   onOpenTelegram?: () => void;
   telegramConnected?: boolean;
+  onOpenFacebook?: () => void;
+  facebookConnected?: boolean;
 }
 
-export function YouTubeSidebar({ onOpenTelegram, telegramConnected }: YouTubeSidebarProps) {
+export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebook, facebookConnected }: YouTubeSidebarProps) {
   const pathname = usePathname();
   const { 
     drawerOpen, 
@@ -214,6 +217,23 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected }: YouTubeSid
             <span className="truncate">Bot Telegram</span>
             <span className="text-[10px] text-[#606060] dark:text-[#AAAAAA] truncate">
               {telegramConnected ? 'Aktif terhubung' : 'Belum terhubung'}
+            </span>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            onOpenFacebook?.();
+            setDrawerOpen(false);
+          }}
+          className="w-full flex items-center gap-6 px-3 h-10 rounded-xl text-foreground hover:bg-[#F2F2F2] dark:hover:bg-[#272727] transition-all duration-150 text-left active:scale-[0.98]"
+        >
+          <KeyRound className={`h-5 w-5 shrink-0 ${facebookConnected ? 'text-[#1877F2]' : 'text-[#606060] dark:text-[#AAAAAA]'}`} />
+          <div className="flex flex-col min-w-0">
+            <span className="truncate">Akun Facebook</span>
+            <span className="text-[10px] text-[#606060] dark:text-[#AAAAAA] truncate">
+              {facebookConnected ? 'Sesi asli aktif' : 'Mode tamu (tanpa akun)'}
             </span>
           </div>
         </button>

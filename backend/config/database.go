@@ -38,6 +38,7 @@ func InitDatabase(cfg *Config) *gorm.DB {
 		&model.PriceHistory{},
 		&model.SearchHistory{},
 		&model.TelegramSetting{},
+		&model.FacebookSetting{},
 	)
 	if err != nil {
 		log.Fatalf("[DB] Failed to run auto migration: %v", err)

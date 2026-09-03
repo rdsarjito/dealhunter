@@ -7,7 +7,8 @@ import { YouTubeBottomNav } from '@/components/layout/youtube-bottom-nav';
 import { AlertModal } from '@/components/alerts/alert-modal';
 import { AlertWatchPage } from '@/components/alerts/alert-watch-page';
 import { TelegramSettingsModal } from '@/components/telegram/telegram-settings-modal';
-import { getAlerts, toggleAlert, deleteAlert, getTelegramStatus } from '@/lib/api';
+import { FacebookSessionModal } from '@/components/facebook/facebook-session-modal';
+import { getAlerts, toggleAlert, deleteAlert, getTelegramStatus, getFacebookStatus } from '@/lib/api';
 import { PriceAlert } from '@/types';
 import { formatRupiah } from '@/lib/format';
 import { 
@@ -29,11 +30,14 @@ export default function AlertsPage() {
   const [alertModalOpen, setAlertModalOpen] = useState(false);
   const [telegramOpen, setTelegramOpen] = useState(false);
   const [telegramConnected, setTelegramConnected] = useState(false);
+  const [facebookOpen, setFacebookOpen] = useState(false);
+  const [facebookConnected, setFacebookConnected] = useState(false);
   const [activeWatchAlert, setActiveWatchAlert] = useState<PriceAlert | null>(null);
 
   useEffect(() => {
     loadAlerts();
     getTelegramStatus().then((res) => setTelegramConnected(res.connected)).catch(() => {});
+    getFacebookStatus().then((res) => setFacebookConnected(res.is_connected)).catch(() => {});
   }, []);
 
   const loadAlerts = async () => {
@@ -76,12 +80,16 @@ export default function AlertsPage() {
       <Navbar
         onOpenTelegram={() => setTelegramOpen(true)}
         telegramConnected={telegramConnected}
+        onOpenFacebook={() => setFacebookOpen(true)}
+        facebookConnected={facebookConnected}
         onOpenAlertModal={() => setAlertModalOpen(true)}
       />
 
       <YouTubeSidebar
         onOpenTelegram={() => setTelegramOpen(true)}
         telegramConnected={telegramConnected}
+        onOpenFacebook={() => setFacebookOpen(true)}
+        facebookConnected={facebookConnected}
       />
 
       <main className="w-full px-4 sm:px-6 py-4 space-y-4">
@@ -262,6 +270,12 @@ export default function AlertsPage() {
         onOpenChange={setTelegramOpen}
         onConnectedSuccess={() => setTelegramConnected(true)}
         isConnected={telegramConnected}
+      />
+
+      <FacebookSessionModal
+        open={facebookOpen}
+        onOpenChange={setFacebookOpen}
+        onConnectedSuccess={() => setFacebookConnected(true)}
       />
     </div>
   );

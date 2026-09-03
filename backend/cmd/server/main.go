@@ -32,9 +32,14 @@ func main() {
 	savedRepo := repository.NewSavedSearchRepository(db)
 	alertRepo := repository.NewAlertRepository(db)
 	telegramRepo := repository.NewTelegramSettingRepository(db)
+	fbSettingRepo := repository.NewFacebookSettingRepository(db)
 
 	// Scraper & Notifier
 	fbScraper := scraper.NewFacebookScraper(true)
+	if fbSetting, err := fbSettingRepo.GetActive(); err == nil && fbSetting != nil {
+		fbScraper.SetSession(fbSetting.CUser, fbSetting.XSToken, fbSetting.RawCookie)
+		log.Printf("[FB] Restored active session for %s (c_user: %s)", fbSetting.AccountName, fbSetting.CUser)
+	}
 	telegramNotifier := notifier.NewTelegramNotifier(cfg.TelegramBotToken)
 
 	// Services
@@ -50,6 +55,7 @@ func main() {
 	savedHandler := handler.NewSavedHandler(savedRepo)
 	alertHandler := handler.NewAlertHandler(alertRepo, alertWatcher)
 	telegramHandler := handler.NewTelegramHandler(telegramRepo, telegramNotifier)
+	fbHandler := handler.NewFacebookHandler(fbSettingRepo, fbScraper)
 
 	// Fiber app
 	app := fiber.New(fiber.Config{
@@ -111,6 +117,11 @@ func main() {
 	api.Get("/telegram/status", telegramHandler.GetStatus)
 	api.Post("/telegram/connect", telegramHandler.Connect)
 	api.Post("/telegram/test", telegramHandler.TestMessage)
+
+	// Facebook Session Settings
+	api.Get("/facebook/status", fbHandler.GetStatus)
+	api.Post("/facebook/connect", fbHandler.Connect)
+	api.Post("/facebook/disconnect", fbHandler.Disconnect)
 
 	// Admin / Maintenance API
 	api.Post("/admin/purge-foreign", func(c *fiber.Ctx) error {

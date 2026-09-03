@@ -9,8 +9,9 @@ import { ListingGrid } from '@/components/listing/listing-grid';
 import { ListingDetailModal } from '@/components/listing/listing-detail-modal';
 import { AlertModal } from '@/components/alerts/alert-modal';
 import { TelegramSettingsModal } from '@/components/telegram/telegram-settings-modal';
+import { FacebookSessionModal } from '@/components/facebook/facebook-session-modal';
 import { useSearchStore } from '@/stores/search-store';
-import { searchListings, createSavedSearch, getTelegramStatus } from '@/lib/api';
+import { searchListings, createSavedSearch, getTelegramStatus, getFacebookStatus } from '@/lib/api';
 import { Listing, SearchResponse } from '@/types';
 
 export default function HomePage() {
@@ -31,6 +32,8 @@ export default function HomePage() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [telegramOpen, setTelegramOpen] = useState(false);
   const [telegramConnected, setTelegramConnected] = useState(false);
+  const [facebookOpen, setFacebookOpen] = useState(false);
+  const [facebookConnected, setFacebookConnected] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [searchData, setSearchData] = useState<SearchResponse | null>(null);
@@ -39,6 +42,9 @@ export default function HomePage() {
   useEffect(() => {
     getTelegramStatus().then((res) => {
       setTelegramConnected(res.connected);
+    }).catch(() => {});
+    getFacebookStatus().then((res) => {
+      setFacebookConnected(res.is_connected);
     }).catch(() => {});
   }, []);
 
@@ -169,6 +175,12 @@ export default function HomePage() {
         onOpenChange={setTelegramOpen}
         onConnectedSuccess={() => setTelegramConnected(true)}
         isConnected={telegramConnected}
+      />
+
+      <FacebookSessionModal
+        open={facebookOpen}
+        onOpenChange={setFacebookOpen}
+        onConnectedSuccess={() => setFacebookConnected(true)}
       />
     </div>
   );

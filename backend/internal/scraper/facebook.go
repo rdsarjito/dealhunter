@@ -16,13 +16,22 @@ import (
 )
 
 type FacebookScraper struct {
-	headless bool
+	headless   bool
+	cUser      string
+	xsToken    string
+	rawCookies string
 }
 
 func NewFacebookScraper(headless bool) *FacebookScraper {
 	return &FacebookScraper{
 		headless: headless,
 	}
+}
+
+func (s *FacebookScraper) SetSession(cUser, xsToken, rawCookies string) {
+	s.cUser = cUser
+	s.xsToken = xsToken
+	s.rawCookies = rawCookies
 }
 
 // Maps Indonesian addresses/districts to valid canonical Facebook Marketplace city slugs
@@ -106,9 +115,9 @@ func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, 
 	log.Printf("[Scraper] Initiating FB Marketplace query for '%s' in '%s' (slug: %s) -> %s", keyword, location, citySlug, searchURL)
 
 	items, err := s.scrapeWithRod(ctx, searchURL, keyword, location)
-	if err != nil || len(items) == 0 {
-		log.Printf("[Scraper] Live browser scrape yielded %d items (err: %v). Utilizing smart market deal engine...", len(items), err)
-		return GenerateMarketDeals(keyword, location, minPrice, maxPrice), nil
+	if err != nil {
+		log.Printf("[Scraper] Live browser scrape encountered error for '%s': %v", keyword, err)
+		return nil, nil // Return empty list, never generate fake mock data
 	}
 
 	return items, nil
@@ -135,6 +144,19 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 		return nil, err
 	}
 	defer page.Close()
+
+	// Inject authenticated Facebook session if configured
+	if s.rawCookies != "" {
+		cookies := parseRawCookies(s.rawCookies)
+		if len(cookies) > 0 {
+			_ = page.SetCookies(cookies)
+		}
+	} else if s.cUser != "" && s.xsToken != "" {
+		_ = page.SetCookies([]*proto.NetworkCookieParam{
+			{Name: "c_user", Value: s.cUser, Domain: ".facebook.com", Path: "/"},
+			{Name: "xs", Value: s.xsToken, Domain: ".facebook.com", Path: "/"},
+		})
+	}
 
 	// Wait up to 5 seconds for content
 	_ = page.Timeout(5 * time.Second).WaitLoad()
@@ -283,3 +305,28 @@ func parsePrice(raw string, re *regexp.Regexp) float64 {
 }
 
 
+
+func parseRawCookies(raw string) []*proto.NetworkCookieParam {
+	var params []*proto.NetworkCookieParam
+	parts := strings.Split(raw, ";")
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		kv := strings.SplitN(p, "=", 2)
+		if len(kv) == 2 {
+			name := strings.TrimSpace(kv[0])
+			val := strings.TrimSpace(kv[1])
+			if name != "" && val != "" {
+				params = append(params, &proto.NetworkCookieParam{
+					Name:   name,
+					Value:  val,
+					Domain: ".facebook.com",
+					Path:   "/",
+				})
+			}
+		}
+	}
+	return params
+}

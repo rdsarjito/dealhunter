@@ -33,3 +33,14 @@ type TelegramSetting struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
+
+type FacebookSetting struct {
+	ID          uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	CUser       string    `gorm:"type:varchar(100)" json:"c_user"`
+	XSToken     string    `gorm:"type:text" json:"xs_token"`
+	RawCookie   string    `gorm:"type:text" json:"raw_cookie"`
+	IsActive    bool      `gorm:"default:true" json:"is_active"`
+	AccountName string    `gorm:"type:varchar(255)" json:"account_name"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}

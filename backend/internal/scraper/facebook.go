@@ -102,39 +102,26 @@ func isForeignListing(loc, text string, price float64) bool {
 	return false
 }
 
-// Search queries Facebook Marketplace for listings (dual scrape: latest minutes + earlier today)
+// Search queries Facebook Marketplace for fresh new listings only (Strictly Newest / Just Listed)
 func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, minPrice, maxPrice *float64) ([]ScrapedItem, error) {
 	citySlug := toFacebookCitySlug(location)
 
-	// 1. Standard search captures best deals from earlier today (1 to 8 hours ago)
-	stdURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search/?query=%s",
+	// Strictly fetch newest listings posted in the last minutes
+	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search/?query=%s&sortBy=creation_time_descend",
 		url.PathEscape(citySlug),
 		url.QueryEscape(keyword),
 	)
 
-	// 2. Newest search captures brand new listings posted just minutes ago
-	newestURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search/?query=%s&sortBy=creation_time_descend",
-		url.PathEscape(citySlug),
-		url.QueryEscape(keyword),
-	)
+	log.Printf("[Scraper] Patrolling newest FB listings for '%s' in '%s' -> %s", keyword, location, searchURL)
 
-	log.Printf("[Scraper] Initiating dual FB search for '%s' in '%s'...", keyword, location)
-
-	items1, _ := s.scrapeWithRod(ctx, stdURL, keyword, location)
-	items2, _ := s.scrapeWithRod(ctx, newestURL, keyword, location)
-
-	// Merge unique by FBListingID
-	seen := make(map[string]bool)
-	var combined []ScrapedItem
-	for _, it := range append(items2, items1...) {
-		if !seen[it.FBListingID] {
-			seen[it.FBListingID] = true
-			combined = append(combined, it)
-		}
+	items, err := s.scrapeWithRod(ctx, searchURL, keyword, location)
+	if err != nil {
+		log.Printf("[Scraper] Scrape error for '%s': %v", keyword, err)
+		return nil, nil
 	}
 
-	log.Printf("[Scraper] Dual scrape finished: %d unique live items found for '%s'", len(combined), keyword)
-	return combined, nil
+	log.Printf("[Scraper] Found %d freshly listed items for '%s'", len(items), keyword)
+	return items, nil
 }
 
 func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword, defaultLocation string) ([]ScrapedItem, error) {

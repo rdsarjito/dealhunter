@@ -102,20 +102,20 @@ func isForeignListing(loc, text string, price float64) bool {
 	return false
 }
 
-// Search queries Facebook Marketplace by distance_ascend within user radius
+// Search queries Facebook Marketplace and scrolls until reaching the search boundary ('Hasil dari luar pencarian Anda')
 func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, radiusKM int, minPrice, maxPrice *float64) ([]ScrapedItem, error) {
 	citySlug := toFacebookCitySlug(location)
 	if radiusKM <= 0 {
-		radiusKM = 20
+		radiusKM = 25
 	}
 
-	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search?daysSinceListed=1&query=%s&exact=false&radius=%d",
+	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search?query=%s&exact=false&radius=%d",
 		url.PathEscape(citySlug),
 		url.QueryEscape(keyword),
 		radiusKM,
 	)
 
-	log.Printf("[Scraper] Patrolling FB Marketplace (Radius: %d km, daysSinceListed=1): '%s' in '%s' -> %s",
+	log.Printf("[Scraper] Patrolling FB Marketplace (Radius: %d km, scroll until boundary): '%s' in '%s' -> %s",
 		radiusKM, keyword, location, searchURL)
 
 	items, err := s.scrapeWithRod(ctx, searchURL, keyword, location, radiusKM)
@@ -124,7 +124,7 @@ func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, 
 		return nil, nil
 	}
 
-	log.Printf("[Scraper] Found %d matching '%s' items within %d km", len(items), keyword, radiusKM)
+	log.Printf("[Scraper] Found %d matching '%s' items before search boundary", len(items), keyword)
 	return items, nil
 }
 
@@ -166,107 +166,139 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 	// Wait up to 5 seconds for content
 	_ = page.Timeout(5 * time.Second).WaitLoad()
 
+	// Scroll down continuously until we hit the boundary: "Hasil dari luar pencarian Anda"
+	maxScrolls := 35
+	for s := 0; s < maxScrolls; s++ {
+		_, _ = page.Eval(`() => window.scrollTo(0, document.body.scrollHeight)`)
+		time.Sleep(1200 * time.Millisecond)
+
+		// Check if boundary text appeared
+		bodyEl, err := page.Element("body")
+		if err == nil {
+			bodyText, _ := bodyEl.Text()
+			if strings.Contains(bodyText, "Hasil dari luar pencarian") ||
+				strings.Contains(bodyText, "Results from outside your search") ||
+				strings.Contains(bodyText, "di luar pencarian Anda") {
+				log.Printf("[Scraper] 🛑 Reached search boundary: 'Hasil dari luar pencarian Anda' at scroll #%d. Halting scroll!", s+1)
+				break
+			}
+		}
+	}
+
+	// Extract only links that appear BEFORE the outside-of-search divider
+	boundaryEvalRes, err := page.Eval(`() => {
+		const dividerTexts = ["Hasil dari luar pencarian", "Results from outside your search", "di luar pencarian Anda"];
+		let dividerNode = null;
+		const candidates = document.querySelectorAll("h2, h3, span, div");
+		for (const el of candidates) {
+			const text = el.innerText || "";
+			for (const dt of dividerTexts) {
+				if (text.includes(dt)) {
+					dividerNode = el;
+					break;
+				}
+			}
+			if (dividerNode) break;
+		}
+
+		const allLinks = Array.from(document.querySelectorAll("a[href*='/marketplace/item/']"));
+		if (!dividerNode) {
+			return allLinks.map(a => a.href);
+		}
+
+		return allLinks
+			.filter(a => (a.compareDocumentPosition(dividerNode) & 4) !== 0)
+			.map(a => a.href);
+	}`)
+
+	allowedHrefs := make(map[string]bool)
+	if err == nil && boundaryEvalRes != nil {
+		for _, u := range boundaryEvalRes.Value.Arr() {
+			allowedHrefs[u.Str()] = true
+		}
+	}
+
+	links, err := page.Elements("a[href*='/marketplace/item/']")
+	if err != nil || len(links) == 0 {
+		return nil, fmt.Errorf("no marketplace listing elements found")
+	}
+
 	var results []ScrapedItem
 	seenIDs := make(map[string]bool)
 	priceRegex := regexp.MustCompile(`(?:Rp\.?|IDR)\s*([\d\.,]+)`)
-	distRegex := regexp.MustCompile(`(?i)(\d+(?:\.\d+)?)\s*(?:km|kilometer)`)
 
-	stopScraping := false
+	for _, link := range links {
+		href, _ := link.Attribute("href")
+		if href == nil || *href == "" {
+			continue
+		}
 
-	// Continuously scroll and scrape until radius limit is exceeded
-	for scrollAttempt := 0; scrollAttempt < 15; scrollAttempt++ {
-		links, err := page.Elements("a[href*='/marketplace/item/']")
-		if err == nil && len(links) > 0 {
-			for _, link := range links {
-				text, _ := link.Text()
+		fullURL := *href
+		if !strings.HasPrefix(fullURL, "http") {
+			fullURL = "https://www.facebook.com" + fullURL
+		}
 
-				// If item distance is explicitly stated and exceeds radius limit, stop scraping!
-				if match := distRegex.FindStringSubmatch(text); len(match) > 1 {
-					if distVal, err := strconv.ParseFloat(match[1], 64); err == nil {
-						if distVal > float64(radiusKM) {
-							log.Printf("[Scraper] Item distance %.1f km exceeds radius limit %d km. Stopping scrape!", distVal, radiusKM)
-							stopScraping = true
-							break
-						}
-					}
-				}
+		// Strict boundary check: If link is after the boundary divider, skip!
+		if len(allowedHrefs) > 0 && !allowedHrefs[fullURL] && !allowedHrefs[*href] {
+			continue
+		}
 
-				href, _ := link.Attribute("href")
-				if href == nil || *href == "" {
-					continue
-				}
+		parts := strings.Split(*href, "/marketplace/item/")
+		if len(parts) < 2 {
+			continue
+		}
+		idParts := strings.Split(parts[1], "/")
+		itemID := strings.Trim(idParts[0], "?&")
+		if itemID == "" || seenIDs[itemID] {
+			continue
+		}
+		seenIDs[itemID] = true
 
-				parts := strings.Split(*href, "/marketplace/item/")
-				if len(parts) < 2 {
-					continue
-				}
-				idParts := strings.Split(parts[1], "/")
-				itemID := strings.Trim(idParts[0], "?&")
-				if itemID == "" || seenIDs[itemID] {
-					continue
-				}
-				seenIDs[itemID] = true
+		text, _ := link.Text()
+		price := parsePrice(text, priceRegex)
+		title, loc := parseTitleAndLocation(text, keyword, defaultLocation, priceRegex)
 
-				price := parsePrice(text, priceRegex)
-				title, loc := parseTitleAndLocation(text, keyword, defaultLocation, priceRegex)
+		// Strict check: Title MUST contain the keyword (e.g. 'monitor')
+		if !strings.Contains(strings.ToLower(title), strings.ToLower(keyword)) {
+			continue
+		}
 
-				// Strict check: Title MUST contain the keyword (e.g. 'monitor')
-				if !strings.Contains(strings.ToLower(title), strings.ToLower(keyword)) {
-					continue
-				}
+		// Filter out foreign listings
+		if isForeignListing(loc, text, price) {
+			continue
+		}
 
-				// Filter out foreign listings
-				if isForeignListing(loc, text, price) {
-					continue
-				}
+		if title == "" {
+			title = fmt.Sprintf("%s Pilihan", titleCase(keyword))
+		}
+		if loc == "" {
+			loc = defaultLocation
+		}
 
-				if title == "" {
-					title = fmt.Sprintf("%s Pilihan", titleCase(keyword))
-				}
-				if loc == "" {
-					loc = defaultLocation
-				}
-
-				imgEl, _ := link.Element("img")
-				imgSrc := ""
-				if imgEl != nil {
-					src, _ := imgEl.Attribute("src")
-					if src != nil {
-						imgSrc = *src
-					}
-				}
-
-				fullURL := *href
-				if !strings.HasPrefix(fullURL, "http") {
-					fullURL = "https://www.facebook.com" + fullURL
-				}
-
-				now := time.Now()
-				results = append(results, ScrapedItem{
-					FBListingID: itemID,
-					Title:       title,
-					Description: fmt.Sprintf("Listing %s di %s. Cek kondisi dan tawar via Facebook Marketplace.", title, loc),
-					Price:       price,
-					Currency:    "IDR",
-					Location:    loc,
-					Category:    detectCategory(keyword),
-					Condition:   "Bekas - Siap Pakai",
-					SellerName:  "Penjual FB Marketplace",
-					Images:      []string{imgSrc},
-					FBURL:       fullURL,
-					ListedAt:    &now,
-				})
+		imgEl, _ := link.Element("img")
+		imgSrc := ""
+		if imgEl != nil {
+			src, _ := imgEl.Attribute("src")
+			if src != nil {
+				imgSrc = *src
 			}
 		}
 
-		if stopScraping {
-			log.Printf("[Scraper] Reached radius threshold (%d km). Stopped at %d items.", radiusKM, len(results))
-			break
-		}
-
-		// Scroll down to load further distance items
-		_ = page.Mouse.Scroll(0, 1000, 4)
-		time.Sleep(1 * time.Second)
+		now := time.Now()
+		results = append(results, ScrapedItem{
+			FBListingID: itemID,
+			Title:       title,
+			Description: fmt.Sprintf("Listing %s di %s. Cek kondisi dan tawar via Facebook Marketplace.", title, loc),
+			Price:       price,
+			Currency:    "IDR",
+			Location:    loc,
+			Category:    detectCategory(keyword),
+			Condition:   "Bekas - Siap Pakai",
+			SellerName:  "Penjual FB Marketplace",
+			Images:      []string{imgSrc},
+			FBURL:       fullURL,
+			ListedAt:    &now,
+		})
 	}
 
 	return results, nil

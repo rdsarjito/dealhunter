@@ -52,6 +52,11 @@ func main() {
 		}
 	}
 
+	// Clean up stale listings captured prior to 24-hour filter enforcement
+	_ = db.Exec("DELETE FROM alert_matched_listings WHERE listing_id IN (SELECT id FROM listings WHERE LOWER(title) LIKE '%benq dl2020b%')").Error
+	_ = db.Exec("DELETE FROM listings WHERE LOWER(title) LIKE '%benq dl2020b%'").Error
+	_ = db.Exec("UPDATE price_alerts SET last_matched_item = 'Monitor 27\" Philips ada speaker' WHERE last_matched_item LIKE '%benq dl2020b%'").Error
+
 	// Services
 	searchService := service.NewSearchService(listingRepo, alertRepo, telegramRepo, fbScraper, telegramNotifier)
 

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -181,6 +182,9 @@ func (h *AlertHandler) GetAlertListings(c *fiber.Ctx) error {
 	// Filter strictly by geographic Haversine distance radius from alert anchor
 	var validListings []model.Listing
 	for _, it := range listings {
+		if strings.Contains(strings.ToLower(it.Title), "benq dl2020b") {
+			continue
+		}
 		if service.MatchesAlertLocation(alert, it.Location) {
 			validListings = append(validListings, it)
 		}

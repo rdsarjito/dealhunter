@@ -199,6 +199,9 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 		kw := "%" + strings.ToLower(alert.Keyword) + "%"
 		if err := w.listingRepo.DB().Where("LOWER(title) LIKE ? AND price >= 10000 AND price <= ?", kw, alert.MaxPrice).Find(&existingListings).Error; err == nil {
 			for _, exItem := range existingListings {
+				if time.Since(exItem.ScrapedAt) > 24*time.Hour {
+					continue
+				}
 				if !w.alertRepo.HasMatch(alert.ID, exItem.ID) && MatchesAlertLocation(&alert, exItem.Location) {
 					_ = w.alertRepo.AddMatchedListing(alert.ID, exItem.ID)
 					log.Printf("[AlertWatcher] Linked existing match '%s' to alert %s", exItem.Title, alert.ID)

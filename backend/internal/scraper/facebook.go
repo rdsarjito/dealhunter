@@ -109,13 +109,13 @@ func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, 
 		radiusKM = 25
 	}
 
-	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search?query=%s&exact=false&radius=%d",
+	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search?daysSinceListed=1&query=%s&exact=false&radius=%d",
 		url.PathEscape(citySlug),
 		url.QueryEscape(keyword),
 		radiusKM,
 	)
 
-	log.Printf("[Scraper] Patrolling FB Marketplace (Radius: %d km, scroll until boundary): '%s' in '%s' -> %s",
+	log.Printf("[Scraper] Patrolling FB Marketplace (Radius: %d km, daysSinceListed=1, scroll until boundary): '%s' in '%s' -> %s",
 		radiusKM, keyword, location, searchURL)
 
 	items, err := s.scrapeWithRod(ctx, searchURL, keyword, location, radiusKM)
@@ -263,6 +263,18 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 			continue
 		}
 
+		// Extract clean location and relative age if present
+		cleanLoc, ageStr := extractLocationAndAge(loc)
+		if cleanLoc != "" {
+			loc = cleanLoc
+		}
+
+		// Strict 24-hour filter: Skip listings older than 1 day
+		if isListingOlderThan24Hours(text, ageStr) {
+			log.Printf("[Scraper] ⏳ Skipping old listing (>24h): '%s' (Age: '%s')", title, ageStr)
+			continue
+		}
+
 		// Filter out foreign listings
 		if isForeignListing(loc, text, price) {
 			continue
@@ -386,4 +398,38 @@ func parseRawCookies(raw string) []*proto.NetworkCookieParam {
 		}
 	}
 	return params
+}
+
+
+var (
+	ageLocationRegex = regexp.MustCompile(`(?i)^(?:ditawarkan|listed)\s+(.+?)\s+(?:di|in)\s+(.+)$`)
+	daysRegex        = regexp.MustCompile(`(?i)(\d+)\s*(?:hari|day)`)
+)
+
+func extractLocationAndAge(rawLoc string) (string, string) {
+	rawLoc = strings.TrimSpace(rawLoc)
+	if m := ageLocationRegex.FindStringSubmatch(rawLoc); len(m) == 3 {
+		return strings.TrimSpace(m[2]), strings.TrimSpace(m[1])
+	}
+	return rawLoc, ""
+}
+
+func isListingOlderThan24Hours(rawText, ageStr string) bool {
+	combined := strings.ToLower(rawText + " " + ageStr)
+
+	// Check for weeks, months, years
+	if strings.Contains(combined, "minggu") || strings.Contains(combined, "week") ||
+		strings.Contains(combined, "bulan") || strings.Contains(combined, "month") ||
+		strings.Contains(combined, "tahun") || strings.Contains(combined, "year") {
+		return true
+	}
+
+	// Check for days: if >= 2 days (or > 1 day)
+	if m := daysRegex.FindStringSubmatch(combined); len(m) > 1 {
+		if days, err := strconv.Atoi(m[1]); err == nil && days > 1 {
+			return true
+		}
+	}
+
+	return false
 }

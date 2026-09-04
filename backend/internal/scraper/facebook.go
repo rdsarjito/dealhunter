@@ -109,13 +109,13 @@ func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, 
 		radiusKM = 25
 	}
 
-	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search?daysSinceListed=1&query=%s&exact=false&radius=%d",
+	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search?daysSinceListed=1&sortBy=creation_time_descend&query=%s&exact=false&radius=%d",
 		url.PathEscape(citySlug),
 		url.QueryEscape(keyword),
 		radiusKM,
 	)
 
-	log.Printf("[Scraper] Patrolling FB Marketplace (Radius: %d km, daysSinceListed=1, scroll until boundary): '%s' in '%s' -> %s",
+	log.Printf("[Scraper] Patrolling FB Marketplace (Radius: %d km, daysSinceListed=1, sortBy=creation_time_descend): '%s' in '%s' -> %s",
 		radiusKM, keyword, location, searchURL)
 
 	items, err := s.scrapeWithRod(ctx, searchURL, keyword, location, radiusKM)

@@ -183,7 +183,7 @@ export function Navbar({
             <Search className="h-5 w-5" />
           </button>
 
-          {/* 1. YouTube "Buat" Button with Camera Plus Icon */}
+          {/* 1. YouTube "Buat" Button with Plus Icon */}
           <button
             type="button"
             onClick={() => {
@@ -196,9 +196,7 @@ export function Navbar({
             title="Buat"
             className="h-9 px-3.5 rounded-full bg-[#0000000D] dark:bg-[#FFFFFF14] hover:bg-[#0000001A] dark:hover:bg-[#FFFFFF26] text-foreground text-sm font-medium flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
           >
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current shrink-0">
-              <path d="M14 13h-3v3H9v-3H6v-2h3V8h2v3h3v2zm3-7H3v12h14v-4.5l4 4v-11l-4 4V6z"/>
-            </svg>
+            <Plus className="w-5 h-5 shrink-0" />
             <span className="hidden sm:inline text-sm font-medium">Buat</span>
           </button>
 

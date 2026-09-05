@@ -110,7 +110,7 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-            <span>Radar Aktif Mengintai 24/7</span>
+            <span>Pemantauan Aktif 24/7</span>
           </div>
           <h3 className="text-lg font-bold text-foreground">Menunggu Iklan Baru Diposting</h3>
           <p className="text-xs text-[#606060] dark:text-[#AAAAAA] leading-relaxed">
@@ -126,7 +126,7 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
             className="px-4 h-9 rounded-full border border-[#E5E5E5] dark:border-[#303030] text-xs font-semibold hover:bg-muted inline-flex items-center gap-1.5"
           >
             <RefreshCw className="h-3.5 w-3.5" />
-            <span>Periksa Radar</span>
+            <span>Pindai Sekarang</span>
           </button>
           <button
             onClick={onBack}

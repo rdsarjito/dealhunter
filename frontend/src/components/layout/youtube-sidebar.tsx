@@ -159,7 +159,7 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
     },
     {
       href: '/alerts',
-      label: 'Radar Alert',
+      label: 'Alert',
       icon: (active: boolean) => <FacebookBellIcon active={active} />,
       isActive: pathname === '/alerts',
     },
@@ -196,7 +196,7 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
     },
     { 
       href: '/alerts', 
-      label: 'Radar Alert Deals', 
+      label: 'Alert Deals', 
       icon: (active: boolean) => <FacebookBellIcon active={active} />,
     },
     { 

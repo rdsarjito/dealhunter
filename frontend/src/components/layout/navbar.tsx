@@ -311,7 +311,7 @@ export function Navbar({
                     <ChevronRight className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA] shrink-0 stroke-[1.5]" />
                   </button>
 
-                  {/* Setelan Bot & Radar */}
+                  {/* Setelan Bot & Notifikasi */}
                   <button
                     type="button"
                     onClick={() => {
@@ -324,7 +324,7 @@ export function Navbar({
                       <Settings className="w-5 h-5 stroke-[1.8]" />
                     </div>
                     <span className="flex-1 truncate font-normal text-sm">
-                      Setelan Bot & Radar
+                      Setelan Bot & Notifikasi
                     </span>
                   </button>
                 </div>

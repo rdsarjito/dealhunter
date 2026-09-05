@@ -215,7 +215,7 @@ export default function AlertsPage() {
                         {a.is_active ? (
                           <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-[#FF0000] text-white flex items-center gap-1 shadow-sm">
                             <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />
-                            <span>RADAR</span>
+                            <span>AKTIF</span>
                           </span>
                         ) : (
                           <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-black/80 text-white/80">
@@ -256,7 +256,7 @@ export default function AlertsPage() {
                           <div className="h-4 w-4 rounded-full bg-[#FF0000] text-white font-black text-[8px] flex items-center justify-center shrink-0">
                             DH
                           </div>
-                          <span className="font-semibold text-foreground/90">Radar</span>
+                          <span className="font-semibold text-foreground/90">DealHunter</span>
                           <span>•</span>
                           <div className="flex items-center gap-0.5">
                             <MapPin className="h-2.5 w-2.5 text-[#FF0000]" />
@@ -286,7 +286,7 @@ export default function AlertsPage() {
                           ) : (
                             <div className="text-[11px] text-[#606060] dark:text-[#AAAAAA] flex items-center gap-1.5 py-0.5">
                               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                              <span className="truncate">Radar aktif mengintai &le; {formatRupiah(a.max_price)}</span>
+                              <span className="truncate">Aktif memantau pasar &le; {formatRupiah(a.max_price)}</span>
                             </div>
                           )}
                         </div>

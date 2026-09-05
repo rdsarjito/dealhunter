@@ -136,24 +136,24 @@ export function Navbar({
         </div>
 
         {/* Center: Real YouTube Search Bar + Voice Search Mic */}
-        <div className="hidden md:flex items-center justify-center flex-1 max-w-2xl px-2">
-          <div className="flex items-center w-full max-w-xl">
+        <div className="hidden md:flex items-center justify-center flex-1 max-w-2xl px-4">
+          <div className="flex items-center w-full max-w-[640px]">
             <form onSubmit={handleSearchSubmit} className="flex items-center flex-1">
               <div className="relative flex-1">
                 <input
                   type="text"
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
-                  placeholder="Telusuri FB Marketplace..."
-                  className="w-full h-10 pl-4 pr-3 rounded-l-full border border-[#CCCCCC] dark:border-[#303030] bg-card text-foreground text-sm placeholder:text-[#606060] focus:outline-none focus:border-[#065FD4] transition-colors"
+                  placeholder="Telusuri"
+                  className="w-full h-10 pl-4 pr-3 rounded-l-full border border-[#CCCCCC] dark:border-[#303030] bg-card text-foreground text-base placeholder:text-[#606060] dark:placeholder:text-[#888888] focus:outline-none focus:border-[#065FD4] transition-colors shadow-xs"
                 />
               </div>
               <button
                 type="submit"
-                className="h-10 px-6 rounded-r-full border border-l-0 border-[#CCCCCC] dark:border-[#303030] bg-[#F8F8F8] dark:bg-[#222222] hover:bg-[#F0F0F0] dark:hover:bg-[#272727] text-foreground flex items-center justify-center transition-colors shrink-0 cursor-pointer"
+                className="h-10 w-16 rounded-r-full border border-l-0 border-[#CCCCCC] dark:border-[#303030] bg-[#F8F8F8] dark:bg-[#222222] hover:bg-[#F0F0F0] dark:hover:bg-[#272727] text-foreground flex items-center justify-center transition-colors shrink-0 cursor-pointer"
                 title="Telusuri"
               >
-                <Search className="h-4 w-4 text-[#606060] dark:text-[#AAAAAA]" />
+                <Search className="h-5 w-5 text-foreground stroke-[1.8]" />
               </button>
             </form>
 
@@ -164,62 +164,58 @@ export function Navbar({
                 if (typeof window !== 'undefined') window.alert('Fitur pencarian suara sedang dalam pengembangan.');
               }}
               title="Telusuri dengan suara"
-              className="h-10 w-10 ml-3 rounded-full bg-[#F2F2F2] dark:bg-[#272727] hover:bg-[#E5E5E5] dark:hover:bg-[#383838] text-foreground flex items-center justify-center shrink-0 transition-colors cursor-pointer"
+              className="h-10 w-10 ml-3 rounded-full bg-[#0000000D] dark:bg-[#FFFFFF14] hover:bg-[#0000001A] dark:hover:bg-[#FFFFFF26] text-foreground flex items-center justify-center shrink-0 transition-colors cursor-pointer"
             >
-              <Mic className="h-4 w-4 text-foreground" />
+              <Mic className="h-5 w-5 text-foreground stroke-[1.8]" />
             </button>
           </div>
         </div>
 
-        {/* Right: YouTube "+ Buat" Pill, Notifications, Theme, Profile */}
-        <div className="flex items-center gap-1.5 sm:gap-2 justify-end shrink-0">
+        {/* Right: YouTube "Buat", Notification Bell, Profile Avatar (Exact YouTube Desktop Trio) */}
+        <div className="flex items-center gap-2 sm:gap-3 justify-end shrink-0">
           {/* Mobile Search Icon Toggle */}
           <button
             type="button"
             onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-            className="md:hidden h-9 w-9 rounded-full hover:bg-[#F2F2F2] dark:hover:bg-[#272727] text-foreground flex items-center justify-center"
+            className="md:hidden h-10 w-10 rounded-full hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] text-foreground flex items-center justify-center"
             title="Cari"
           >
             <Search className="h-5 w-5" />
           </button>
 
-          {/* YouTube "+ Buat" Pill Button */}
-          {onOpenAlertModal && (
-            <button
-              type="button"
-              onClick={onOpenAlertModal}
-              title="Buat Alert Baru"
-              className="hidden sm:flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-[#F2F2F2] dark:bg-[#272727] hover:bg-[#E5E5E5] dark:hover:bg-[#383838] text-foreground text-xs font-semibold transition-colors cursor-pointer"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Buat Alert</span>
-            </button>
-          )}
-
-          {/* Theme Switcher Button */}
+          {/* 1. YouTube "Buat" Button with Camera Plus Icon */}
           <button
             type="button"
-            onClick={toggleTheme}
-            title={isDark ? 'Mode Terang YouTube' : 'Mode Gelap YouTube'}
-            className="h-9 w-9 sm:h-10 sm:w-10 rounded-full hover:bg-[#F2F2F2] dark:hover:bg-[#272727] text-foreground flex items-center justify-center transition-colors cursor-pointer"
+            onClick={() => {
+              if (onOpenAlertModal) {
+                onOpenAlertModal();
+              } else {
+                router.push('/alerts');
+              }
+            }}
+            title="Buat"
+            className="h-9 px-3.5 rounded-full bg-[#0000000D] dark:bg-[#FFFFFF14] hover:bg-[#0000001A] dark:hover:bg-[#FFFFFF26] text-foreground text-sm font-medium flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
           >
-            {isDark ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-neutral-700" />}
+            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current shrink-0">
+              <path d="M14 13h-3v3H9v-3H6v-2h3V8h2v3h3v2zm3-7H3v12h14v-4.5l4 4v-11l-4 4V6z"/>
+            </svg>
+            <span className="hidden sm:inline text-sm font-medium">Buat</span>
           </button>
 
-          {/* YouTube Bell Notification Icon with Dot */}
+          {/* 2. YouTube Bell Notification Icon with Dot */}
           <Link
             href="/alerts"
-            title="Notifikasi & Alerts"
-            className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-full hover:bg-[#F2F2F2] dark:hover:bg-[#272727] text-foreground flex items-center justify-center transition-colors"
+            title="Notifikasi"
+            className="relative w-10 h-10 rounded-full hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] text-foreground flex items-center justify-center transition-colors cursor-pointer shrink-0"
           >
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-[#FF0000]" />
+            <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-current stroke-[1.8]">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-[#FF0000]" />
           </Link>
 
-          {/* Scraper Live Status Badge */}
-          <ScraperStatusBar compact />
-
-          {/* YouTube Profile Avatar Circle & Dropdown Menu */}
+          {/* 3. YouTube Profile Avatar Circle & Dropdown Menu */}
           <div className="relative" ref={profileMenuRef}>
             <button
               type="button"

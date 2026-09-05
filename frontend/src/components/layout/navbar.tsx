@@ -18,18 +18,8 @@ import {
   Plus,
   ChevronRight,
   KeyRound,
-  Users,
-  LogOut,
-  Radio,
-  CircleDollarSign,
-  Shield,
-  Languages,
-  ShieldCheck,
-  Globe,
-  Keyboard,
   Settings,
-  HelpCircle,
-  MessageSquare
+  HelpCircle
 } from 'lucide-react';
 import { useSearchStore } from '@/stores/search-store';
 
@@ -246,8 +236,8 @@ export function Navbar({
             </button>
 
             {profileMenuOpen && (
-              <div className="absolute right-0 top-11 w-[300px] max-h-[calc(100vh-70px)] overflow-y-auto rounded-xl bg-card border border-[#E5E5E5] dark:border-[#303030] shadow-2xl py-2 z-50 text-foreground animate-in fade-in-0 zoom-in-95 duration-150 select-none">
-                {/* Header: User Profile Info (Exact Match with YouTube Screenshot) */}
+              <div className="absolute right-0 top-11 w-[300px] rounded-xl bg-card border border-[#E5E5E5] dark:border-[#303030] shadow-2xl py-2 z-50 text-foreground animate-in fade-in-0 zoom-in-95 duration-150 select-none">
+                {/* Header: User Profile Info (YouTube Style tailored to DealHunter) */}
                 <div className="px-4 py-3 flex items-start gap-3.5 border-b border-[#E5E5E5] dark:border-[#303030]">
                   <div className="w-10 h-10 rounded-full bg-[#FF0000] text-white font-semibold text-base flex items-center justify-center shrink-0 shadow-xs mt-0.5">
                     R
@@ -264,12 +254,12 @@ export function Navbar({
                       onClick={() => setProfileMenuOpen(false)}
                       className="text-xs text-[#065FD4] dark:text-[#3EA6FF] hover:underline mt-2 font-normal leading-tight"
                     >
-                      Lihat channel Anda
+                      Lihat status alert Anda
                     </Link>
                   </div>
                 </div>
 
-                {/* SECTION 1: Akun & Integrasi (Facebook, Telegram, Ganti Akun, Logout) */}
+                {/* SECTION 1: Integrasi Akun & Sesi (Facebook & Telegram) */}
                 <div className="py-1">
                   {/* Sesi Facebook */}
                   <button
@@ -302,98 +292,17 @@ export function Navbar({
                       <Send className={`w-5 h-5 ${telegramConnected ? 'text-[#31A24C]' : ''} stroke-[1.8]`} />
                     </div>
                     <span className="flex-1 truncate font-normal text-sm">
-                      Notifikasi Telegram: {telegramConnected ? 'Terhubung' : 'Nonaktif'}
+                      Notifikasi Telegram: {telegramConnected ? 'Aktif' : 'Nonaktif'}
                     </span>
                     <ChevronRight className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA] shrink-0 stroke-[1.5]" />
-                  </button>
-
-                  {/* Ganti akun */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setProfileMenuOpen(false);
-                      onOpenFacebook?.();
-                    }}
-                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
-                  >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
-                      <Users className="w-5 h-5 stroke-[1.8]" />
-                    </div>
-                    <span className="flex-1 truncate font-normal text-sm">
-                      Ganti akun
-                    </span>
-                    <ChevronRight className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA] shrink-0 stroke-[1.5]" />
-                  </button>
-
-                  {/* Logout */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setProfileMenuOpen(false);
-                    }}
-                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
-                  >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
-                      <LogOut className="w-5 h-5 stroke-[1.8]" />
-                    </div>
-                    <span className="flex-1 truncate font-normal text-sm">
-                      Logout
-                    </span>
                   </button>
                 </div>
 
                 <hr className="my-2 border-[#E5E5E5] dark:border-[#303030]" />
 
-                {/* SECTION 2: Studio & Pembelian */}
+                {/* SECTION 2: Tampilan & Preferensi */}
                 <div className="py-1">
-                  {/* YouTube Studio */}
-                  <Link
-                    href="/alerts"
-                    onClick={() => setProfileMenuOpen(false)}
-                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
-                  >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
-                      <Radio className="w-5 h-5 stroke-[1.8]" />
-                    </div>
-                    <span className="flex-1 truncate font-normal text-sm">
-                      YouTube Studio
-                    </span>
-                  </Link>
-
-                  {/* Pembelian dan langganan */}
-                  <Link
-                    href="/saved"
-                    onClick={() => setProfileMenuOpen(false)}
-                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
-                  >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
-                      <CircleDollarSign className="w-5 h-5 stroke-[1.8]" />
-                    </div>
-                    <span className="flex-1 truncate font-normal text-sm">
-                      Pembelian dan langganan
-                    </span>
-                  </Link>
-                </div>
-
-                <hr className="my-2 border-[#E5E5E5] dark:border-[#303030]" />
-
-                {/* SECTION 3: Preferensi Pengguna & Tampilan (Exact YouTube Screenshot Order) */}
-                <div className="py-1">
-                  {/* Data Anda di YouTube */}
-                  <Link
-                    href="/watchlist"
-                    onClick={() => setProfileMenuOpen(false)}
-                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
-                  >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
-                      <Shield className="w-5 h-5 stroke-[1.8]" />
-                    </div>
-                    <span className="flex-1 truncate font-normal text-sm">
-                      Data Anda di YouTube
-                    </span>
-                  </Link>
-
-                  {/* Tampilan: Tema perangkat */}
+                  {/* Tampilan Tema */}
                   <button
                     type="button"
                     onClick={toggleTheme}
@@ -408,66 +317,7 @@ export function Navbar({
                     <ChevronRight className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA] shrink-0 stroke-[1.5]" />
                   </button>
 
-                  {/* Bahasa tampilan: Indonesia */}
-                  <button
-                    type="button"
-                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
-                  >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
-                      <Languages className="w-5 h-5 stroke-[1.8]" />
-                    </div>
-                    <span className="flex-1 truncate font-normal text-sm">
-                      Bahasa tampilan: Indonesia
-                    </span>
-                    <ChevronRight className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA] shrink-0 stroke-[1.5]" />
-                  </button>
-
-                  {/* Mode Terbatas: Nonaktif */}
-                  <button
-                    type="button"
-                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
-                  >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
-                      <ShieldCheck className="w-5 h-5 stroke-[1.8]" />
-                    </div>
-                    <span className="flex-1 truncate font-normal text-sm">
-                      Mode Terbatas: Nonaktif
-                    </span>
-                    <ChevronRight className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA] shrink-0 stroke-[1.5]" />
-                  </button>
-
-                  {/* Lokasi: Indonesia */}
-                  <button
-                    type="button"
-                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
-                  >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
-                      <Globe className="w-5 h-5 stroke-[1.8]" />
-                    </div>
-                    <span className="flex-1 truncate font-normal text-sm">
-                      Lokasi: Indonesia
-                    </span>
-                    <ChevronRight className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA] shrink-0 stroke-[1.5]" />
-                  </button>
-
-                  {/* Pintasan keyboard */}
-                  <button
-                    type="button"
-                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
-                  >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
-                      <Keyboard className="w-5 h-5 stroke-[1.8]" />
-                    </div>
-                    <span className="flex-1 truncate font-normal text-sm">
-                      Pintasan keyboard
-                    </span>
-                  </button>
-                </div>
-
-                <hr className="my-2 border-[#E5E5E5] dark:border-[#303030]" />
-
-                {/* SECTION 4: Setelan */}
-                <div className="py-1">
+                  {/* Setelan Bot & Radar */}
                   <button
                     type="button"
                     onClick={() => {
@@ -480,17 +330,23 @@ export function Navbar({
                       <Settings className="w-5 h-5 stroke-[1.8]" />
                     </div>
                     <span className="flex-1 truncate font-normal text-sm">
-                      Setelan
+                      Setelan Bot & Radar
                     </span>
                   </button>
                 </div>
 
                 <hr className="my-2 border-[#E5E5E5] dark:border-[#303030]" />
 
-                {/* SECTION 5: Bantuan & Masukan */}
+                {/* SECTION 3: Bantuan */}
                 <div className="py-1">
                   <button
                     type="button"
+                    onClick={() => {
+                      if (typeof window !== 'undefined') {
+                        window.alert('DealHunter v1.0\n\nAplikasi pemantau & notifikasi deal murah otomatis dari Facebook Marketplace.\n\nUntuk bantuan lebih lanjut, hubungi pengembang.');
+                      }
+                      setProfileMenuOpen(false);
+                    }}
                     className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
                   >
                     <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
@@ -498,17 +354,6 @@ export function Navbar({
                     </div>
                     <span className="flex-1 truncate font-normal text-sm">
                       Bantuan
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
-                  >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
-                      <MessageSquare className="w-5 h-5 stroke-[1.8]" />
-                    </div>
-                    <span className="flex-1 truncate font-normal text-sm">
-                      Kirim masukan
                     </span>
                   </button>
                 </div>

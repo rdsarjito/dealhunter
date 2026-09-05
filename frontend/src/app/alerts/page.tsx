@@ -210,19 +210,6 @@ export default function AlertsPage() {
                         </div>
                       </div>
 
-                      {/* Top Left: Live Status Badge */}
-                      <div className="absolute top-2 left-2 z-10">
-                        {a.is_active ? (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-[#FF0000] text-white flex items-center gap-1 shadow-sm">
-                            <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />
-                            <span>AKTIF</span>
-                          </span>
-                        ) : (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-black/80 text-white/80">
-                            JEDA
-                          </span>
-                        )}
-                      </div>
 
                       {/* Bottom Right: Duration Badge (YouTube Black Pill with count) */}
                       <div className="absolute bottom-2 right-2 z-10">
@@ -286,7 +273,7 @@ export default function AlertsPage() {
                           ) : (
                             <div className="text-[11px] text-[#606060] dark:text-[#AAAAAA] flex items-center gap-1.5 py-0.5">
                               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                              <span className="truncate">Aktif memantau pasar &le; {formatRupiah(a.max_price)}</span>
+                              <span className="truncate">Memantau harga pasar &le; {formatRupiah(a.max_price)}</span>
                             </div>
                           )}
                         </div>
@@ -324,10 +311,7 @@ export default function AlertsPage() {
                           <span className="hidden sm:inline">Edit</span>
                         </button>
 
-                        <div className="flex items-center gap-1 px-2 h-7 sm:h-8 rounded-full bg-[#00000008] dark:bg-[#FFFFFF0D]">
-                          <span className="text-[10px] font-semibold text-[#606060] dark:text-[#AAAAAA]">
-                            {a.is_active ? 'Aktif' : 'Off'}
-                          </span>
+                        <div className="flex items-center px-1.5 h-7 sm:h-8 rounded-full bg-[#00000008] dark:bg-[#FFFFFF0D]" title={a.is_active ? 'Alert Aktif' : 'Alert Nonaktif'}>
                           <Switch
                             checked={a.is_active}
                             onCheckedChange={() => handleToggle(a.id, a.is_active)}

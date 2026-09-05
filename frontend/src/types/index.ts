@@ -61,6 +61,7 @@ export interface PriceAlert {
   telegram_chat_id: string;
   trigger_count: number;
   match_count?: number;
+  thumbnail_url?: string;
   last_triggered_at?: string;
   last_scanned_at?: string;
   last_matched_item?: string;

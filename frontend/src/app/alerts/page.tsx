@@ -17,9 +17,10 @@ import {
   getFacebookStatus 
 } from '@/lib/api';
 import { PriceAlert } from '@/types';
-import { formatRupiah } from '@/lib/format';
+import { formatRupiah, formatTimeAgo } from '@/lib/format';
 import { 
-  Bell, 
+  Bell,
+  Radio, 
   Plus, 
   Trash2, 
   Pencil,
@@ -170,130 +171,178 @@ export default function AlertsPage() {
               </div>
             )}
 
-            {/* Alerts List */}
+            {/* Alerts List - YouTube Search / Playlist Style Horizontal Cards */}
             {!isLoading && alerts.length > 0 && (
-              <div className="space-y-3 w-full">
+              <div className="space-y-3 sm:space-y-4 max-w-5xl pb-10">
                 {alerts.map((a) => (
                   <div
                     key={a.id}
-                    className="w-full p-4 sm:p-5 rounded-xl border border-[#E5E5E5] dark:border-[#303030] bg-card hover:border-[#FF0000] transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+                    onClick={() => setActiveWatchAlert(a)}
+                    className="group relative flex flex-col sm:flex-row gap-4 sm:gap-5 p-3 sm:p-4 rounded-2xl hover:bg-[#00000008] dark:hover:bg-[#FFFFFF0D] transition-all cursor-pointer border-b border-[#0000000A] dark:border-[#FFFFFF10] last:border-b-0"
                   >
-                    {/* Clickable Area to open YouTube Watch Page */}
-                    <div 
-                      onClick={() => setActiveWatchAlert(a)}
-                      className="space-y-2 flex-1 cursor-pointer min-w-0"
-                    >
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <div className="h-7 w-7 rounded-full bg-[#FFF0F0] dark:bg-[#2B1414] text-[#FF0000] flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <Play className="h-3.5 w-3.5 fill-[#FF0000]" />
+                    {/* Left: 16:9 Video-Style Thumbnail */}
+                    <div className="relative aspect-video w-full sm:w-64 md:w-80 shrink-0 rounded-2xl bg-[#1F1F1F] dark:bg-[#181818] overflow-hidden shadow-xs">
+                      {a.thumbnail_url ? (
+                        <img
+                          src={a.thumbnail_url}
+                          alt={a.keyword}
+                          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="h-full w-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#2B1414] via-[#1A1A1A] to-[#111111] text-white select-none">
+                          <div className="h-10 w-10 rounded-full bg-[#FF0000]/20 flex items-center justify-center text-[#FF0000] mb-2 animate-pulse">
+                            <Radio className="h-5 w-5" />
+                          </div>
+                          <span className="text-xs font-bold uppercase tracking-wider text-center text-white/90">
+                            Radar “{a.keyword}”
+                          </span>
+                          <span className="text-[10px] text-white/60 mt-0.5">
+                            {a.location || 'Jakarta'}
+                          </span>
                         </div>
-                        <h3 className="font-bold text-base text-foreground group-hover:text-[#FF0000] transition-colors">
-                          &ldquo;{a.keyword}&rdquo;
-                        </h3>
-                        <span className="text-xs font-black text-[#FF0000] tabular-price">
-                          Maksimal {formatRupiah(a.max_price)}
-                        </span>
+                      )}
 
-                        {/* Individual Scraping Interval Badge */}
-                        <div 
-                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#0000000D] dark:bg-[#FFFFFF14] text-[11px] font-semibold text-foreground"
-                          title="Frekuensi pemindaian Facebook Marketplace untuk alert ini"
-                        >
-                          <Clock className="h-3 w-3 text-[#FF0000]" />
-                          <span>Scraping tiap {a.interval_minutes || 5} menit</span>
+                      {/* Hover Play Button Overlay (YouTube style) */}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                        <div className="h-12 w-12 rounded-full bg-[#FF0000] text-white flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
+                          <Play className="h-5 w-5 fill-white ml-0.5" />
                         </div>
+                      </div>
 
-                        {!a.is_active && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F2F2F2] dark:bg-[#272727] text-[#606060] dark:text-[#AAAAAA] font-medium">
-                            Non-aktif
+                      {/* Top Left: Live Status Badge */}
+                      <div className="absolute top-2 left-2 z-10">
+                        {a.is_active ? (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-[#FF0000] text-white flex items-center gap-1 shadow-sm">
+                            <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping" />
+                            <span>RADAR</span>
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-black/80 text-white/80">
+                            JEDA
                           </span>
                         )}
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-4 text-xs text-[#606060] dark:text-[#AAAAAA]">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="h-3.5 w-3.5 text-[#FF0000]" />
-                          <span>{a.location || 'Jakarta'} ({a.radius_km || 25}km)</span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 font-bold">
-                          {(a.match_count && a.match_count > 0) ? (
-                            <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                              <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                              </span>
-                              <span>{a.match_count} iklan baru tertangkap!</span>
-                            </span>
-                          ) : (
-                            <span className="text-[#606060] dark:text-[#AAAAAA] flex items-center gap-1.5">
-                              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                              <span>Radar aktif mengintai</span>
-                            </span>
-                          )}
-                        </div>
-
-                        {a.last_matched_item && (
-                          <div className="flex items-center gap-1 truncate max-w-md text-[#0F0F0F] dark:text-[#F1F1F1]">
-                            <Clock className="h-3 w-3 text-[#606060]" />
-                            <span className="truncate">Terakhir: {a.last_matched_item}</span>
-                          </div>
-                        )}
+                      {/* Bottom Right: Duration Badge (YouTube Black Pill with count) */}
+                      <div className="absolute bottom-2 right-2 z-10">
+                        <span className="px-1.5 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-black/85 text-white backdrop-blur-xs flex items-center gap-1">
+                          <span>{(a.match_count && a.match_count > 0) ? `${a.match_count} IKLAN` : '0 IKLAN'}</span>
+                        </span>
                       </div>
                     </div>
 
-                    {/* Actions Right */}
-                    <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                      {/* Watch Page Button */}
-                      <button
-                        type="button"
-                        onClick={() => setActiveWatchAlert(a)}
-                        className="h-9 px-3.5 rounded-full bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
-                        title="Buka tampilan Watch Page ala YouTube"
-                      >
-                        <Play className="h-3 w-3 fill-white" />
-                        <span>Tonton ({a.match_count || 0})</span>
-                        <ChevronRight className="h-3.5 w-3.5" />
-                      </button>
+                    {/* Right: Info & Actions Column (YouTube Search Result details layout) */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-between space-y-2.5">
+                      <div>
+                        {/* Title & Price */}
+                        <div>
+                          <h3 className="text-base sm:text-lg font-bold text-foreground group-hover:text-[#FF0000] transition-colors line-clamp-1 leading-snug">
+                            Pantauan: “{a.keyword}”
+                          </h3>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <span className="text-sm sm:text-base font-extrabold text-[#FF0000] tabular-price">
+                              Maks. {formatRupiah(a.max_price)}
+                            </span>
+                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#0000000A] dark:bg-[#FFFFFF14] text-foreground flex items-center gap-1">
+                              <Clock className="h-3 w-3 text-[#FF0000]" />
+                              Scraping tiap {a.interval_minutes || 5} mnt
+                            </span>
+                          </div>
+                        </div>
 
-                      {/* Single Alert Scan Button */}
-                      <button
-                        type="button"
-                        onClick={(e) => handleScanSingle(a.id, e)}
-                        disabled={scanningAlertId === a.id}
-                        className="h-9 w-9 rounded-full bg-[#F2F2F2] dark:bg-[#272727] hover:bg-[#E5E5E5] dark:hover:bg-[#383838] text-foreground flex items-center justify-center transition-colors cursor-pointer"
-                        title={`Pindai kata kunci "${a.keyword}" sekarang`}
-                      >
-                        <RefreshCw className={`h-3.5 w-3.5 ${scanningAlertId === a.id ? 'animate-spin text-[#FF0000]' : ''}`} />
-                      </button>
+                        {/* Meta Channel Row */}
+                        <div className="flex items-center gap-2 text-xs text-[#606060] dark:text-[#AAAAAA] mt-2 flex-wrap">
+                          <div className="h-5 w-5 rounded-full bg-[#FF0000] text-white font-black text-[9px] flex items-center justify-center shrink-0">
+                            DH
+                          </div>
+                          <span className="font-semibold text-foreground/90">DealHunter Radar</span>
+                          <span>•</span>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3 text-[#FF0000]" />
+                            <span>{a.location || 'Jakarta'} ({a.radius_km || 50} km)</span>
+                          </div>
+                          <span>•</span>
+                          <span>{a.last_scanned_at ? `Dipindai ${formatTimeAgo(a.last_scanned_at)}` : 'Baru dipasang'}</span>
+                        </div>
 
-                      {/* Edit Button */}
-                      <button
-                        type="button"
-                        onClick={(e) => handleEditAlert(a, e)}
-                        className="h-9 w-9 rounded-full bg-[#F2F2F2] dark:bg-[#272727] hover:bg-[#E5E5E5] dark:hover:bg-[#383838] text-foreground flex items-center justify-center transition-colors cursor-pointer"
-                        title="Edit pengaturan & waktu scraping"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-
-                      {/* Active Toggle Switch */}
-                      <div className="flex items-center pl-1 border-l border-[#E5E5E5] dark:border-[#303030]">
-                        <Switch
-                          checked={a.is_active}
-                          onCheckedChange={() => handleToggle(a.id, a.is_active)}
-                        />
+                        {/* Snippet caught item */}
+                        <div className="mt-2.5">
+                          {(a.match_count && a.match_count > 0) ? (
+                            <div className="text-xs text-foreground/90 bg-[#00000005] dark:bg-[#FFFFFF08] p-2.5 rounded-xl border border-[#0000000A] dark:border-[#FFFFFF0D] flex items-start gap-2">
+                              <span className="relative flex h-2 w-2 mt-1 shrink-0">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <span className="font-bold text-emerald-600 dark:text-emerald-400 mr-1.5">
+                                  {a.match_count} iklan tertangkap!
+                                </span>
+                                <span className="text-[#606060] dark:text-[#AAAAAA] truncate block sm:inline">
+                                  Terakhir: “{a.last_matched_item || 'Iklan sesuai kriteria'}”
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-xs text-[#606060] dark:text-[#AAAAAA] flex items-center gap-1.5 py-1">
+                              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                              <span>Radar aktif mengintai postingan baru Facebook Marketplace &le; {formatRupiah(a.max_price)}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
-                      {/* Delete Button */}
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(a.id)}
-                        className="h-9 w-9 rounded-full bg-[#F2F2F2] dark:bg-[#272727] hover:bg-[#FFE5E5] hover:text-[#CC0000] text-[#606060] flex items-center justify-center transition-colors cursor-pointer"
-                        title="Hapus alert"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      {/* Actions Row */}
+                      <div className="flex items-center gap-2 pt-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={() => setActiveWatchAlert(a)}
+                          className="h-8 px-3.5 rounded-full bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+                        >
+                          <Play className="h-3 w-3 fill-white" />
+                          <span>Tonton ({a.match_count || 0})</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => handleScanSingle(a.id, e)}
+                          disabled={scanningAlertId === a.id}
+                          className="h-8 px-3 rounded-full bg-[#0000000D] dark:bg-[#FFFFFF14] hover:bg-[#0000001A] dark:hover:bg-[#FFFFFF26] text-foreground text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                          title={`Picu scraping kata kunci "${a.keyword}" sekarang`}
+                        >
+                          <RefreshCw className={`h-3 w-3 ${scanningAlertId === a.id ? 'animate-spin text-[#FF0000]' : ''}`} />
+                          <span>{scanningAlertId === a.id ? 'Memindai...' : 'Pindai'}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => handleEditAlert(a, e)}
+                          className="h-8 px-3 rounded-full bg-[#0000000D] dark:bg-[#FFFFFF14] hover:bg-[#0000001A] dark:hover:bg-[#FFFFFF26] text-foreground text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                          title="Edit alert & waktu scraping"
+                        >
+                          <Pencil className="h-3 w-3" />
+                          <span>Edit</span>
+                        </button>
+
+                        <div className="flex items-center gap-1.5 px-2.5 h-8 rounded-full bg-[#00000008] dark:bg-[#FFFFFF0D]">
+                          <span className="text-[11px] font-semibold text-[#606060] dark:text-[#AAAAAA]">
+                            {a.is_active ? 'Aktif' : 'Off'}
+                          </span>
+                          <Switch
+                            checked={a.is_active}
+                            onCheckedChange={() => handleToggle(a.id, a.is_active)}
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(a.id)}
+                          className="h-8 w-8 rounded-full bg-[#0000000D] dark:bg-[#FFFFFF14] hover:bg-[#FFE5E5] hover:text-[#CC0000] text-[#606060] dark:text-[#AAAAAA] flex items-center justify-center transition-colors cursor-pointer ml-auto sm:ml-0"
+                          title="Hapus alert"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,6 +30,12 @@ func (r *AlertRepository) GetAll() ([]model.PriceAlert, error) {
 	for i := range alerts {
 		if listings, err := r.GetMatchingListings(&alerts[i]); err == nil {
 			alerts[i].MatchCount = len(listings)
+			if len(listings) > 0 && listings[0].Images != "" {
+				var imgs []string
+				if err := json.Unmarshal([]byte(listings[0].Images), &imgs); err == nil && len(imgs) > 0 {
+					alerts[i].ThumbnailURL = imgs[0]
+				}
+			}
 		}
 	}
 	return alerts, nil

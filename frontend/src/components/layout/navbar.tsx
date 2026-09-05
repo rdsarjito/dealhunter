@@ -78,9 +78,9 @@ export function Navbar({
 
   return (
     <header className="sticky top-0 z-50 w-full h-14 bg-card border-b border-[#E5E5E5] dark:border-[#303030] select-none transition-colors">
-      <div className="w-full px-4 sm:px-6 h-full flex items-center justify-between gap-2 sm:gap-4">
+      <div className="w-full pl-4 pr-4 sm:pr-6 h-full flex items-center justify-between gap-2 sm:gap-4">
         {/* Left: YouTube Hamburger (☰) + Logo */}
-        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+        <div className="flex items-center gap-4 shrink-0">
           <button
             type="button"
             onClick={handleHamburgerClick}

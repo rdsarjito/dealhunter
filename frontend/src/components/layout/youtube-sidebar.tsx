@@ -177,7 +177,7 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
       */}
       <aside 
         aria-label="Navigasi Mini YouTube"
-        className="hidden md:flex flex-col items-center w-[72px] shrink-0 sticky top-14 left-0 h-[calc(100vh-56px)] bg-card border-r border-[#E5E5E5] dark:border-[#303030] py-1 select-none z-30 overflow-y-auto"
+        className="hidden md:flex flex-col items-center w-[72px] shrink-0 sticky top-14 left-0 h-[calc(100vh-56px)] bg-card py-1 select-none z-30 overflow-y-auto"
       >
         <div className="flex flex-col items-center w-full gap-0.5">
           {miniRailItems.map((item) => (

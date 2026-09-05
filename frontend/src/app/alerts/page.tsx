@@ -87,14 +87,15 @@ export default function AlertsPage() {
         onOpenAlertModal={() => setAlertModalOpen(true)}
       />
 
-      <YouTubeSidebar
-        onOpenTelegram={() => setTelegramOpen(true)}
-        telegramConnected={telegramConnected}
-        onOpenFacebook={() => setFacebookOpen(true)}
-        facebookConnected={facebookConnected}
-      />
+      <div className="flex-1 flex flex-row w-full min-h-[calc(100vh-56px)]">
+        <YouTubeSidebar
+          onOpenTelegram={() => setTelegramOpen(true)}
+          telegramConnected={telegramConnected}
+          onOpenFacebook={() => setFacebookOpen(true)}
+          facebookConnected={facebookConnected}
+        />
 
-      <main className="w-full px-4 sm:px-6 py-4 space-y-4">
+        <main className="flex-1 min-w-0 px-4 sm:px-6 py-4 space-y-4 overflow-y-auto">
         {activeWatchAlert ? (
           <AlertWatchPage
             alert={activeWatchAlert}
@@ -268,7 +269,8 @@ export default function AlertsPage() {
             )}
           </div>
         )}
-      </main>
+        </main>
+      </div>
 
       <YouTubeBottomNav />
 

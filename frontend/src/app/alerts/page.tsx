@@ -1,7 +1,5 @@
 'use client';
 
-import { ScraperStatusBar } from '@/components/alerts/scraper-status-bar';
-
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/navbar';
 import { YouTubeSidebar } from '@/components/layout/youtube-sidebar';
@@ -10,18 +8,27 @@ import { AlertModal } from '@/components/alerts/alert-modal';
 import { AlertWatchPage } from '@/components/alerts/alert-watch-page';
 import { TelegramSettingsModal } from '@/components/telegram/telegram-settings-modal';
 import { FacebookSessionModal } from '@/components/facebook/facebook-session-modal';
-import { getAlerts, toggleAlert, deleteAlert, getTelegramStatus, getFacebookStatus } from '@/lib/api';
+import { 
+  getAlerts, 
+  toggleAlert, 
+  deleteAlert, 
+  scanSingleAlert,
+  scanNow,
+  getTelegramStatus, 
+  getFacebookStatus 
+} from '@/lib/api';
 import { PriceAlert } from '@/types';
 import { formatRupiah } from '@/lib/format';
 import { 
   Bell, 
   Plus, 
   Trash2, 
+  Pencil,
   MapPin, 
   Clock, 
   Play, 
-  Radio, 
-  ChevronRight
+  ChevronRight,
+  RefreshCw
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
@@ -29,6 +36,9 @@ export default function AlertsPage() {
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [alertModalOpen, setAlertModalOpen] = useState(false);
+  const [editingAlert, setEditingAlert] = useState<PriceAlert | null>(null);
+  const [scanningAlertId, setScanningAlertId] = useState<string | null>(null);
+  const [isScanningAll, setIsScanningAll] = useState(false);
   const [telegramOpen, setTelegramOpen] = useState(false);
   const [telegramConnected, setTelegramConnected] = useState(false);
   const [facebookOpen, setFacebookOpen] = useState(false);
@@ -50,6 +60,46 @@ export default function AlertsPage() {
       console.error(err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCreateAlert = () => {
+    setEditingAlert(null);
+    setAlertModalOpen(true);
+  };
+
+  const handleEditAlert = (alert: PriceAlert, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setEditingAlert(alert);
+    setAlertModalOpen(true);
+  };
+
+  const handleScanSingle = async (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setScanningAlertId(id);
+    try {
+      await scanSingleAlert(id);
+      setTimeout(() => {
+        loadAlerts();
+        setScanningAlertId(null);
+      }, 2500);
+    } catch (err) {
+      console.error(err);
+      setScanningAlertId(null);
+    }
+  };
+
+  const handleScanAll = async () => {
+    setIsScanningAll(true);
+    try {
+      await scanNow();
+      setTimeout(() => {
+        loadAlerts();
+        setIsScanningAll(false);
+      }, 3000);
+    } catch (err) {
+      console.error(err);
+      setIsScanningAll(false);
     }
   };
 
@@ -83,7 +133,7 @@ export default function AlertsPage() {
         telegramConnected={telegramConnected}
         onOpenFacebook={() => setFacebookOpen(true)}
         facebookConnected={facebookConnected}
-        onOpenAlertModal={() => setAlertModalOpen(true)}
+        onOpenAlertModal={handleCreateAlert}
       />
 
       <div className="flex-1 flex flex-row w-full min-h-[calc(100vh-56px)]">
@@ -102,8 +152,42 @@ export default function AlertsPage() {
           />
         ) : (
           <div className="space-y-4 w-full">
-            {/* Scraper Live Status & Control Bar */}
-            <ScraperStatusBar onScanTriggered={loadAlerts} />
+            {/* Clean Header Bar replacing old status banner */}
+            <div className="flex items-center justify-between gap-3 pb-3 border-b border-[#E5E5E5] dark:border-[#303030] flex-wrap">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-bold text-foreground">Radar Pantauan Alert</h2>
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#0000000D] dark:bg-[#FFFFFF14] text-foreground">
+                    {alerts.filter(a => a.is_active).length} Aktif
+                  </span>
+                </div>
+                <p className="text-xs text-[#606060] dark:text-[#AAAAAA]">
+                  Pemindaian Facebook Marketplace berjalan otomatis sesuai frekuensi waktu scraping tiap alert.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleScanAll}
+                  disabled={isScanningAll}
+                  className="h-9 px-3.5 rounded-full bg-[#0000000D] dark:bg-[#FFFFFF14] hover:bg-[#0000001A] dark:hover:bg-[#FFFFFF26] text-foreground text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                  title="Picu pemindaian semua alert aktif"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${isScanningAll ? 'animate-spin text-[#FF0000]' : ''}`} />
+                  <span>{isScanningAll ? 'Memindai Semua...' : 'Pindai Semua'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCreateAlert}
+                  className="h-9 px-4 rounded-full bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Pasang Alert Baru</span>
+                </button>
+              </div>
+            </div>
 
             {/* Loading */}
             {isLoading && (
@@ -123,14 +207,14 @@ export default function AlertsPage() {
                 <div className="space-y-1">
                   <h3 className="font-bold text-base text-foreground">Belum Ada Alert Aktif</h3>
                   <p className="text-xs text-[#606060] dark:text-[#AAAAAA] leading-relaxed">
-                    Pasang alert untuk barang incaran Anda (misal: Monitor &le; 500k, PlayStation 5 &le; 5.5jt) agar sistem memantaunya otomatis.
+                    Pasang alert untuk barang incaran Anda (misal: Monitor &le; 500k, PlayStation 5 &le; 5.5jt) dan atur frekuensi scraping-nya secara fleksibel.
                   </p>
                 </div>
                 <div className="pt-2 flex justify-center">
                   <button
                     type="button"
-                    onClick={() => setAlertModalOpen(true)}
-                    className="px-4 h-9 rounded-full bg-[#FF0000] text-white text-xs font-bold flex items-center gap-1.5 hover:bg-[#CC0000]"
+                    onClick={handleCreateAlert}
+                    className="px-4 h-9 rounded-full bg-[#FF0000] text-white text-xs font-bold flex items-center gap-1.5 hover:bg-[#CC0000] cursor-pointer"
                   >
                     <Plus className="h-4 w-4" />
                     <span>Pasang Alert Sekarang</span>
@@ -139,7 +223,7 @@ export default function AlertsPage() {
               </div>
             )}
 
-            {/* Alerts List (Stretches Full Width Edge to Edge) */}
+            {/* Alerts List */}
             {!isLoading && alerts.length > 0 && (
               <div className="space-y-3 w-full">
                 {alerts.map((a) => (
@@ -150,7 +234,7 @@ export default function AlertsPage() {
                     {/* Clickable Area to open YouTube Watch Page */}
                     <div 
                       onClick={() => setActiveWatchAlert(a)}
-                      className="space-y-1.5 flex-1 cursor-pointer min-w-0"
+                      className="space-y-2 flex-1 cursor-pointer min-w-0"
                     >
                       <div className="flex items-center gap-2 flex-wrap">
                         <div className="h-7 w-7 rounded-full bg-[#FFF0F0] dark:bg-[#2B1414] text-[#FF0000] flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -162,6 +246,16 @@ export default function AlertsPage() {
                         <span className="text-xs font-black text-[#FF0000] tabular-price">
                           Maksimal {formatRupiah(a.max_price)}
                         </span>
+
+                        {/* Individual Scraping Interval Badge */}
+                        <div 
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#0000000D] dark:bg-[#FFFFFF14] text-[11px] font-semibold text-foreground"
+                          title="Frekuensi pemindaian Facebook Marketplace untuk alert ini"
+                        >
+                          <Clock className="h-3 w-3 text-[#FF0000]" />
+                          <span>Scraping tiap {a.interval_minutes || 5} menit</span>
+                        </div>
+
                         {!a.is_active && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F2F2F2] dark:bg-[#272727] text-[#606060] dark:text-[#AAAAAA] font-medium">
                             Non-aktif
@@ -172,7 +266,7 @@ export default function AlertsPage() {
                       <div className="flex flex-wrap items-center gap-4 text-xs text-[#606060] dark:text-[#AAAAAA]">
                         <div className="flex items-center gap-1">
                           <MapPin className="h-3.5 w-3.5 text-[#FF0000]" />
-                          <span>{a.location || 'Jakarta'}</span>
+                          <span>{a.location || 'Jakarta'} ({a.radius_km || 25}km)</span>
                         </div>
 
                         <div className="flex items-center gap-1.5 font-bold">
@@ -187,7 +281,7 @@ export default function AlertsPage() {
                           ) : (
                             <span className="text-[#606060] dark:text-[#AAAAAA] flex items-center gap-1.5">
                               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                              <span>Radar aktif mengintai (0 temuan)</span>
+                              <span>Radar aktif mengintai</span>
                             </span>
                           )}
                         </div>
@@ -202,29 +296,53 @@ export default function AlertsPage() {
                     </div>
 
                     {/* Actions Right */}
-                    <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
+                    <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                      {/* Watch Page Button */}
                       <button
                         type="button"
                         onClick={() => setActiveWatchAlert(a)}
-                        className="h-9 px-4 rounded-full bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
+                        className="h-9 px-3.5 rounded-full bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
                         title="Buka tampilan Watch Page ala YouTube"
                       >
                         <Play className="h-3 w-3 fill-white" />
-                        <span>Tonton Hasil ({a.match_count || 0})</span>
+                        <span>Tonton ({a.match_count || 0})</span>
                         <ChevronRight className="h-3.5 w-3.5" />
                       </button>
 
-                      <div className="flex items-center gap-2 pl-2 border-l border-[#E5E5E5] dark:border-[#303030]">
+                      {/* Single Alert Scan Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleScanSingle(a.id, e)}
+                        disabled={scanningAlertId === a.id}
+                        className="h-9 w-9 rounded-full bg-[#F2F2F2] dark:bg-[#272727] hover:bg-[#E5E5E5] dark:hover:bg-[#383838] text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                        title={`Pindai kata kunci "${a.keyword}" sekarang`}
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 ${scanningAlertId === a.id ? 'animate-spin text-[#FF0000]' : ''}`} />
+                      </button>
+
+                      {/* Edit Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleEditAlert(a, e)}
+                        className="h-9 w-9 rounded-full bg-[#F2F2F2] dark:bg-[#272727] hover:bg-[#E5E5E5] dark:hover:bg-[#383838] text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                        title="Edit pengaturan & waktu scraping"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+
+                      {/* Active Toggle Switch */}
+                      <div className="flex items-center pl-1 border-l border-[#E5E5E5] dark:border-[#303030]">
                         <Switch
                           checked={a.is_active}
                           onCheckedChange={() => handleToggle(a.id, a.is_active)}
                         />
                       </div>
 
+                      {/* Delete Button */}
                       <button
                         type="button"
                         onClick={() => handleDelete(a.id)}
-                        className="h-9 w-9 rounded-full bg-[#F2F2F2] dark:bg-[#272727] hover:bg-[#FFE5E5] hover:text-[#CC0000] text-[#606060] flex items-center justify-center transition-colors"
+                        className="h-9 w-9 rounded-full bg-[#F2F2F2] dark:bg-[#272727] hover:bg-[#FFE5E5] hover:text-[#CC0000] text-[#606060] flex items-center justify-center transition-colors cursor-pointer"
                         title="Hapus alert"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -243,8 +361,12 @@ export default function AlertsPage() {
 
       <AlertModal
         open={alertModalOpen}
-        onOpenChange={setAlertModalOpen}
-        onAlertCreated={loadAlerts}
+        onOpenChange={(val) => {
+          setAlertModalOpen(val);
+          if (!val) setEditingAlert(null);
+        }}
+        alertToEdit={editingAlert}
+        onAlertSaved={loadAlerts}
         onOpenTelegramSettings={() => setTelegramOpen(true)}
       />
 

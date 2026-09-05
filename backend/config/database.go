@@ -47,5 +47,10 @@ func InitDatabase(cfg *Config) *gorm.DB {
 
 	log.Println("[DB] Auto-migration completed successfully")
 
+	// Ensure columns and default values for interval_minutes & last_scanned_at
+	_ = db.Exec("ALTER TABLE price_alerts ADD COLUMN IF NOT EXISTS interval_minutes INTEGER DEFAULT 5").Error
+	_ = db.Exec("ALTER TABLE price_alerts ADD COLUMN IF NOT EXISTS last_scanned_at TIMESTAMPTZ").Error
+	_ = db.Exec("UPDATE price_alerts SET interval_minutes = 5 WHERE interval_minutes IS NULL OR interval_minutes <= 0").Error
+
 	return db
 }

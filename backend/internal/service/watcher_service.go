@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/rdsarjito/dealhunter-backend/internal/domain/model"
 	"github.com/rdsarjito/dealhunter-backend/internal/notifier"
 	"github.com/rdsarjito/dealhunter-backend/internal/repository"
@@ -64,15 +65,15 @@ func NewAlertWatcher(
 
 // Start begins background polling loop
 func (w *AlertWatcher) Start(ctx context.Context) {
-	log.Printf("[AlertWatcher] Background alert poller started. Scanning every %v", w.interval)
+	log.Printf("[AlertWatcher] Background alert poller started. Evaluating per-alert schedules every 30 seconds.")
 
-	// Run initial scan in background after 5 seconds
+	// Run initial due-check in background after 5 seconds
 	go func() {
 		time.Sleep(5 * time.Second)
-		w.ScanAll(ctx)
+		w.PollDueAlerts(ctx)
 	}()
 
-	ticker := time.NewTicker(w.interval)
+	ticker := time.NewTicker(30 * time.Second)
 	go func() {
 		for {
 			select {
@@ -81,18 +82,71 @@ func (w *AlertWatcher) Start(ctx context.Context) {
 				log.Println("[AlertWatcher] Background alert poller stopped.")
 				return
 			case <-ticker.C:
-				w.ScanAll(ctx)
+				w.PollDueAlerts(ctx)
 			}
 		}
 	}()
 }
 
-// ScanAll scans Facebook Marketplace for all active alerts
-func (w *AlertWatcher) ScanAll(ctx context.Context) int {
+// PollDueAlerts checks all active alerts and executes scans for alerts whose interval has elapsed
+func (w *AlertWatcher) PollDueAlerts(ctx context.Context) int {
 	w.mu.Lock()
 	if w.isScanning {
 		w.mu.Unlock()
-		log.Println("[AlertWatcher] Previous scan still in progress, skipping tick...")
+		return 0
+	}
+	w.mu.Unlock()
+
+	alerts, err := w.alertRepo.GetActive()
+	if err != nil || len(alerts) == 0 {
+		return 0
+	}
+
+	now := time.Now()
+	var dueAlerts []model.PriceAlert
+	for _, a := range alerts {
+		mins := a.IntervalMinutes
+		if mins <= 0 {
+			mins = 5
+		}
+		if a.LastScannedAt == nil || now.Sub(*a.LastScannedAt) >= time.Duration(mins)*time.Minute {
+			dueAlerts = append(dueAlerts, a)
+		}
+	}
+
+	if len(dueAlerts) == 0 {
+		return 0
+	}
+
+	log.Printf("[AlertWatcher] ⏰ Found %d alert(s) due for scraping out of %d active", len(dueAlerts), len(alerts))
+	return w.scanAlertList(ctx, dueAlerts)
+}
+
+// ScanAll scans Facebook Marketplace for all active alerts unconditionally
+func (w *AlertWatcher) ScanAll(ctx context.Context) int {
+	alerts, err := w.alertRepo.GetActive()
+	if err != nil || len(alerts) == 0 {
+		return 0
+	}
+	return w.scanAlertList(ctx, alerts)
+}
+
+// ScanSingleAlert immediately scans Facebook Marketplace for a specific alert
+func (w *AlertWatcher) ScanSingleAlert(ctx context.Context, alertID uuid.UUID) (int, error) {
+	alert, err := w.alertRepo.GetByID(alertID)
+	if err != nil {
+		return 0, err
+	}
+	triggered := w.scanAlertList(ctx, []model.PriceAlert{*alert})
+	return triggered, nil
+}
+
+// scanAlertList runs scraper on a list of alerts
+func (w *AlertWatcher) scanAlertList(ctx context.Context, alerts []model.PriceAlert) int {
+	w.mu.Lock()
+	if w.isScanning {
+		w.mu.Unlock()
+		log.Println("[AlertWatcher] Another scan is currently running, skipping...")
 		return 0
 	}
 	w.isScanning = true
@@ -114,12 +168,6 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 		w.mu.Unlock()
 	}()
 
-	alerts, err := w.alertRepo.GetActive()
-	if err != nil || len(alerts) == 0 {
-		return 0
-	}
-
-	// Fetch default telegram chat IDs
 	var defaultChatIDs []string
 	if w.telegramRepo != nil {
 		if settings, err := w.telegramRepo.GetActive(); err == nil {
@@ -131,9 +179,7 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 		}
 	}
 
-	log.Printf("[AlertWatcher] 🔄 Background scanning Facebook Marketplace for %d active alerts...", len(alerts))
 	totalTriggered := 0
-
 	for _, alert := range alerts {
 		select {
 		case <-ctx.Done():
@@ -145,52 +191,41 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 		w.currentKeyword = alert.Keyword
 		w.mu.Unlock()
 
-		log.Printf("[AlertWatcher] Checking alert: '%s' in '%s' (Target <= Rp %.0f)",
-			alert.Keyword, alert.Location, alert.MaxPrice)
+		log.Printf("[AlertWatcher] Checking alert: '%s' in '%s' (Interval: %dm, Target <= Rp %.0f)",
+			alert.Keyword, alert.Location, alert.IntervalMinutes, alert.MaxPrice)
 
-		// Search Facebook Marketplace
 		items, err := w.scraper.Search(ctx, alert.Keyword, alert.Location, alert.RadiusKM, nil, nil)
-		if err != nil || len(items) == 0 {
-			continue
-		}
-		totalItemsScraped += len(items)
+		if err == nil && len(items) > 0 {
+			totalItemsScraped += len(items)
+			savedListings, _ := w.listingRepo.UpsertScrapedItems(items, alert.Keyword)
 
-		// Save new listings to DB
-		savedListings, _ := w.listingRepo.UpsertScrapedItems(items, alert.Keyword)
+			for _, item := range savedListings {
+				if item.Price > 0 && item.Price <= alert.MaxPrice {
+					if w.alertRepo.HasMatch(alert.ID, item.ID) {
+						continue
+					}
+					if alert.Location != "" && !MatchesAlertLocation(&alert, item.Location) {
+						continue
+					}
 
-		// Check for price and location matches
-		for _, item := range savedListings {
-			if item.Price > 0 && item.Price <= alert.MaxPrice {
-				// Don't re-match if this listing was already captured by this alert
-				if w.alertRepo.HasMatch(alert.ID, item.ID) {
-					continue
+					log.Printf("[AlertWatcher] 🚨 NEW DEAL DETECTED! '%s' Rp %.0f <= Rp %.0f (Alert: %s)",
+						item.Title, item.Price, alert.MaxPrice, alert.Keyword)
+
+					_ = w.alertRepo.AddMatchedListing(alert.ID, item.ID)
+					_ = w.alertRepo.RecordTrigger(alert.ID, item.Title)
+
+					var targetChats []string
+					if alert.TelegramChatID != "" {
+						targetChats = append(targetChats, alert.TelegramChatID)
+					} else {
+						targetChats = defaultChatIDs
+					}
+
+					for _, cid := range targetChats {
+						_ = w.notifier.SendDealAlert(cid, &alert, &item)
+					}
+					totalTriggered++
 				}
-
-				// Check location if alert specified location
-				if alert.Location != "" && !MatchesAlertLocation(&alert, item.Location) {
-					continue
-				}
-
-				log.Printf("[AlertWatcher] 🚨 NEW DEAL DETECTED! '%s' Rp %.0f <= Rp %.0f (Alert: %s)",
-					item.Title, item.Price, alert.MaxPrice, alert.Keyword)
-
-				// Capture this listing into this alert
-				_ = w.alertRepo.AddMatchedListing(alert.ID, item.ID)
-				_ = w.alertRepo.RecordTrigger(alert.ID, item.Title)
-
-				// Determine targets
-				var targetChats []string
-				if alert.TelegramChatID != "" {
-					targetChats = append(targetChats, alert.TelegramChatID)
-				} else {
-					targetChats = defaultChatIDs
-				}
-
-				for _, cid := range targetChats {
-					_ = w.notifier.SendDealAlert(cid, &alert, &item)
-				}
-
-				totalTriggered++
 			}
 		}
 
@@ -209,7 +244,9 @@ func (w *AlertWatcher) ScanAll(ctx context.Context) int {
 			}
 		}
 
-		// Gentle throttle between alert searches
+		// Record that this alert was scanned
+		_ = w.alertRepo.RecordScanned(alert.ID)
+
 		time.Sleep(2 * time.Second)
 	}
 

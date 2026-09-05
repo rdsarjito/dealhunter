@@ -115,6 +115,24 @@ export async function createAlert(data: Partial<PriceAlert>): Promise<PriceAlert
   return json.data;
 }
 
+export async function updateAlert(id: string, data: Partial<PriceAlert>): Promise<PriceAlert> {
+  const res = await fetch(`${API_BASE}/alerts/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error('Gagal memperbarui Price Alert');
+  const json = await res.json();
+  return json.data;
+}
+
+export async function scanSingleAlert(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/alerts/${id}/scan`, {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error('Gagal memindai alert ini');
+}
+
 export async function toggleAlert(id: string, isActive: boolean): Promise<void> {
   const res = await fetch(`${API_BASE}/alerts/${id}/toggle`, {
     method: 'PUT',

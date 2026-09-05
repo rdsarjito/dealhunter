@@ -93,6 +93,33 @@ func (r *AlertRepository) RecordTrigger(id uuid.UUID, matchedTitle string) error
 	}).Error
 }
 
+func (r *AlertRepository) Update(id uuid.UUID, a *model.PriceAlert) error {
+	updates := map[string]interface{}{
+		"keyword":          a.Keyword,
+		"max_price":        a.MaxPrice,
+		"location":         a.Location,
+		"radius_km":        a.RadiusKM,
+		"category":         a.Category,
+		"interval_minutes": a.IntervalMinutes,
+		"is_active":        a.IsActive,
+	}
+	if a.Latitude != nil && *a.Latitude != 0 {
+		updates["latitude"] = a.Latitude
+	}
+	if a.Longitude != nil && *a.Longitude != 0 {
+		updates["longitude"] = a.Longitude
+	}
+	if a.TelegramChatID != "" {
+		updates["telegram_chat_id"] = a.TelegramChatID
+	}
+	return r.db.Model(&model.PriceAlert{}).Where("id = ?", id).Updates(updates).Error
+}
+
+func (r *AlertRepository) RecordScanned(id uuid.UUID) error {
+	now := time.Now()
+	return r.db.Model(&model.PriceAlert{}).Where("id = ?", id).Update("last_scanned_at", &now).Error
+}
+
 // TelegramSettingRepository manages bot chat registration
 type TelegramSettingRepository struct {
 	db *gorm.DB

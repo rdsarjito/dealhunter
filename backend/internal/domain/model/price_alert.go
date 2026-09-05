@@ -16,11 +16,13 @@ type PriceAlert struct {
 	Longitude         *float64       `gorm:"type:decimal(10,7)" json:"longitude"`
 	RadiusKM          int            `gorm:"default:50" json:"radius_km"`
 	Category          string         `gorm:"type:varchar(100)" json:"category"`
+	IntervalMinutes   int            `gorm:"default:5" json:"interval_minutes"`
 	IsActive          bool           `gorm:"default:true" json:"is_active"`
 	TelegramChatID    string         `gorm:"type:varchar(100)" json:"telegram_chat_id"`
 	TriggerCount      int            `gorm:"default:0" json:"trigger_count"`
 	MatchCount        int            `gorm:"-" json:"match_count"`
 	LastTriggeredAt   *time.Time     `json:"last_triggered_at"`
+	LastScannedAt     *time.Time     `json:"last_scanned_at"`
 	LastMatchedItem   string         `gorm:"type:text" json:"last_matched_item"`
 	CreatedAt         time.Time      `json:"created_at"`
 	UpdatedAt         time.Time      `json:"updated_at"`

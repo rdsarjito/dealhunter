@@ -66,6 +66,10 @@ func (h *AlertHandler) Create(c *fiber.Ctx) error {
 		a.Longitude = &defaultLon
 	}
 
+	if a.IntervalMinutes <= 0 {
+		a.IntervalMinutes = 5
+	}
+
 	a.IsActive = true
 	if err := h.repo.Create(&a); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -83,6 +87,94 @@ func (h *AlertHandler) Create(c *fiber.Ctx) error {
 		"status":  true,
 		"message": "Price Alert berhasil dibuat & background scanner langsung dijalankan",
 		"data":    a,
+	})
+}
+
+func (h *AlertHandler) Update(c *fiber.Ctx) error {
+	idStr := c.Params("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  false,
+			"message": "Invalid alert ID",
+		})
+	}
+
+	var req model.PriceAlert
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  false,
+			"message": "Invalid request body",
+		})
+	}
+
+	if req.Keyword == "" || req.MaxPrice <= 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  false,
+			"message": "Keyword dan harga maksimal wajib diisi",
+		})
+	}
+
+	if req.IntervalMinutes <= 0 {
+		req.IntervalMinutes = 5
+	}
+	if req.RadiusKM <= 0 {
+		req.RadiusKM = 25
+	}
+
+	existing, err := h.repo.GetByID(id)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"status":  false,
+			"message": "Alert tidak ditemukan",
+		})
+	}
+
+	existing.Keyword = req.Keyword
+	existing.MaxPrice = req.MaxPrice
+	existing.Location = req.Location
+	existing.RadiusKM = req.RadiusKM
+	existing.IntervalMinutes = req.IntervalMinutes
+	if req.Latitude != nil && *req.Latitude != 0 {
+		existing.Latitude = req.Latitude
+	}
+	if req.Longitude != nil && *req.Longitude != 0 {
+		existing.Longitude = req.Longitude
+	}
+
+	if err := h.repo.Update(id, existing); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  false,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  true,
+		"message": "Price Alert berhasil diperbarui",
+		"data":    existing,
+	})
+}
+
+func (h *AlertHandler) ScanSingle(c *fiber.Ctx) error {
+	idStr := c.Params("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  false,
+			"message": "Invalid alert ID",
+		})
+	}
+
+	if h.watcher != nil {
+		go func() {
+			_, _ = h.watcher.ScanSingleAlert(context.Background(), id)
+		}()
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  true,
+		"message": "Pemindaian Facebook Marketplace untuk alert ini sedang dijalankan.",
 	})
 }
 

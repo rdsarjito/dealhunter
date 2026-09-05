@@ -123,9 +123,11 @@ func main() {
 	// Price Alerts
 	api.Get("/alerts", alertHandler.GetAll)
 	api.Post("/alerts", alertHandler.Create)
+	api.Put("/alerts/:id", alertHandler.Update)
 	api.Put("/alerts/:id/toggle", alertHandler.Toggle)
 	api.Delete("/alerts/:id", alertHandler.Delete)
 	api.Post("/alerts/scan-now", alertHandler.ScanNow)
+	api.Post("/alerts/:id/scan", alertHandler.ScanSingle)
 	api.Get("/alerts/watcher/status", alertHandler.GetWatcherStatus)
 	api.Get("/alerts/:id/listings", alertHandler.GetAlertListings)
 

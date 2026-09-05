@@ -167,7 +167,7 @@ export function ListingGrid({
             <p className="text-xs text-muted-foreground leading-relaxed">
               {hasActiveFilters
                 ? 'Filter yang aktif menyaring semua barang. Coba reset filter untuk melihat semua hasil.'
-                : `Belum ada iklan untuk “${query}” di ${location}. Coba tombol Live Scrape untuk menarik iklan langsung dari Facebook.`}
+                : `Belum ada iklan untuk “${query}” di ${location}. Coba tombol Scrape FB untuk menarik iklan langsung dari Facebook.`}
             </p>
           </div>
           <div className="pt-2 flex justify-center gap-2">
@@ -184,7 +184,7 @@ export function ListingGrid({
               className="px-4 h-9 rounded-xl bg-foreground text-background text-xs font-semibold flex items-center gap-1.5"
             >
               <RefreshCw className="h-3.5 w-3.5" />
-              <span>Live Scrape FB</span>
+              <span>Scrape FB</span>
             </button>
           </div>
         </div>

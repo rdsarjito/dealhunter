@@ -247,7 +247,7 @@ export function MinimalFilterDock({ onSearch, isLoading }: MinimalFilterDockProp
             className="h-8 px-3.5 rounded-lg bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50 shadow-xs"
           >
             <RefreshCw className={`h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Live Scrape</span>
+            <span className="hidden sm:inline">Scrape FB</span>
           </button>
         </div>
       </div>

@@ -160,7 +160,6 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
     {
       href: '/alerts',
       label: 'Radar Alert',
-      badge: true, // YouTube-style red dot indicator
       icon: (active: boolean) => <FacebookBellIcon active={active} />,
       isActive: pathname === '/alerts',
     },
@@ -198,7 +197,6 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
     { 
       href: '/alerts', 
       label: 'Radar Alert Deals', 
-      badge: 'Live',
       icon: (active: boolean) => <FacebookBellIcon active={active} />,
     },
     { 
@@ -257,9 +255,6 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
             >
               <div className="relative w-6 h-6 flex items-center justify-center shrink-0">
                 {item.icon(item.isActive)}
-                {item.badge && !item.isActive && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#FF0000] ring-2 ring-card shadow-xs animate-pulse" />
-                )}
               </div>
               <span className={`text-[10px] leading-[14px] text-center tracking-tight truncate w-full px-0.5 mt-1.5 ${
                 item.isActive ? 'font-semibold' : 'font-normal'
@@ -341,11 +336,7 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
                       {link.icon(isActive)}
                     </div>
                     <span className="truncate">{link.label}</span>
-                    {link.badge && (
-                      <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#FF0000] text-white">
-                        {link.badge}
-                      </span>
-                    )}
+
                   </Link>
                 );
               })}

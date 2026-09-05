@@ -208,7 +208,7 @@ export function SearchBar({ onSearch, isLoading, onOpenFilters, activeFilterCoun
           className="h-12 px-3 rounded-xl border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white active:scale-[0.96] transition-all flex items-center gap-1.5 text-xs font-semibold"
         >
           <RefreshCw className={"h-3.5 w-3.5 " + (isLoading ? "animate-spin" : "")} />
-          <span className="hidden sm:inline">Live FB</span>
+          <span className="hidden sm:inline">Scrape FB</span>
         </Button>
 
         {/* Search Submit Button */}

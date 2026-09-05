@@ -290,7 +290,7 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
           }`}
         >
           {/* Header Drawer */}
-          <div className="h-14 px-4 flex items-center gap-4 border-b border-[#E5E5E5] dark:border-[#303030] shrink-0">
+          <div className="h-14 px-4 flex items-center gap-4 shrink-0">
             <button
               type="button"
               onClick={() => setDrawerOpen(false)}

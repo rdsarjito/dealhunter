@@ -105,7 +105,7 @@ export function Navbar({
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full h-14 bg-card border-b border-[#E5E5E5] dark:border-[#303030] select-none transition-colors">
+    <header className="sticky top-0 z-50 w-full h-14 bg-card select-none transition-colors">
       <div className="w-full pl-4 pr-4 sm:pr-6 h-full flex items-center justify-between gap-2 sm:gap-4">
         {/* Left: Hamburger (☰) + FB Marketplace DealHunter Logo */}
         <div className="flex items-center gap-4 shrink-0">

@@ -7,7 +7,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Menu,
-  Play, 
+  Play,
+  Store, 
   Search, 
   Send, 
   Sun, 
@@ -79,12 +80,12 @@ export function Navbar({
   return (
     <header className="sticky top-0 z-50 w-full h-14 bg-card border-b border-[#E5E5E5] dark:border-[#303030] select-none transition-colors">
       <div className="w-full pl-4 pr-4 sm:pr-6 h-full flex items-center justify-between gap-2 sm:gap-4">
-        {/* Left: YouTube Hamburger (☰) + Logo */}
+        {/* Left: Hamburger (☰) + FB Marketplace DealHunter Logo */}
         <div className="flex items-center gap-4 shrink-0">
           <button
             type="button"
             onClick={handleHamburgerClick}
-            title="Menu YouTube"
+            title="Menu Utama"
             className="h-10 w-10 rounded-full hover:bg-[#F2F2F2] dark:hover:bg-[#272727] text-foreground flex items-center justify-center transition-colors cursor-pointer"
           >
             <Menu className="h-5 w-5 text-foreground" />
@@ -92,19 +93,19 @@ export function Navbar({
 
           <Link 
             href="/" 
-            className="flex items-center gap-1 group hover:opacity-95 transition-opacity"
-            title="DealHunter Beranda"
+            className="flex items-center gap-2 group hover:opacity-95 transition-opacity"
+            title="DealHunter Marketplace"
           >
-            <div className="h-5 w-7 rounded-sm bg-[#FF0000] text-white flex items-center justify-center shadow-xs">
-              <Play className="h-3 w-3 fill-white ml-0.5" />
+            <div className="h-8 w-8 rounded-full bg-[#1877F2] text-white flex items-center justify-center shadow-xs">
+              <Store className="h-4 w-4 stroke-[2.2]" />
             </div>
-            <span className="font-bold text-base sm:text-lg tracking-tighter text-foreground">
-              Deal<span className="text-[#FF0000]">Hunter</span>
+            <span className="font-bold text-base sm:text-lg tracking-tight text-foreground">
+              Deal<span className="text-[#1877F2]">Hunter</span>
             </span>
-            <span className="text-[10px] text-[#606060] dark:text-[#AAAAAA] font-normal uppercase tracking-wider ml-0.5 hidden xs:inline">
-              ID
+            <span className="text-[10px] bg-[#E7F3FF] dark:bg-[#252F3E] text-[#1877F2] dark:text-[#2D88FF] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wider hidden xs:inline">
+              FB
             </span>
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" title="Server Live" />
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Server Live" />
           </Link>
         </div>
 

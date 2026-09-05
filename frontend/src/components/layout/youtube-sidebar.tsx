@@ -4,67 +4,22 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
-  Bookmark, 
-  History, 
-  Smartphone, 
-  Laptop, 
-  Car, 
-  Armchair, 
-  Gamepad2, 
+  Store,
+  Bell,
+  Radio,
+  Bookmark,
+  TrendingUp,
+  Laptop,
+  Smartphone,
+  Tv,
+  Headphones,
+  Camera,
+  Gamepad2,
   Send,
-  Play, 
   KeyRound,
-  ChevronRight,
   Menu
 } from 'lucide-react';
 import { useSearchStore } from '@/stores/search-store';
-
-// YouTube Exact SVG Icons
-function YouTubeHomeIcon({ active = false }: { active?: boolean }) {
-  if (active) {
-    return (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
-        <path d="M4 21V10.08l8-6.92 8 6.92V21h-5v-6h-6v6H4z" />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-current stroke-[1.8]">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 21V10.08l8-6.92 8 6.92V21h-5v-6h-6v6H4z" />
-    </svg>
-  );
-}
-
-function YouTubeShortsIcon({ active = false }: { active?: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
-      <path d="M17.77 10.32l-1.2-.5L18 9.06a3.74 3.74 0 00-3.5-5.35c-.73 0-1.44.2-2.06.58L6.44 7.82A3.74 3.74 0 004.5 11c0 1.45.85 2.74 2.16 3.32l1.2.5L6.4 15.65a3.75 3.75 0 003.56 5.4c.73 0 1.44-.2 2.06-.58l5.94-3.53a3.74 3.74 0 001.94-3.18c0-1.45-.85-2.74-2.13-3.32v-.12zM10 14.65v-5.3l4.58 2.65L10 14.65z" />
-    </svg>
-  );
-}
-
-function YouTubeSubscriptionsIcon({ active = false }: { active?: boolean }) {
-  if (active) {
-    return (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
-        <path d="M20 7H4V6h16v1zm2 2H2v11h20V9zM5 19V10h14v9H5zm5-2l5-3.5-5-3.5v7zm8-13H6V3h12v1z" />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-current stroke-[1.8]">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M2 9h20v11H2V9zm8 3.5l5 3.5-5 3.5v-7zM6 3h12" />
-    </svg>
-  );
-}
-
-function YouTubeYouIcon({ active = false }: { active?: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
-    </svg>
-  );
-}
 
 interface YouTubeSidebarProps {
   onOpenTelegram?: () => void;
@@ -109,93 +64,133 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
     }
   }, [drawerOpen]);
 
-  // Mini rail items (exactly matching YouTube desktop navigation)
+  // Facebook-style Mini Rail Navigation (Tailored to DealHunter FB Project)
   const miniRailItems = [
     {
       href: '/',
-      label: 'Beranda',
-      icon: (active: boolean) => <YouTubeHomeIcon active={active} />,
+      label: 'Marketplace',
+      badge: null,
+      icon: (active: boolean) => (
+        <Store className={`w-5 h-5 ${active ? 'text-white stroke-[2.2]' : 'text-[#050505] dark:text-[#E4E6EB] stroke-[1.8]'}`} />
+      ),
       isActive: pathname === '/',
     },
     {
-      href: '/trends',
-      label: 'Shorts',
-      icon: (active: boolean) => <YouTubeShortsIcon active={active} />,
-      isActive: pathname === '/trends',
-    },
-    {
       href: '/alerts',
-      label: 'Subscription',
-      icon: (active: boolean) => <YouTubeSubscriptionsIcon active={active} />,
+      label: 'Radar Alert',
+      badge: 'LIVE',
+      icon: (active: boolean) => (
+        <Bell className={`w-5 h-5 ${active ? 'text-white fill-current' : 'text-[#050505] dark:text-[#E4E6EB] stroke-[1.8]'}`} />
+      ),
       isActive: pathname === '/alerts',
     },
     {
       href: '/watchlist',
-      label: 'Anda',
-      icon: (active: boolean) => <YouTubeYouIcon active={active} />,
-      isActive: pathname === '/watchlist' || pathname === '/saved',
+      label: 'Pantauan',
+      badge: null,
+      icon: (active: boolean) => (
+        <Radio className={`w-5 h-5 ${active ? 'text-white stroke-[2.2]' : 'text-[#050505] dark:text-[#E4E6EB] stroke-[1.8]'}`} />
+      ),
+      isActive: pathname === '/watchlist',
+    },
+    {
+      href: '/saved',
+      label: 'Tersimpan',
+      badge: null,
+      icon: (active: boolean) => (
+        <Bookmark className={`w-5 h-5 ${active ? 'text-white fill-current' : 'text-[#050505] dark:text-[#E4E6EB] stroke-[1.8]'}`} />
+      ),
+      isActive: pathname === '/saved',
+    },
+    {
+      href: '/trends',
+      label: 'Tren Harga',
+      badge: null,
+      icon: (active: boolean) => (
+        <TrendingUp className={`w-5 h-5 ${active ? 'text-white stroke-[2.2]' : 'text-[#050505] dark:text-[#E4E6EB] stroke-[1.8]'}`} />
+      ),
+      isActive: pathname === '/trends',
     },
   ];
 
   const primaryLinks = [
     { 
       href: '/', 
-      label: 'Beranda', 
-      icon: (active: boolean) => <YouTubeHomeIcon active={active} /> 
-    },
-    { 
-      href: '/trends', 
-      label: 'Shorts (Tren Pasar)', 
-      icon: (active: boolean) => <YouTubeShortsIcon active={active} /> 
+      label: 'Marketplace (Feed)', 
+      icon: Store,
+      badge: null,
     },
     { 
       href: '/alerts', 
-      label: 'Subscription (Price Alerts)', 
-      icon: (active: boolean) => <YouTubeSubscriptionsIcon active={active} /> 
+      label: 'Radar Alert Deals', 
+      icon: Bell,
+      badge: 'Live',
+    },
+    { 
+      href: '/watchlist', 
+      label: 'Daftar Pantauan Target', 
+      icon: Radio,
+      badge: null,
+    },
+    { 
+      href: '/saved', 
+      label: 'Barang Tersimpan', 
+      icon: Bookmark,
+      badge: null,
+    },
+    { 
+      href: '/trends', 
+      label: 'Tren Harga Pasar', 
+      icon: TrendingUp,
+      badge: null,
     },
   ];
 
-  const personalLinks = [
-    { href: '/watchlist', label: 'Watchlist Saya', icon: Bookmark },
-    { href: '/saved', label: 'Pencarian Tersimpan', icon: History },
-  ];
-
   const exploreItems = [
-    { name: 'Elektronik & Gadget', icon: Smartphone },
     { name: 'Komputer & Laptop', icon: Laptop },
-    { name: 'Kendaraan & Otomotif', icon: Car },
-    { name: 'Perabot Rumah Tangga', icon: Armchair },
-    { name: 'Hobi & Olahraga', icon: Gamepad2 },
+    { name: 'Handphone & Gadget', icon: Smartphone },
+    { name: 'Monitor & Layar', icon: Tv },
+    { name: 'Audio & Elektronik', icon: Headphones },
+    { name: 'Kamera & Fotografi', icon: Camera },
+    { name: 'Gaming & Konsol', icon: Gamepad2 },
   ];
 
   return (
     <>
       {/* 
-        1. YOUTUBE MINI SIDEBAR (RAIL)
+        1. FACEBOOK-STYLE MINI SIDEBAR (RAIL)
         Fixed/Sticky on desktop (hidden on mobile), width 72px.
-        Matches exact screenshot: Beranda, Shorts, Subscription, Anda.
+        Aligned with header hamburger button (center at x = 36px).
+        Uses Facebook circular icon containers (w-10 h-10) with signature Facebook Blue (#1877F2).
       */}
       <aside 
-        aria-label="Navigasi Mini YouTube"
-        className="hidden md:flex flex-col items-center w-[72px] shrink-0 sticky top-14 left-0 h-[calc(100vh-56px)] bg-card py-1 select-none z-30 overflow-y-auto"
+        aria-label="Navigasi DealHunter"
+        className="hidden md:flex flex-col items-center w-[72px] shrink-0 sticky top-14 left-0 h-[calc(100vh-56px)] bg-card py-2 select-none z-30 overflow-y-auto"
       >
-        <div className="flex flex-col items-center w-full gap-0.5">
+        <div className="flex flex-col items-center w-full gap-1">
           {miniRailItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`w-[64px] h-[74px] flex flex-col items-center justify-center rounded-[10px] my-0.5 mx-auto transition-all duration-150 ease-out cursor-pointer group active:scale-95 ${
-                item.isActive
-                  ? 'text-[#0F0F0F] dark:text-[#F1F1F1] font-semibold'
-                  : 'text-[#0F0F0F] dark:text-[#F1F1F1] font-normal hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF1A]'
-              }`}
+              className="w-[64px] py-1.5 flex flex-col items-center justify-center rounded-xl mx-auto transition-all duration-150 cursor-pointer group hover:bg-[#0000000A] dark:hover:bg-[#FFFFFF0D] active:scale-95"
               title={item.label}
             >
-              <div className="w-6 h-6 flex items-center justify-center shrink-0">
+              <div className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                item.isActive 
+                  ? 'bg-[#1877F2] text-white shadow-sm ring-2 ring-[#1877F2]/25' 
+                  : 'bg-[#E4E6EB] dark:bg-[#3A3B3C] text-[#050505] dark:text-[#E4E6EB] group-hover:bg-[#D8DADF] dark:group-hover:bg-[#4E4F50]'
+              }`}>
                 {item.icon(item.isActive)}
+                {item.badge && !item.isActive && (
+                  <span className="absolute -top-1 -right-1 bg-[#E41E3F] text-white text-[8px] font-bold px-1 py-0.2 rounded-full ring-2 ring-card shadow-xs animate-pulse">
+                    {item.badge}
+                  </span>
+                )}
               </div>
-              <span className={`text-[10px] leading-[14px] text-center tracking-tight truncate w-full px-0.5 mt-1.5 ${
-                item.isActive ? 'font-semibold' : 'font-normal'
+              <span className={`text-[11px] leading-[14px] text-center tracking-tight truncate w-full px-0.5 mt-1.5 transition-colors ${
+                item.isActive 
+                  ? 'text-[#1877F2] dark:text-[#2D88FF] font-semibold' 
+                  : 'text-[#050505] dark:text-[#E4E6EB] font-medium'
               }`}>
                 {item.label}
               </span>
@@ -205,7 +200,7 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
       </aside>
 
       {/* 
-        2. YOUTUBE FULL SLIDING DRAWER (OVERLAY)
+        2. FACEBOOK-STYLE FULL SLIDING DRAWER (OVERLAY)
         Smooth backdrop with cubic-bezier slide-out when hamburger is clicked.
       */}
       <div 
@@ -223,12 +218,12 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
 
         {/* Sliding Menu Drawer */}
         <div 
-          className={`relative w-64 h-full bg-card shadow-2xl flex flex-col z-10 transition-transform duration-250 ease-[cubic-bezier(0.05,0.7,0.1,1.0)] transform ${
+          className={`relative w-72 h-full bg-card shadow-2xl flex flex-col z-10 transition-transform duration-250 ease-[cubic-bezier(0.05,0.7,0.1,1.0)] transform ${
             drawerOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
           {/* Header Drawer */}
-          <div className="h-14 px-4 flex items-center gap-4 border-b border-[#E5E5E5] dark:border-[#303030] shrink-0">
+          <div className="h-14 px-4 flex items-center gap-3 border-b border-[#E5E5E5] dark:border-[#303030] shrink-0">
             <button
               type="button"
               onClick={() => setDrawerOpen(false)}
@@ -240,59 +235,28 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
             <Link 
               href="/" 
               onClick={() => setDrawerOpen(false)} 
-              className="flex items-center gap-1 group select-none"
+              className="flex items-center gap-2 group select-none"
             >
-              <div className="h-5 w-7 rounded-sm bg-[#FF0000] text-white flex items-center justify-center shadow-xs">
-                <Play className="h-3 w-3 fill-white ml-0.5" />
+              <div className="w-8 h-8 rounded-full bg-[#1877F2] text-white flex items-center justify-center shadow-xs">
+                <Store className="w-4 h-4 stroke-[2.2]" />
               </div>
-              <span className="font-bold text-lg tracking-tighter text-foreground">
-                Deal<span className="text-[#FF0000]">Hunter</span>
+              <span className="font-bold text-lg tracking-tight text-foreground">
+                Deal<span className="text-[#1877F2]">Hunter</span>
               </span>
-              <span className="text-[10px] text-[#606060] font-normal uppercase ml-0.5">ID</span>
+              <span className="text-[10px] bg-[#E7F3FF] dark:bg-[#252F3E] text-[#1877F2] dark:text-[#2D88FF] font-semibold px-1.5 py-0.5 rounded-full ml-0.5">
+                FB Radar
+              </span>
             </Link>
           </div>
 
           {/* Scrollable Menu Content */}
-          <div className="flex-1 overflow-y-auto px-3 py-3 select-none text-[14px]">
+          <div className="flex-1 overflow-y-auto px-3 py-3 select-none text-[14px] space-y-3">
             {/* SECTION 1: Navigasi Utama */}
-            <div className="space-y-0.5">
+            <div className="space-y-1">
+              <div className="px-2 py-1 text-xs font-semibold text-[#65676B] dark:text-[#B0B3B8] uppercase tracking-wider">
+                Navigasi Utama
+              </div>
               {primaryLinks.map((link) => {
-                const isActive = pathname === link.href;
-
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setDrawerOpen(false)}
-                    className={`flex items-center gap-6 px-3 h-10 rounded-[10px] transition-colors duration-150 ${
-                      isActive
-                        ? 'bg-[#0000000D] dark:bg-[#FFFFFF1A] text-[#0F0F0F] dark:text-[#F1F1F1] font-semibold'
-                        : 'text-foreground hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF1A] active:scale-[0.98]'
-                    }`}
-                  >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0">
-                      {link.icon(isActive)}
-                    </div>
-                    <span className="truncate">{link.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-
-            <hr className="my-3 border-[#E5E5E5] dark:border-[#303030]" />
-
-            {/* SECTION 2: Anda (You >) */}
-            <div className="space-y-0.5">
-              <Link 
-                href="/watchlist"
-                onClick={() => setDrawerOpen(false)}
-                className="flex items-center gap-1 px-3 py-1 text-sm font-bold text-foreground hover:text-[#FF0000] group"
-              >
-                <span>Anda</span>
-                <ChevronRight className="h-4 w-4 text-[#606060] group-hover:text-[#FF0000] transition-colors" />
-              </Link>
-
-              {personalLinks.map((link) => {
                 const Icon = link.icon;
                 const isActive = pathname === link.href;
 
@@ -301,25 +265,38 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
                     key={link.href}
                     href={link.href}
                     onClick={() => setDrawerOpen(false)}
-                    className={`flex items-center gap-6 px-3 h-10 rounded-[10px] transition-colors duration-150 ${
+                    className={`flex items-center justify-between px-2.5 h-11 rounded-xl transition-all duration-150 ${
                       isActive
-                        ? 'bg-[#0000000D] dark:bg-[#FFFFFF1A] text-[#0F0F0F] dark:text-[#F1F1F1] font-semibold'
-                        : 'text-foreground hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF1A] active:scale-[0.98]'
+                        ? 'bg-[#E7F3FF] dark:bg-[#252F3E] text-[#1877F2] dark:text-[#2D88FF] font-semibold'
+                        : 'text-foreground hover:bg-[#F2F2F2] dark:hover:bg-[#3A3B3C]/50 active:scale-[0.98]'
                     }`}
                   >
-                    <Icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-[#FF0000] stroke-[2.5]' : 'stroke-[1.8]'}`} />
-                    <span className="truncate">{link.label}</span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                        isActive 
+                          ? 'bg-[#1877F2] text-white shadow-xs' 
+                          : 'bg-[#E4E6EB] dark:bg-[#3A3B3C] text-[#050505] dark:text-[#E4E6EB]'
+                      }`}>
+                        <Icon className={`w-4.5 h-4.5 ${isActive ? 'stroke-[2.2]' : 'stroke-[1.8]'}`} />
+                      </div>
+                      <span className="truncate text-sm">{link.label}</span>
+                    </div>
+                    {link.badge && (
+                      <span className="text-[10px] font-bold bg-[#E41E3F] text-white px-2 py-0.5 rounded-full shrink-0">
+                        {link.badge}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
             </div>
 
-            <hr className="my-3 border-[#E5E5E5] dark:border-[#303030]" />
+            <hr className="border-[#E5E5E5] dark:border-[#303030]" />
 
-            {/* SECTION 3: Eksplorasi (Explore) */}
-            <div className="space-y-0.5">
-              <div className="px-3 py-1 text-sm font-bold text-foreground">
-                Eksplorasi
+            {/* SECTION 2: Kategori FB Marketplace */}
+            <div className="space-y-1">
+              <div className="px-2 py-1 text-xs font-semibold text-[#65676B] dark:text-[#B0B3B8] uppercase tracking-wider">
+                Kategori FB Marketplace
               </div>
 
               {exploreItems.map((item) => {
@@ -333,25 +310,31 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
                       setCategory(item.name);
                       setDrawerOpen(false);
                     }}
-                    className={`w-full flex items-center gap-6 px-3 h-10 rounded-[10px] transition-colors duration-150 text-left ${
+                    className={`w-full flex items-center gap-3 px-2.5 h-10 rounded-xl transition-all duration-150 text-left ${
                       isSelected
-                        ? 'bg-[#0000000D] dark:bg-[#FFFFFF1A] text-[#FF0000] font-semibold'
-                        : 'text-foreground hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF1A] active:scale-[0.98]'
+                        ? 'bg-[#E7F3FF] dark:bg-[#252F3E] text-[#1877F2] dark:text-[#2D88FF] font-semibold'
+                        : 'text-foreground hover:bg-[#F2F2F2] dark:hover:bg-[#3A3B3C]/50 active:scale-[0.98]'
                     }`}
                   >
-                    <Icon className={`h-5 w-5 shrink-0 ${isSelected ? 'text-[#FF0000]' : 'text-[#606060] dark:text-[#AAAAAA]'}`} />
-                    <span className="truncate">{item.name}</span>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                      isSelected 
+                        ? 'bg-[#1877F2] text-white shadow-xs' 
+                        : 'bg-[#E4E6EB] dark:bg-[#3A3B3C] text-[#050505] dark:text-[#E4E6EB]'
+                    }`}>
+                      <Icon className="w-4 h-4 stroke-[1.8]" />
+                    </div>
+                    <span className="truncate text-sm">{item.name}</span>
                   </button>
                 );
               })}
             </div>
 
-            <hr className="my-3 border-[#E5E5E5] dark:border-[#303030]" />
+            <hr className="border-[#E5E5E5] dark:border-[#303030]" />
 
-            {/* SECTION 4: Lainnya dari DealHunter */}
-            <div className="space-y-0.5">
-              <div className="px-3 py-1 text-sm font-bold text-foreground">
-                Lainnya dari DealHunter
+            {/* SECTION 3: Integrasi & Status */}
+            <div className="space-y-1">
+              <div className="px-2 py-1 text-xs font-semibold text-[#65676B] dark:text-[#B0B3B8] uppercase tracking-wider">
+                Integrasi & Status
               </div>
 
               <button
@@ -360,13 +343,17 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
                   onOpenTelegram?.();
                   setDrawerOpen(false);
                 }}
-                className="w-full flex items-center gap-6 px-3 h-10 rounded-[10px] text-foreground hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF1A] transition-colors duration-150 text-left active:scale-[0.98]"
+                className="w-full flex items-center gap-3 px-2.5 h-11 rounded-xl text-foreground hover:bg-[#F2F2F2] dark:hover:bg-[#3A3B3C]/50 transition-all duration-150 text-left active:scale-[0.98]"
               >
-                <Send className={`h-5 w-5 shrink-0 ${telegramConnected ? 'text-[#31A24C]' : 'text-[#606060] dark:text-[#AAAAAA]'}`} />
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+                  telegramConnected ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-[#E4E6EB] dark:bg-[#3A3B3C] text-[#050505] dark:text-[#E4E6EB]'
+                }`}>
+                  <Send className="w-4.5 h-4.5 stroke-[1.8]" />
+                </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="truncate">Bot Telegram</span>
-                  <span className="text-[10px] text-[#606060] dark:text-[#AAAAAA] truncate">
-                    {telegramConnected ? 'Aktif terhubung' : 'Belum terhubung'}
+                  <span className="text-sm font-medium truncate">Bot Telegram Alert</span>
+                  <span className="text-[11px] text-[#65676B] dark:text-[#B0B3B8] truncate">
+                    {telegramConnected ? '● Terhubung Aktif' : '○ Belum Terhubung'}
                   </span>
                 </div>
               </button>
@@ -377,37 +364,32 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
                   onOpenFacebook?.();
                   setDrawerOpen(false);
                 }}
-                className="w-full flex items-center gap-6 px-3 h-10 rounded-[10px] text-foreground hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF1A] transition-colors duration-150 text-left active:scale-[0.98]"
+                className="w-full flex items-center gap-3 px-2.5 h-11 rounded-xl text-foreground hover:bg-[#F2F2F2] dark:hover:bg-[#3A3B3C]/50 transition-all duration-150 text-left active:scale-[0.98]"
               >
-                <KeyRound className={`h-5 w-5 shrink-0 ${facebookConnected ? 'text-[#1877F2]' : 'text-[#606060] dark:text-[#AAAAAA]'}`} />
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+                  facebookConnected ? 'bg-blue-100 text-[#1877F2] dark:bg-blue-950 dark:text-[#2D88FF]' : 'bg-[#E4E6EB] dark:bg-[#3A3B3C] text-[#050505] dark:text-[#E4E6EB]'
+                }`}>
+                  <KeyRound className="w-4.5 h-4.5 stroke-[1.8]" />
+                </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="truncate">Akun Facebook</span>
-                  <span className="text-[10px] text-[#606060] dark:text-[#AAAAAA] truncate">
-                    {facebookConnected ? 'Sesi asli aktif' : 'Mode tamu (tanpa akun)'}
+                  <span className="text-sm font-medium truncate">Sesi Akun Facebook</span>
+                  <span className="text-[11px] text-[#65676B] dark:text-[#B0B3B8] truncate">
+                    {facebookConnected ? '● Sesi Asli Aktif' : '○ Mode Tamu (Tanpa Akun)'}
                   </span>
                 </div>
               </button>
             </div>
 
-            <hr className="my-3 border-[#E5E5E5] dark:border-[#303030]" />
+            <hr className="border-[#E5E5E5] dark:border-[#303030]" />
 
-            {/* SECTION 5: YouTube Footer Copyright & Links */}
-            <div className="px-3 py-2 text-[12px] text-[#606060] dark:text-[#AAAAAA] space-y-3 select-none">
-              <div className="flex flex-wrap gap-x-2 gap-y-1 font-medium">
-                <span>Tentang</span>
-                <span>Pers</span>
-                <span>Hak cipta</span>
-                <span>Hubungi kami</span>
-                <span>Kreator</span>
-                <span>Iklan</span>
+            {/* SECTION 4: Footer */}
+            <div className="px-2 py-1 text-xs text-[#65676B] dark:text-[#B0B3B8] space-y-1 select-none">
+              <div className="font-semibold text-foreground">
+                DealHunter • FB Marketplace
               </div>
-              <div className="flex flex-wrap gap-x-2 gap-y-1 font-medium text-[11px]">
-                <span>Ketentuan</span>
-                <span>Privasi</span>
-                <span>Kebijakan & Keamanan</span>
-              </div>
-              <div className="text-[11px] text-[#909090] dark:text-[#717171] pt-1">
-                © 2026 DealHunter ID LLC
+              <div>Pemantau & Notifikasi Deal Otomatis</div>
+              <div className="text-[11px] text-[#8A8D91] pt-1">
+                © 2026 DealHunter ID
               </div>
             </div>
           </div>

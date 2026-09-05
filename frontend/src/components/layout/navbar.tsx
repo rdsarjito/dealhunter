@@ -17,7 +17,19 @@ import {
   Mic, 
   Plus,
   ChevronRight,
-  KeyRound
+  KeyRound,
+  Users,
+  LogOut,
+  Radio,
+  CircleDollarSign,
+  Shield,
+  Languages,
+  ShieldCheck,
+  Globe,
+  Keyboard,
+  Settings,
+  HelpCircle,
+  MessageSquare
 } from 'lucide-react';
 import { useSearchStore } from '@/stores/search-store';
 
@@ -234,128 +246,271 @@ export function Navbar({
             </button>
 
             {profileMenuOpen && (
-              <div className="absolute right-0 top-11 w-80 rounded-2xl bg-card border border-[#E5E5E5] dark:border-[#303030] shadow-2xl py-2 z-50 text-foreground animate-in fade-in-0 zoom-in-95 duration-150 select-none">
-                {/* Header: User Profile Info (YouTube Style) */}
-                <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[#E5E5E5] dark:border-[#303030]">
-                  <div className="h-10 w-10 rounded-full bg-[#FF0000] text-white font-bold text-base flex items-center justify-center shadow-xs shrink-0">
+              <div className="absolute right-0 top-11 w-[300px] max-h-[calc(100vh-70px)] overflow-y-auto rounded-xl bg-card border border-[#E5E5E5] dark:border-[#303030] shadow-2xl py-2 z-50 text-foreground animate-in fade-in-0 zoom-in-95 duration-150 select-none">
+                {/* Header: User Profile Info (Exact Match with YouTube Screenshot) */}
+                <div className="px-4 py-3 flex items-start gap-3.5 border-b border-[#E5E5E5] dark:border-[#303030]">
+                  <div className="w-10 h-10 rounded-full bg-[#FF0000] text-white font-semibold text-base flex items-center justify-center shrink-0 shadow-xs mt-0.5">
                     R
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="font-semibold text-sm text-foreground truncate">Rama</span>
-                    <span className="text-xs text-[#606060] dark:text-[#AAAAAA] truncate">@dealhunter_id</span>
-                    <span className="text-[11px] text-[#065FD4] dark:text-[#3EA6FF] hover:underline cursor-pointer mt-0.5">
-                      Akun Reseller Pro
+                    <span className="font-medium text-sm text-[#0F0F0F] dark:text-[#F1F1F1] truncate leading-tight">
+                      Ramadhani Nur Sarjito
                     </span>
+                    <span className="text-xs text-[#606060] dark:text-[#AAAAAA] truncate mt-1">
+                      @ramadhaninursarjito1460
+                    </span>
+                    <Link
+                      href="/alerts"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className="text-xs text-[#065FD4] dark:text-[#3EA6FF] hover:underline mt-2 font-normal leading-tight"
+                    >
+                      Lihat channel Anda
+                    </Link>
                   </div>
                 </div>
 
-                {/* Section 1: Status Integrasi (Telegram & Facebook) */}
+                {/* SECTION 1: Akun & Integrasi (Facebook, Telegram, Ganti Akun, Logout) */}
                 <div className="py-1">
-                  <div className="px-4 pt-2 pb-1 text-[11px] font-semibold text-[#606060] dark:text-[#AAAAAA] uppercase tracking-wider">
-                    Status Integrasi
-                  </div>
-
-                  {/* Telegram Notification Row */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setProfileMenuOpen(false);
-                      onOpenTelegram?.();
-                    }}
-                    className="w-full flex items-center gap-3.5 px-4 py-2.5 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF1A] transition-colors text-left group cursor-pointer"
-                  >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0">
-                      <Send className={`w-5 h-5 ${telegramConnected ? 'text-[#31A24C]' : 'text-[#606060] dark:text-[#AAAAAA]'}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-normal text-foreground group-hover:text-foreground">
-                        Notifikasi Telegram
-                      </div>
-                      <div className="text-xs flex items-center gap-1.5 mt-0.5">
-                        <span className={`inline-block w-2 h-2 rounded-full ${telegramConnected ? 'bg-[#31A24C]' : 'bg-[#9E9E9E]'}`} />
-                        <span className={telegramConnected ? 'text-[#31A24C] font-medium' : 'text-[#606060] dark:text-[#AAAAAA]'}>
-                          {telegramConnected ? 'Terhubung & Aktif' : 'Belum Terhubung'}
-                        </span>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-[#606060] dark:text-[#AAAAAA] shrink-0" />
-                  </button>
-
-                  {/* Facebook Account Session Row */}
+                  {/* Sesi Facebook */}
                   <button
                     type="button"
                     onClick={() => {
                       setProfileMenuOpen(false);
                       onOpenFacebook?.();
                     }}
-                    className="w-full flex items-center gap-3.5 px-4 py-2.5 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF1A] transition-colors text-left group cursor-pointer"
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
                   >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0">
-                      <KeyRound className={`w-5 h-5 ${facebookConnected ? 'text-[#1877F2]' : 'text-[#606060] dark:text-[#AAAAAA]'}`} />
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <KeyRound className={`w-5 h-5 ${facebookConnected ? 'text-[#1877F2]' : ''} stroke-[1.8]`} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-normal text-foreground group-hover:text-foreground">
-                        Sesi Akun Facebook
-                      </div>
-                      <div className="text-xs flex items-center gap-1.5 mt-0.5">
-                        <span className={`inline-block w-2 h-2 rounded-full ${facebookConnected ? 'bg-[#1877F2]' : 'bg-[#9E9E9E]'}`} />
-                        <span className={facebookConnected ? 'text-[#1877F2] font-medium' : 'text-[#606060] dark:text-[#AAAAAA]'}>
-                          {facebookConnected ? 'Sesi Asli Terhubung' : 'Mode Tamu (Tanpa Akun)'}
-                        </span>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-[#606060] dark:text-[#AAAAAA] shrink-0" />
+                    <span className="flex-1 truncate font-normal text-sm">
+                      Sesi Facebook: {facebookConnected ? 'Terhubung' : 'Mode Tamu'}
+                    </span>
+                    <ChevronRight className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA] shrink-0 stroke-[1.5]" />
                   </button>
-                </div>
 
-                <hr className="my-1 border-[#E5E5E5] dark:border-[#303030]" />
-
-                {/* Section 2: Tampilan & Navigasi Cepat */}
-                <div className="py-1">
-                  {/* Theme Switcher in Dropdown */}
+                  {/* Notifikasi Telegram */}
                   <button
                     type="button"
                     onClick={() => {
-                      toggleTheme();
+                      setProfileMenuOpen(false);
+                      onOpenTelegram?.();
                     }}
-                    className="w-full flex items-center gap-3.5 px-4 py-2.5 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF1A] transition-colors text-left group cursor-pointer"
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
                   >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0">
-                      {isDark ? <Moon className="w-5 h-5 text-neutral-400" /> : <Sun className="w-5 h-5 text-amber-500" />}
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <Send className={`w-5 h-5 ${telegramConnected ? 'text-[#31A24C]' : ''} stroke-[1.8]`} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-normal text-foreground">Tampilan</div>
-                      <div className="text-xs text-[#606060] dark:text-[#AAAAAA] mt-0.5">
-                        {isDark ? 'Tema Gelap' : 'Tema Terang'}
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-[#606060] dark:text-[#AAAAAA] shrink-0" />
+                    <span className="flex-1 truncate font-normal text-sm">
+                      Notifikasi Telegram: {telegramConnected ? 'Terhubung' : 'Nonaktif'}
+                    </span>
+                    <ChevronRight className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA] shrink-0 stroke-[1.5]" />
                   </button>
 
-                  {/* Link to Alerts */}
+                  {/* Ganti akun */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileMenuOpen(false);
+                      onOpenFacebook?.();
+                    }}
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <Users className="w-5 h-5 stroke-[1.8]" />
+                    </div>
+                    <span className="flex-1 truncate font-normal text-sm">
+                      Ganti akun
+                    </span>
+                    <ChevronRight className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA] shrink-0 stroke-[1.5]" />
+                  </button>
+
+                  {/* Logout */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileMenuOpen(false);
+                    }}
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <LogOut className="w-5 h-5 stroke-[1.8]" />
+                    </div>
+                    <span className="flex-1 truncate font-normal text-sm">
+                      Logout
+                    </span>
+                  </button>
+                </div>
+
+                <hr className="my-2 border-[#E5E5E5] dark:border-[#303030]" />
+
+                {/* SECTION 2: Studio & Pembelian */}
+                <div className="py-1">
+                  {/* YouTube Studio */}
                   <Link
                     href="/alerts"
                     onClick={() => setProfileMenuOpen(false)}
-                    className="w-full flex items-center gap-3.5 px-4 py-2.5 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF1A] transition-colors text-left group cursor-pointer"
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
                   >
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0">
-                      <Bell className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA]" />
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <Radio className="w-5 h-5 stroke-[1.8]" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-normal text-foreground">Radar Alert Deals</div>
-                      <div className="text-xs text-[#606060] dark:text-[#AAAAAA] mt-0.5">
-                        Kelola barang pantauan & notifikasi
-                      </div>
+                    <span className="flex-1 truncate font-normal text-sm">
+                      YouTube Studio
+                    </span>
+                  </Link>
+
+                  {/* Pembelian dan langganan */}
+                  <Link
+                    href="/saved"
+                    onClick={() => setProfileMenuOpen(false)}
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <CircleDollarSign className="w-5 h-5 stroke-[1.8]" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-[#606060] dark:text-[#AAAAAA] shrink-0" />
+                    <span className="flex-1 truncate font-normal text-sm">
+                      Pembelian dan langganan
+                    </span>
                   </Link>
                 </div>
 
-                <hr className="my-1 border-[#E5E5E5] dark:border-[#303030]" />
+                <hr className="my-2 border-[#E5E5E5] dark:border-[#303030]" />
 
-                {/* Footer in Dropdown */}
-                <div className="px-4 py-2 text-[11px] text-[#606060] dark:text-[#AAAAAA]">
-                  DealHunter ID • YouTube Engine
+                {/* SECTION 3: Preferensi Pengguna & Tampilan (Exact YouTube Screenshot Order) */}
+                <div className="py-1">
+                  {/* Data Anda di YouTube */}
+                  <Link
+                    href="/watchlist"
+                    onClick={() => setProfileMenuOpen(false)}
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <Shield className="w-5 h-5 stroke-[1.8]" />
+                    </div>
+                    <span className="flex-1 truncate font-normal text-sm">
+                      Data Anda di YouTube
+                    </span>
+                  </Link>
+
+                  {/* Tampilan: Tema perangkat */}
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <Moon className="w-5 h-5 stroke-[1.8]" />
+                    </div>
+                    <span className="flex-1 truncate font-normal text-sm">
+                      Tampilan: {isDark ? 'Tema gelap' : 'Tema terang'}
+                    </span>
+                    <ChevronRight className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA] shrink-0 stroke-[1.5]" />
+                  </button>
+
+                  {/* Bahasa tampilan: Indonesia */}
+                  <button
+                    type="button"
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <Languages className="w-5 h-5 stroke-[1.8]" />
+                    </div>
+                    <span className="flex-1 truncate font-normal text-sm">
+                      Bahasa tampilan: Indonesia
+                    </span>
+                    <ChevronRight className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA] shrink-0 stroke-[1.5]" />
+                  </button>
+
+                  {/* Mode Terbatas: Nonaktif */}
+                  <button
+                    type="button"
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <ShieldCheck className="w-5 h-5 stroke-[1.8]" />
+                    </div>
+                    <span className="flex-1 truncate font-normal text-sm">
+                      Mode Terbatas: Nonaktif
+                    </span>
+                    <ChevronRight className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA] shrink-0 stroke-[1.5]" />
+                  </button>
+
+                  {/* Lokasi: Indonesia */}
+                  <button
+                    type="button"
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <Globe className="w-5 h-5 stroke-[1.8]" />
+                    </div>
+                    <span className="flex-1 truncate font-normal text-sm">
+                      Lokasi: Indonesia
+                    </span>
+                    <ChevronRight className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA] shrink-0 stroke-[1.5]" />
+                  </button>
+
+                  {/* Pintasan keyboard */}
+                  <button
+                    type="button"
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <Keyboard className="w-5 h-5 stroke-[1.8]" />
+                    </div>
+                    <span className="flex-1 truncate font-normal text-sm">
+                      Pintasan keyboard
+                    </span>
+                  </button>
+                </div>
+
+                <hr className="my-2 border-[#E5E5E5] dark:border-[#303030]" />
+
+                {/* SECTION 4: Setelan */}
+                <div className="py-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileMenuOpen(false);
+                      onOpenTelegram?.();
+                    }}
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <Settings className="w-5 h-5 stroke-[1.8]" />
+                    </div>
+                    <span className="flex-1 truncate font-normal text-sm">
+                      Setelan
+                    </span>
+                  </button>
+                </div>
+
+                <hr className="my-2 border-[#E5E5E5] dark:border-[#303030]" />
+
+                {/* SECTION 5: Bantuan & Masukan */}
+                <div className="py-1">
+                  <button
+                    type="button"
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <HelpCircle className="w-5 h-5 stroke-[1.8]" />
+                    </div>
+                    <span className="flex-1 truncate font-normal text-sm">
+                      Bantuan
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full h-10 px-4 flex items-center gap-4 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] transition-colors text-left text-sm text-[#0F0F0F] dark:text-[#F1F1F1] cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0 text-[#0F0F0F] dark:text-[#F1F1F1]">
+                      <MessageSquare className="w-5 h-5 stroke-[1.8]" />
+                    </div>
+                    <span className="flex-1 truncate font-normal text-sm">
+                      Kirim masukan
+                    </span>
+                  </button>
                 </div>
               </div>
             )}

@@ -302,15 +302,18 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
             <Link 
               href="/" 
               onClick={() => setDrawerOpen(false)} 
-              className="flex items-center gap-1 group select-none"
+              className="flex items-center gap-1 group select-none hover:opacity-95 transition-opacity"
+              title="DealHunter Beranda"
             >
-              <div className="h-5 w-7 rounded-sm bg-[#FF0000] text-white flex items-center justify-center shadow-xs">
+              <div className="h-5 w-7 rounded-[4px] bg-[#FF0000] text-white flex items-center justify-center shadow-xs">
                 <Play className="h-3 w-3 fill-white ml-0.5" />
               </div>
-              <span className="font-bold text-lg tracking-tighter text-foreground">
+              <span className="font-bold text-base sm:text-lg tracking-tighter text-foreground">
                 Deal<span className="text-[#FF0000]">Hunter</span>
               </span>
-              <span className="text-[10px] text-[#606060] font-normal uppercase ml-0.5">ID</span>
+              <span className="text-[10px] text-[#606060] dark:text-[#AAAAAA] font-normal uppercase tracking-wider ml-0.5">
+                ID
+              </span>
             </Link>
           </div>
 

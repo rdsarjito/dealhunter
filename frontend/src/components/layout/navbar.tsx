@@ -93,19 +93,18 @@ export function Navbar({
 
           <Link 
             href="/" 
-            className="flex items-center gap-2 group hover:opacity-95 transition-opacity"
-            title="DealHunter Marketplace"
+            className="flex items-center gap-1 group hover:opacity-95 transition-opacity select-none"
+            title="DealHunter Beranda"
           >
-            <div className="h-8 w-8 rounded-full bg-[#1877F2] text-white flex items-center justify-center shadow-xs">
-              <Store className="h-4 w-4 stroke-[2.2]" />
+            <div className="h-5 w-7 rounded-[4px] bg-[#FF0000] text-white flex items-center justify-center shadow-xs">
+              <Play className="h-3 w-3 fill-white ml-0.5" />
             </div>
-            <span className="font-bold text-base sm:text-lg tracking-tight text-foreground">
-              Deal<span className="text-[#1877F2]">Hunter</span>
+            <span className="font-bold text-base sm:text-lg tracking-tighter text-foreground">
+              Deal<span className="text-[#FF0000]">Hunter</span>
             </span>
-            <span className="text-[10px] bg-[#E7F3FF] dark:bg-[#252F3E] text-[#1877F2] dark:text-[#2D88FF] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wider hidden xs:inline">
-              FB
+            <span className="text-[10px] text-[#606060] dark:text-[#AAAAAA] font-normal uppercase tracking-wider ml-0.5">
+              ID
             </span>
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Server Live" />
           </Link>
         </div>
 

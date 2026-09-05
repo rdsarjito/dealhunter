@@ -2,7 +2,7 @@
 
 import { ScraperStatusBar } from '@/components/alerts/scraper-status-bar';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -15,7 +15,9 @@ import {
   Moon, 
   Bell, 
   Mic, 
-  Plus 
+  Plus,
+  ChevronRight,
+  KeyRound
 } from 'lucide-react';
 import { useSearchStore } from '@/stores/search-store';
 
@@ -44,6 +46,29 @@ export function Navbar({
   } = useSearchStore();
   const [isDark, setIsDark] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setProfileMenuOpen(false);
+      }
+    };
+    if (profileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [profileMenuOpen]);
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
@@ -192,31 +217,149 @@ export function Navbar({
           {/* Scraper Live Status Badge */}
           <ScraperStatusBar compact />
 
-          {/* Facebook Session Button */}
-          <button
-            type="button"
-            onClick={onOpenFacebook}
-            title={facebookConnected ? 'Akun Facebook Terhubung' : 'Hubungkan Akun Facebook Asli'}
-            className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-full border border-[#E5E5E5] dark:border-[#303030] hover:bg-[#F2F2F2] dark:hover:bg-[#272727] text-foreground flex items-center gap-1.5 transition-colors text-xs font-semibold"
-          >
-            <div className={`h-2 w-2 rounded-full ${facebookConnected ? 'bg-[#1877F2] animate-pulse' : 'bg-[#9E9E9E]'}`} />
-            <span className="hidden sm:inline">{facebookConnected ? 'FB Terhubung' : 'Login FB'}</span>
-          </button>
+          {/* YouTube Profile Avatar Circle & Dropdown Menu */}
+          <div className="relative" ref={profileMenuRef}>
+            <button
+              type="button"
+              onClick={() => setProfileMenuOpen((prev) => !prev)}
+              title="Akun & Integrasi"
+              className="relative ml-1 cursor-pointer rounded-full focus:outline-none focus:ring-2 focus:ring-[#FF0000]/50"
+            >
+              <div className="h-8 w-8 rounded-full bg-[#FF0000] text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                R
+              </div>
+              {(telegramConnected || facebookConnected) && (
+                <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#31A24C] border-2 border-card" />
+              )}
+            </button>
 
-          {/* YouTube Profile Avatar Circle */}
-          <button
-            type="button"
-            onClick={onOpenTelegram}
-            title={telegramConnected ? 'Telegram Terhubung' : 'Hubungkan Telegram'}
-            className="relative ml-1 cursor-pointer"
-          >
-            <div className="h-8 w-8 rounded-full bg-[#FF0000] text-white font-bold text-xs flex items-center justify-center shadow-xs">
-              R
-            </div>
-            {telegramConnected && (
-              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[#31A24C] border-2 border-card" />
+            {profileMenuOpen && (
+              <div className="absolute right-0 top-11 w-80 rounded-2xl bg-card border border-[#E5E5E5] dark:border-[#303030] shadow-2xl py-2 z-50 text-foreground animate-in fade-in-0 zoom-in-95 duration-150 select-none">
+                {/* Header: User Profile Info (YouTube Style) */}
+                <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[#E5E5E5] dark:border-[#303030]">
+                  <div className="h-10 w-10 rounded-full bg-[#FF0000] text-white font-bold text-base flex items-center justify-center shadow-xs shrink-0">
+                    R
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-semibold text-sm text-foreground truncate">Rama</span>
+                    <span className="text-xs text-[#606060] dark:text-[#AAAAAA] truncate">@dealhunter_id</span>
+                    <span className="text-[11px] text-[#065FD4] dark:text-[#3EA6FF] hover:underline cursor-pointer mt-0.5">
+                      Akun Reseller Pro
+                    </span>
+                  </div>
+                </div>
+
+                {/* Section 1: Status Integrasi (Telegram & Facebook) */}
+                <div className="py-1">
+                  <div className="px-4 pt-2 pb-1 text-[11px] font-semibold text-[#606060] dark:text-[#AAAAAA] uppercase tracking-wider">
+                    Status Integrasi
+                  </div>
+
+                  {/* Telegram Notification Row */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileMenuOpen(false);
+                      onOpenTelegram?.();
+                    }}
+                    className="w-full flex items-center gap-3.5 px-4 py-2.5 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF1A] transition-colors text-left group cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                      <Send className={`w-5 h-5 ${telegramConnected ? 'text-[#31A24C]' : 'text-[#606060] dark:text-[#AAAAAA]'}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-normal text-foreground group-hover:text-foreground">
+                        Notifikasi Telegram
+                      </div>
+                      <div className="text-xs flex items-center gap-1.5 mt-0.5">
+                        <span className={`inline-block w-2 h-2 rounded-full ${telegramConnected ? 'bg-[#31A24C]' : 'bg-[#9E9E9E]'}`} />
+                        <span className={telegramConnected ? 'text-[#31A24C] font-medium' : 'text-[#606060] dark:text-[#AAAAAA]'}>
+                          {telegramConnected ? 'Terhubung & Aktif' : 'Belum Terhubung'}
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#606060] dark:text-[#AAAAAA] shrink-0" />
+                  </button>
+
+                  {/* Facebook Account Session Row */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileMenuOpen(false);
+                      onOpenFacebook?.();
+                    }}
+                    className="w-full flex items-center gap-3.5 px-4 py-2.5 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF1A] transition-colors text-left group cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                      <KeyRound className={`w-5 h-5 ${facebookConnected ? 'text-[#1877F2]' : 'text-[#606060] dark:text-[#AAAAAA]'}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-normal text-foreground group-hover:text-foreground">
+                        Sesi Akun Facebook
+                      </div>
+                      <div className="text-xs flex items-center gap-1.5 mt-0.5">
+                        <span className={`inline-block w-2 h-2 rounded-full ${facebookConnected ? 'bg-[#1877F2]' : 'bg-[#9E9E9E]'}`} />
+                        <span className={facebookConnected ? 'text-[#1877F2] font-medium' : 'text-[#606060] dark:text-[#AAAAAA]'}>
+                          {facebookConnected ? 'Sesi Asli Terhubung' : 'Mode Tamu (Tanpa Akun)'}
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#606060] dark:text-[#AAAAAA] shrink-0" />
+                  </button>
+                </div>
+
+                <hr className="my-1 border-[#E5E5E5] dark:border-[#303030]" />
+
+                {/* Section 2: Tampilan & Navigasi Cepat */}
+                <div className="py-1">
+                  {/* Theme Switcher in Dropdown */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      toggleTheme();
+                    }}
+                    className="w-full flex items-center gap-3.5 px-4 py-2.5 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF1A] transition-colors text-left group cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                      {isDark ? <Moon className="w-5 h-5 text-neutral-400" /> : <Sun className="w-5 h-5 text-amber-500" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-normal text-foreground">Tampilan</div>
+                      <div className="text-xs text-[#606060] dark:text-[#AAAAAA] mt-0.5">
+                        {isDark ? 'Tema Gelap' : 'Tema Terang'}
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#606060] dark:text-[#AAAAAA] shrink-0" />
+                  </button>
+
+                  {/* Link to Alerts */}
+                  <Link
+                    href="/alerts"
+                    onClick={() => setProfileMenuOpen(false)}
+                    className="w-full flex items-center gap-3.5 px-4 py-2.5 hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF1A] transition-colors text-left group cursor-pointer"
+                  >
+                    <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                      <Bell className="w-5 h-5 text-[#606060] dark:text-[#AAAAAA]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-normal text-foreground">Radar Alert Deals</div>
+                      <div className="text-xs text-[#606060] dark:text-[#AAAAAA] mt-0.5">
+                        Kelola barang pantauan & notifikasi
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#606060] dark:text-[#AAAAAA] shrink-0" />
+                  </Link>
+                </div>
+
+                <hr className="my-1 border-[#E5E5E5] dark:border-[#303030]" />
+
+                {/* Footer in Dropdown */}
+                <div className="px-4 py-2 text-[11px] text-[#606060] dark:text-[#AAAAAA]">
+                  DealHunter ID • YouTube Engine
+                </div>
+              </div>
             )}
-          </button>
+          </div>
         </div>
       </div>
 

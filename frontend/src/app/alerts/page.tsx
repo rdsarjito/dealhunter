@@ -17,7 +17,6 @@ import {
   Bell, 
   Plus, 
   Trash2, 
-  Send, 
   MapPin, 
   Clock, 
   Play, 
@@ -103,38 +102,6 @@ export default function AlertsPage() {
           />
         ) : (
           <div className="space-y-4 w-full">
-            {/* Telegram Notification Banner (Full Width) */}
-            <div className="w-full p-4 rounded-xl border border-[#E5E5E5] dark:border-[#303030] bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
-              <div className="flex items-center gap-3">
-                <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${
-                  telegramConnected ? 'bg-[#EBF5EA] text-[#1F7D32] dark:bg-[#1B382B] dark:text-[#31A24C]' : 'bg-[#F2F2F2] dark:bg-[#272727] text-muted-foreground'
-                }`}>
-                  <Send className="h-4 w-4" />
-                </div>
-                <div className="space-y-0.5">
-                  <div className="font-bold text-foreground flex items-center gap-1.5">
-                    <span>Notifikasi Telegram:</span>
-                    <span className={telegramConnected ? 'text-[#1F7D32] dark:text-[#31A24C]' : 'text-[#606060] dark:text-[#AAAAAA] font-normal'}>
-                      {telegramConnected ? 'Terhubung & Aktif' : 'Belum Terhubung'}
-                    </span>
-                  </div>
-                  <p className="text-[#606060] dark:text-[#AAAAAA] text-[11px]">
-                    {telegramConnected 
-                      ? 'Pesan otomatis dikirim ke HP Anda saat ada iklan baru yang cocok.' 
-                      : 'Hubungkan bot Telegram agar Anda mendapat notifikasi seketika di ponsel.'}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setTelegramOpen(true)}
-                className="px-4 h-8 rounded-full border border-[#E5E5E5] dark:border-[#303030] bg-[#F2F2F2] dark:bg-[#272727] hover:bg-[#E5E5E5] text-foreground font-semibold text-xs transition-colors self-start sm:self-auto shrink-0"
-              >
-                {telegramConnected ? 'Pengaturan Bot' : 'Hubungkan Telegram'}
-              </button>
-            </div>
-
             {/* Scraper Live Status & Control Bar */}
             <ScraperStatusBar onScanTriggered={loadAlerts} />
 

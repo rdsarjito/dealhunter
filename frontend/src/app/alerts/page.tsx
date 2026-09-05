@@ -13,7 +13,6 @@ import {
   toggleAlert, 
   deleteAlert, 
   scanSingleAlert,
-  scanNow,
   getTelegramStatus, 
   getFacebookStatus 
 } from '@/lib/api';
@@ -38,7 +37,6 @@ export default function AlertsPage() {
   const [alertModalOpen, setAlertModalOpen] = useState(false);
   const [editingAlert, setEditingAlert] = useState<PriceAlert | null>(null);
   const [scanningAlertId, setScanningAlertId] = useState<string | null>(null);
-  const [isScanningAll, setIsScanningAll] = useState(false);
   const [telegramOpen, setTelegramOpen] = useState(false);
   const [telegramConnected, setTelegramConnected] = useState(false);
   const [facebookOpen, setFacebookOpen] = useState(false);
@@ -86,20 +84,6 @@ export default function AlertsPage() {
     } catch (err) {
       console.error(err);
       setScanningAlertId(null);
-    }
-  };
-
-  const handleScanAll = async () => {
-    setIsScanningAll(true);
-    try {
-      await scanNow();
-      setTimeout(() => {
-        loadAlerts();
-        setIsScanningAll(false);
-      }, 3000);
-    } catch (err) {
-      console.error(err);
-      setIsScanningAll(false);
     }
   };
 
@@ -152,43 +136,6 @@ export default function AlertsPage() {
           />
         ) : (
           <div className="space-y-4 w-full">
-            {/* Clean Header Bar replacing old status banner */}
-            <div className="flex items-center justify-between gap-3 pb-3 border-b border-[#E5E5E5] dark:border-[#303030] flex-wrap">
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-base font-bold text-foreground">Radar Pantauan Alert</h2>
-                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#0000000D] dark:bg-[#FFFFFF14] text-foreground">
-                    {alerts.filter(a => a.is_active).length} Aktif
-                  </span>
-                </div>
-                <p className="text-xs text-[#606060] dark:text-[#AAAAAA]">
-                  Pemindaian Facebook Marketplace berjalan otomatis sesuai frekuensi waktu scraping tiap alert.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleScanAll}
-                  disabled={isScanningAll}
-                  className="h-9 px-3.5 rounded-full bg-[#0000000D] dark:bg-[#FFFFFF14] hover:bg-[#0000001A] dark:hover:bg-[#FFFFFF26] text-foreground text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                  title="Picu pemindaian semua alert aktif"
-                >
-                  <RefreshCw className={`h-3.5 w-3.5 ${isScanningAll ? 'animate-spin text-[#FF0000]' : ''}`} />
-                  <span>{isScanningAll ? 'Memindai Semua...' : 'Pindai Semua'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleCreateAlert}
-                  className="h-9 px-4 rounded-full bg-[#FF0000] hover:bg-[#CC0000] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Pasang Alert Baru</span>
-                </button>
-              </div>
-            </div>
-
             {/* Loading */}
             {isLoading && (
               <div className="space-y-3 w-full">

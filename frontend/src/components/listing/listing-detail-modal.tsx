@@ -163,25 +163,32 @@ export function ListingDetailModal({
             {/* Specifications Grid */}
             <div className="pt-4 space-y-2 text-xs">
               <span className="font-semibold text-foreground">Informasi Barang</span>
-              <div className="space-y-1.5 text-muted-foreground">
-                <div className="flex justify-between py-1 border-b border-border/50">
-                  <span>Kondisi</span>
-                  <span className="font-medium text-foreground">{listing.condition || 'Bekas'}</span>
+              <div className="divide-y divide-border/40 text-xs">
+                {/* Kondisi */}
+                <div className="flex items-center justify-between gap-4 py-2">
+                  <span className="text-muted-foreground shrink-0 w-16 sm:w-20">Kondisi</span>
+                  <span className="font-medium text-foreground text-right">{listing.condition || 'Bekas - Siap Pakai'}</span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-border/50">
-                  <span>Lokasi</span>
-                  <span className="font-medium text-foreground">
-                    {listing.location || 'Indonesia'}
+
+                {/* Lokasi & Jarak */}
+                <div className="flex items-start justify-between gap-4 py-2">
+                  <span className="text-muted-foreground shrink-0 w-16 sm:w-20 pt-0.5">Lokasi</span>
+                  <div className="flex flex-col items-end text-right min-w-0 flex-1">
+                    <span className="font-medium text-foreground leading-snug">
+                      {listing.location || 'Indonesia'}
+                    </span>
                     {listing.distance_km !== undefined && listing.distance_km !== null && (
-                      <span className="ml-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-                        ({listing.distance_km < 1 ? `${Math.round(listing.distance_km * 1000)} m` : `${listing.distance_km.toFixed(1)} km`} dari rumah)
+                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
+                        {listing.distance_km < 1 ? `${Math.round(listing.distance_km * 1000)} m` : `${listing.distance_km.toFixed(1)} km`} dari rumah Anda
                       </span>
                     )}
-                  </span>
+                  </div>
                 </div>
-                <div className="flex justify-between py-1 border-b border-border/50">
-                  <span>Penjual</span>
-                  <span className="font-medium text-foreground">{listing.seller_name || 'Penjual FB'}</span>
+
+                {/* Penjual */}
+                <div className="flex items-center justify-between gap-4 py-2">
+                  <span className="text-muted-foreground shrink-0 w-16 sm:w-20">Penjual</span>
+                  <span className="font-medium text-foreground text-right truncate">{listing.seller_name || 'Penjual FB'}</span>
                 </div>
               </div>
             </div>

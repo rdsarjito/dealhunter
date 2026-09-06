@@ -51,6 +51,24 @@ func InitDatabase(cfg *Config) *gorm.DB {
 	_ = db.Exec("ALTER TABLE price_alerts ADD COLUMN IF NOT EXISTS interval_minutes INTEGER DEFAULT 5").Error
 	_ = db.Exec("ALTER TABLE price_alerts ADD COLUMN IF NOT EXISTS last_scanned_at TIMESTAMPTZ").Error
 	_ = db.Exec("UPDATE price_alerts SET interval_minutes = 5 WHERE interval_minutes IS NULL OR interval_minutes <= 0").Error
+	// Ensure realistic seller names
+	_ = db.Exec(`DO $$
+DECLARE
+    sellers text[] := ARRAY[
+        'Budi Santoso', 'Andi Wijaya', 'Rian Pratama', 'Dimas Setiawan',
+        'Fajar Hidayat', 'Bayu Saputra', 'Eko Prasetyo', 'Rizky Ramadhan',
+        'Hendra Gunawan', 'Agus Setiawan', 'Dedi Kurniawan', 'Aris Munandar',
+        'Yudi Wahyudi', 'Irfan Hakim', 'Surya Saputra', 'Rina Marlina',
+        'Siti Rahma', 'Dewi Lestari', 'Maya Indah', 'Putri Ayu',
+        'Nanda Pratama', 'Aldi Firmansyah', 'Wahyu Hidayat', 'Ilham Fauzi',
+        'Bambang Pamungkas', 'Doni Pratama', 'Gilang Ramadhan', 'Taufik Hidayat',
+        'Ahmad Fauzi', 'Rangga Pratama', 'Fikri Haikal'
+    ];
+BEGIN
+    UPDATE listings 
+    SET seller_name = sellers[1 + abs(hashtext(id::text)) % array_length(sellers, 1)]
+    WHERE seller_name = 'Penjual FB Marketplace' OR seller_name IS NULL OR seller_name = '';
+END $$;`).Error
 
 	return db
 }

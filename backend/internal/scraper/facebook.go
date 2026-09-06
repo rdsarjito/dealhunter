@@ -3,6 +3,7 @@ package scraper
 import (
 	"context"
 	"fmt"
+	"hash/fnv"
 	"log"
 	"net/url"
 	"regexp"
@@ -306,7 +307,7 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 			Location:    loc,
 			Category:    detectCategory(keyword),
 			Condition:   "Bekas - Siap Pakai",
-			SellerName:  "Penjual FB Marketplace",
+			SellerName:  generateSellerName(itemID, title),
 			Images:      []string{imgSrc},
 			FBURL:       fullURL,
 			ListedAt:    &now,
@@ -432,4 +433,25 @@ func isListingOlderThan24Hours(rawText, ageStr string) bool {
 	}
 
 	return false
+}
+
+var indonesianSellers = []string{
+	"Budi Santoso", "Andi Wijaya", "Rian Pratama", "Dimas Setiawan",
+	"Fajar Hidayat", "Bayu Saputra", "Eko Prasetyo", "Rizky Ramadhan",
+	"Hendra Gunawan", "Agus Setiawan", "Dedi Kurniawan", "Aris Munandar",
+	"Yudi Wahyudi", "Irfan Hakim", "Surya Saputra", "Rina Marlina",
+	"Siti Rahma", "Dewi Lestari", "Maya Indah", "Putri Ayu",
+	"Nanda Pratama", "Aldi Firmansyah", "Wahyu Hidayat", "Ilham Fauzi",
+	"Bambang Pamungkas", "Doni Pratama", "Gilang Ramadhan", "Taufik Hidayat",
+	"Ahmad Fauzi", "Rangga Pratama", "Fikri Haikal",
+}
+
+func generateSellerName(itemID, title string) string {
+	h := fnv.New32a()
+	h.Write([]byte(itemID + title))
+	idx := int(h.Sum32()) % len(indonesianSellers)
+	if idx < 0 {
+		idx = -idx
+	}
+	return indonesianSellers[idx]
 }

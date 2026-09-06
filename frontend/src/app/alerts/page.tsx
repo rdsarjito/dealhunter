@@ -252,9 +252,9 @@ export default function AlertsPage() {
                           {/* Meta: Price / Count / Time */}
                           <div className="text-xs text-[#606060] dark:text-[#AAAAAA] flex items-center gap-1.5 flex-wrap">
                             <span className="font-semibold text-foreground/85">{formatRupiah(a.max_price)}</span>
-                            <span>•</span>
+                            <span className="inline-block w-1 h-1 rounded-full bg-current opacity-50 shrink-0" />
                             <span>{(a.match_count && a.match_count > 0) ? `${a.match_count} iklan` : '0 iklan'}</span>
-                            <span>•</span>
+                            <span className="inline-block w-1 h-1 rounded-full bg-current opacity-50 shrink-0" />
                             <span>{a.last_scanned_at ? formatTimeAgo(a.last_scanned_at) : 'Baru saja'}</span>
                           </div>
                         </div>

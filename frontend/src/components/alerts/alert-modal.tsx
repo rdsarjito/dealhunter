@@ -191,9 +191,9 @@ export function AlertModal({
                 </label>
                 <input
                   type="number"
-                  value={minPrice === 0 ? '' : minPrice}
+                  value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value === '' ? 0 : Number(e.target.value))}
-                  placeholder="0 (Tanpa batas bawah)"
+                  placeholder="0"
                   className="w-full h-10 px-3 rounded-xl bg-white dark:bg-[#121212] border border-[#CCCCCC] dark:border-[#303030] text-foreground text-xs tabular-price focus:outline-none focus:border-[#FF0000]"
                 />
               </div>

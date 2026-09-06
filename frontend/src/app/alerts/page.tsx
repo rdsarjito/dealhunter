@@ -252,7 +252,7 @@ export default function AlertsPage() {
                           {/* Meta: Price / Count / Time */}
                           <div className="text-xs text-[#606060] dark:text-[#AAAAAA] flex items-center gap-1.5 flex-wrap">
                             <span className="font-semibold text-foreground/85">
-                              {a.min_price && a.min_price > 0 
+                              {a.min_price !== undefined && a.min_price !== null
                                 ? `${formatRupiah(a.min_price)} - ${formatRupiah(a.max_price)}` 
                                 : formatRupiah(a.max_price)
                               }

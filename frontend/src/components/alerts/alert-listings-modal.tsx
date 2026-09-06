@@ -87,7 +87,7 @@ export function AlertListingsModal({
                     Iklan Terdeteksi: “{alert.keyword}”
                   </DialogTitle>
                   <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                    Target &le; <strong className="text-foreground">{formatRupiah(alert.max_price)}</strong> di <strong className="text-foreground">{alert.location || 'Jakarta'}</strong> · Dideteksi <strong className="text-foreground">{alert.trigger_count}x</strong>
+                    Target <strong className="text-foreground">{alert.min_price !== undefined && alert.min_price !== null ? `${formatRupiah(alert.min_price)} - ${formatRupiah(alert.max_price)}` : formatRupiah(alert.max_price)}</strong> di <strong className="text-foreground">{alert.location || 'Jakarta'}</strong> · Dideteksi <strong className="text-foreground">{alert.trigger_count}x</strong>
                   </DialogDescription>
                 </div>
               </div>

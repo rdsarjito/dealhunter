@@ -114,7 +114,7 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
           </div>
           <h3 className="text-lg font-bold text-foreground">Menunggu Iklan Baru Diposting</h3>
           <p className="text-xs text-[#606060] dark:text-[#AAAAAA] leading-relaxed">
-            Belum ada penjual yang baru memposting iklan <strong>“{alert.keyword}”</strong> dengan harga {alert.min_price && alert.min_price > 0 ? `${formatRupiah(alert.min_price)} - ${formatRupiah(alert.max_price)}` : formatRupiah(alert.max_price)} di area {alert.location || 'sekitar Anda'}.
+            Belum ada penjual yang baru memposting iklan <strong>“{alert.keyword}”</strong> dengan harga {alert.min_price !== undefined && alert.min_price !== null ? `${formatRupiah(alert.min_price)} - ${formatRupiah(alert.max_price)}` : formatRupiah(alert.max_price)} di area {alert.location || 'sekitar Anda'}.
           </p>
           <p className="text-[11px] text-muted-foreground leading-relaxed">
             Robot mengintai Facebook Marketplace setiap 15 menit. Detik ketika ada orang baru yang upload iklan cocok, iklannya langsung disambar masuk ke sini dan dikabari ke Telegram Anda!
@@ -153,7 +153,7 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
 
         <div className="flex items-center gap-2 truncate">
           <span className="text-xs text-[#606060] dark:text-[#AAAAAA] hidden sm:inline truncate">
-            Target: <strong className="text-foreground">{alert.keyword}</strong> ({alert.min_price && alert.min_price > 0 ? `${formatRupiah(alert.min_price)} - ${formatRupiah(alert.max_price)}` : formatRupiah(alert.max_price)})
+            Target: <strong className="text-foreground">{alert.keyword}</strong> ({alert.min_price !== undefined && alert.min_price !== null ? `${formatRupiah(alert.min_price)} - ${formatRupiah(alert.max_price)}` : formatRupiah(alert.max_price)})
           </span>
           <button
             onClick={handleOpenInSearch}

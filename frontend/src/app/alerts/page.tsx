@@ -29,7 +29,8 @@ import {
   Play, 
   ChevronRight,
   RefreshCw,
-  MoreVertical
+  MoreVertical,
+  Volume2
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
@@ -201,7 +202,7 @@ export default function AlertsPage() {
                   return (
                     <div
                       key={a.id}
-                      className="group flex flex-col cursor-pointer select-none relative"
+                      className="group flex flex-col cursor-pointer select-none relative p-2 -m-2 rounded-2xl transition-all duration-200 hover:bg-card hover:shadow-xl hover:scale-[1.02] hover:z-20 border border-transparent hover:border-[#0000000D] dark:hover:border-[#FFFFFF14]"
                       onClick={() => setActiveWatchAlert(a)}
                     >
                       {/* 16:9 Video-Style Thumbnail */}
@@ -228,15 +229,45 @@ export default function AlertsPage() {
                           </div>
                         )}
 
-                        {/* Hover Play Button Overlay (YouTube style) */}
-                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[0.5px]">
-                          <div className="h-11 w-11 rounded-full bg-[#FF0000] text-white flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
-                            <Play className="h-5 w-5 fill-white ml-0.5" />
+                        {/* YouTube Interactive Hover Preview (Mute, CC, Subtitle Snippet & Red Scrubber) */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none flex flex-col justify-between p-2.5 z-20">
+                          {/* Top Right: Volume & CC Badges */}
+                          <div className="flex items-center gap-1.5 self-end">
+                            <div className="h-6 w-6 rounded bg-black/60 text-white flex items-center justify-center backdrop-blur-xs">
+                              <Volume2 className="h-3 w-3" />
+                            </div>
+                            <div className="h-6 px-1.5 rounded bg-black/60 text-white flex items-center justify-center font-bold text-[9px] tracking-wider backdrop-blur-xs">
+                              CC
+                            </div>
+                          </div>
+
+                          {/* Bottom: Subtitle Box + Duration Pill */}
+                          <div className="flex items-end justify-between gap-2 pb-1">
+                            {/* Subtitle Snippet Box (like YouTube live preview caption) */}
+                            <div className="p-1.5 px-2 rounded-md bg-black/80 text-white text-[10px] sm:text-[11px] font-medium leading-tight line-clamp-2 max-w-[70%] backdrop-blur-xs shadow-md">
+                              {a.last_matched_item ? (
+                                <span>{a.last_matched_item}</span>
+                              ) : (
+                                <span>Memantau {a.keyword} &le; {formatRupiah(a.max_price)}</span>
+                              )}
+                            </div>
+
+                            {/* Duration Badge inside Hover State */}
+                            <div className="shrink-0">
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-black/85 text-white backdrop-blur-xs tracking-tight">
+                                {(a.match_count && a.match_count > 0) ? `${a.match_count} IKLAN` : '0 IKLAN'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* YouTube Red Playback Scrubber Bar */}
+                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/25 overflow-hidden">
+                            <div className="h-full bg-[#FF0000] w-3/4 animate-[pulse_1.8s_ease-in-out_infinite]" />
                           </div>
                         </div>
 
-                        {/* Bottom Right: Duration Badge (YouTube Black Pill) */}
-                        <div className="absolute bottom-2 right-2 z-10 pointer-events-none">
+                        {/* Static Bottom Right: Duration Badge (when not hovered) */}
+                        <div className="absolute bottom-2 right-2 z-10 pointer-events-none group-hover:opacity-0 transition-opacity">
                           <span className="px-1.5 py-0.5 rounded text-[11px] font-semibold bg-black/85 text-white backdrop-blur-xs tracking-tight">
                             {(a.match_count && a.match_count > 0) ? `${a.match_count} IKLAN` : '0 IKLAN'}
                           </span>

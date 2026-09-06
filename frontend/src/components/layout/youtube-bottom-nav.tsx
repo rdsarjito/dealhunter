@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Home, Bookmark, Bell, History, TrendingUp } from 'lucide-react';
 
 export function YouTubeBottomNav() {
+  const router = useRouter();
   const pathname = usePathname();
 
   const navItems = [
@@ -25,6 +26,11 @@ export function YouTubeBottomNav() {
           <Link
             key={item.href}
             href={item.href}
+            onClick={() => {
+              if (item.href === '/alerts') {
+                router.push('/alerts');
+              }
+            }}
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors ${
               isActive
                 ? 'text-[#FF0000]'

@@ -204,6 +204,7 @@ export function Navbar({
           <Link
             href="/alerts"
             title="Notifikasi"
+            onClick={() => router.push('/alerts')}
             className="relative w-10 h-10 rounded-full hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] text-foreground flex items-center justify-center transition-colors cursor-pointer shrink-0"
           >
             <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-current stroke-[1.8]">

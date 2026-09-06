@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   Laptop, 
   Smartphone, 
@@ -112,7 +112,13 @@ interface YouTubeSidebarProps {
   facebookConnected?: boolean;
 }
 
-export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebook, facebookConnected }: YouTubeSidebarProps) {
+export function YouTubeSidebar({
+  onOpenTelegram,
+  telegramConnected = false,
+  onOpenFacebook,
+  facebookConnected = false,
+}: YouTubeSidebarProps) {
+  const router = useRouter();
   const pathname = usePathname();
   const { 
     drawerOpen, 
@@ -246,6 +252,11 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => {
+                if (item.href === '/alerts') {
+                  router.push('/alerts');
+                }
+              }}
               className={`relative w-[64px] h-[74px] flex flex-col items-center justify-center rounded-[10px] my-0.5 mx-auto transition-all duration-150 ease-out cursor-pointer group active:scale-95 ${
                 item.isActive
                   ? 'text-[#0F0F0F] dark:text-[#F1F1F1] font-semibold'
@@ -328,7 +339,12 @@ export function YouTubeSidebar({ onOpenTelegram, telegramConnected, onOpenFacebo
                   <Link
                     key={link.href}
                     href={link.href}
-                    onClick={() => setDrawerOpen(false)}
+                    onClick={() => {
+                      setDrawerOpen(false);
+                      if (link.href === '/alerts') {
+                        router.push('/alerts');
+                      }
+                    }}
                     className={`flex items-center gap-6 px-3 h-10 rounded-[10px] transition-colors duration-150 ${
                       isActive
                         ? 'bg-[#0000000D] dark:bg-[#FFFFFF1A] text-[#0F0F0F] dark:text-[#F1F1F1] font-semibold'

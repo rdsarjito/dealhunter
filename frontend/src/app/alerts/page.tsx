@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
 import { YouTubeSidebar } from '@/components/layout/youtube-sidebar';
 import { YouTubeBottomNav } from '@/components/layout/youtube-bottom-nav';
@@ -17,7 +18,7 @@ import {
   getFacebookStatus 
 } from '@/lib/api';
 import { PriceAlert } from '@/types';
-import { formatRupiah, formatTimeAgo, getSellerAvatar } from '@/lib/format';
+import { formatRupiah, formatTimeAgo } from '@/lib/format';
 import { 
   Bell,
   BellOff,
@@ -25,17 +26,17 @@ import {
   Plus, 
   Trash2, 
   Pencil,
-  MapPin, 
-  Clock, 
   Play, 
-  ChevronRight,
   RefreshCw,
   MoreVertical
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
+function AlertsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentAlertId = searchParams.get('id');
 
-export default function AlertsPage() {
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [alertModalOpen, setAlertModalOpen] = useState(false);
@@ -45,52 +46,18 @@ export default function AlertsPage() {
   const [telegramConnected, setTelegramConnected] = useState(false);
   const [facebookOpen, setFacebookOpen] = useState(false);
   const [facebookConnected, setFacebookConnected] = useState(false);
-  const [activeWatchAlert, setActiveWatchAlert] = useState<PriceAlert | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-  const handleOpenWatch = (a: PriceAlert) => {
-    setActiveWatchAlert(a);
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      url.searchParams.set('id', a.id);
-      window.history.pushState({ alertId: a.id }, '', url.toString());
-    }
-  };
-
-  const handleBackFromWatch = () => {
-    setActiveWatchAlert(null);
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('id');
-      window.history.pushState({}, '', url.toString());
-    }
-  };
+  // Directly derive activeWatchAlert from URL param: id
+  const activeWatchAlert = currentAlertId
+    ? alerts.find((a) => a.id === currentAlertId) || null
+    : null;
 
   useEffect(() => {
     loadAlerts();
     getTelegramStatus().then((res) => setTelegramConnected(res.connected)).catch(() => {});
     getFacebookStatus().then((res) => setFacebookConnected(res.is_connected)).catch(() => {});
   }, []);
-
-  // Listen to browser Back/Forward (popstate) to sync URL with active alert view
-  useEffect(() => {
-    const handlePopState = () => {
-      if (typeof window === 'undefined') return;
-      const params = new URLSearchParams(window.location.search);
-      const urlId = params.get('id');
-      if (urlId) {
-        const match = alerts.find((x) => x.id === urlId);
-        if (match) {
-          setActiveWatchAlert(match);
-        }
-      } else {
-        setActiveWatchAlert(null);
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [alerts]);
 
   useEffect(() => {
     const handleClickOutside = () => setOpenMenuId(null);
@@ -105,23 +72,19 @@ export default function AlertsPage() {
     try {
       const data = await getAlerts();
       setAlerts(data);
-
-      // Auto-open watch page if 'id' query param is present in URL (e.g. from reload or shared link)
-      if (typeof window !== 'undefined') {
-        const params = new URLSearchParams(window.location.search);
-        const urlId = params.get('id');
-        if (urlId) {
-          const match = data.find((x) => x.id === urlId);
-          if (match) {
-            setActiveWatchAlert(match);
-          }
-        }
-      }
     } catch (err) {
       console.error(err);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleOpenWatch = (a: PriceAlert) => {
+    router.push(`/alerts?id=${a.id}`);
+  };
+
+  const handleBackFromWatch = () => {
+    router.push('/alerts');
   };
 
   const handleCreateAlert = () => {
@@ -165,7 +128,7 @@ export default function AlertsPage() {
     try {
       await deleteAlert(id);
       setAlerts((prev) => prev.filter((a) => a.id !== id));
-      if (activeWatchAlert?.id === id) {
+      if (currentAlertId === id) {
         handleBackFromWatch();
       }
     } catch (err) {
@@ -192,11 +155,16 @@ export default function AlertsPage() {
         />
 
         <main className="flex-1 min-w-0 px-4 sm:px-6 py-4 space-y-4 overflow-y-auto">
-        {activeWatchAlert ? (
+        {currentAlertId && activeWatchAlert ? (
           <AlertWatchPage
             alert={activeWatchAlert}
             onBack={handleBackFromWatch}
           />
+        ) : currentAlertId && isLoading ? (
+          <div className="py-24 text-center space-y-3">
+            <RefreshCw className="h-8 w-8 text-[#FF0000] animate-spin mx-auto" />
+            <h3 className="text-base font-bold text-foreground">Memuat detail alert...</h3>
+          </div>
         ) : (
           <div className="space-y-4 w-full">
             {/* Loading */}
@@ -244,7 +212,7 @@ export default function AlertsPage() {
 
             {/* Alerts List - Exact YouTube Grid Style */}
             {!isLoading && alerts.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-x-4 sm:gap-x-5 gap-y-7 sm:gap-y-8 w-full pb-12">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-x-4 sm:gap-x-5 gap-y-7 sm:gap-y-8 w-full">
                 {alerts.map((a) => {
                   const isMenuOpen = openMenuId === a.id;
                   const displayTitle = a.keyword;
@@ -325,7 +293,7 @@ export default function AlertsPage() {
                             <MoreVertical className="h-5 w-5 stroke-[1.5]" />
                           </button>
 
-                          {/* YouTube Popover Dropdown Menu - Exactly Matching Screenshot */}
+                          {/* YouTube Popover Dropdown Menu */}
                           {isMenuOpen && (
                             <div 
                               className="absolute right-0 top-full mt-1.5 z-40 w-[260px] rounded-xl bg-white dark:bg-[#282828] shadow-[0_4px_32px_0_rgba(0,0,0,0.14)] dark:border dark:border-[#FFFFFF1A] dark:shadow-2xl overflow-hidden py-0"
@@ -354,9 +322,11 @@ export default function AlertsPage() {
                                 disabled={scanningAlertId === a.id}
                                 className="w-full px-4 py-2.5 first:pt-3.5 last:pb-3.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer disabled:opacity-50"
                               >
-                                <RefreshCw className={`h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0 ${scanningAlertId === a.id ? "animate-spin" : ""}`} />
+                                <RefreshCw className={`h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0 ${
+                                  scanningAlertId === a.id ? 'animate-spin text-[#FF0000]' : ''
+                                }`} />
                                 <span className="text-sm font-normal text-[#0F0F0F] dark:text-[#F1F1F1]">
-                                  {scanningAlertId === a.id ? "Sedang Memindai..." : "Pindai Sekarang"}
+                                  {scanningAlertId === a.id ? 'Memindai Marketplace...' : 'Pindai Sekarang'}
                                 </span>
                               </button>
 
@@ -370,13 +340,15 @@ export default function AlertsPage() {
                               >
                                 <Pencil className="h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0" />
                                 <span className="text-sm font-normal text-[#0F0F0F] dark:text-[#F1F1F1]">
-                                  Edit Pantauan
+                                  Edit Target Harga
                                 </span>
                               </button>
 
                               <button
                                 type="button"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(null);
                                   handleToggle(a.id, a.is_active);
                                 }}
                                 className="w-full px-4 py-2.5 first:pt-3.5 last:pb-3.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
@@ -444,5 +416,17 @@ export default function AlertsPage() {
         onConnectedSuccess={() => setFacebookConnected(true)}
       />
     </div>
+  );
+}
+
+export default function AlertsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-2 border-[#FF0000] border-t-transparent animate-spin" />
+      </div>
+    }>
+      <AlertsContent />
+    </Suspense>
   );
 }

@@ -28,7 +28,8 @@ import {
   Clock, 
   Play, 
   ChevronRight,
-  RefreshCw
+  RefreshCw,
+  MoreVertical
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
@@ -44,12 +45,21 @@ export default function AlertsPage() {
   const [facebookOpen, setFacebookOpen] = useState(false);
   const [facebookConnected, setFacebookConnected] = useState(false);
   const [activeWatchAlert, setActiveWatchAlert] = useState<PriceAlert | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   useEffect(() => {
     loadAlerts();
     getTelegramStatus().then((res) => setTelegramConnected(res.connected)).catch(() => {});
     getFacebookStatus().then((res) => setFacebookConnected(res.is_connected)).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    if (openMenuId) {
+      window.addEventListener('click', handleClickOutside);
+      return () => window.removeEventListener('click', handleClickOutside);
+    }
+  }, [openMenuId]);
 
   const loadAlerts = async () => {
     setIsLoading(true);
@@ -140,9 +150,18 @@ export default function AlertsPage() {
           <div className="space-y-4 w-full">
             {/* Loading */}
             {isLoading && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 w-full">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-44 w-full rounded-2xl bg-[#F2F2F2] dark:bg-[#272727] animate-pulse" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-x-4 sm:gap-x-5 gap-y-7 sm:gap-y-8 w-full">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <div className="aspect-video w-full rounded-xl sm:rounded-2xl bg-[#E5E5E5] dark:bg-[#272727] animate-pulse" />
+                    <div className="flex gap-3">
+                      <div className="h-9 w-9 rounded-full bg-[#E5E5E5] dark:bg-[#272727] shrink-0 animate-pulse" />
+                      <div className="space-y-2 flex-1">
+                        <div className="h-4 bg-[#E5E5E5] dark:bg-[#272727] rounded w-5/6 animate-pulse" />
+                        <div className="h-3 bg-[#E5E5E5] dark:bg-[#272727] rounded w-1/2 animate-pulse" />
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
@@ -172,172 +191,197 @@ export default function AlertsPage() {
               </div>
             )}
 
-            {/* Alerts List - 2 Cards Per Row (YouTube Horizontal Style) */}
+            {/* Alerts List - Exact YouTube Grid Style */}
             {!isLoading && alerts.length > 0 && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 w-full pb-10">
-                {alerts.map((a) => (
-                  <div
-                    key={a.id}
-                    onClick={() => setActiveWatchAlert(a)}
-                    className="group relative flex flex-col sm:flex-row gap-3.5 sm:gap-4 p-3 sm:p-4 rounded-2xl bg-card hover:bg-[#00000006] dark:hover:bg-[#FFFFFF0D] border border-[#0000000D] dark:border-[#FFFFFF14] hover:border-[#0000001F] dark:hover:border-[#FFFFFF26] transition-all cursor-pointer shadow-2xs"
-                  >
-                    {/* Left: 16:9 Video-Style Thumbnail */}
-                    <div className="relative aspect-video w-full sm:w-44 md:w-48 lg:w-52 shrink-0 rounded-xl bg-[#1F1F1F] dark:bg-[#181818] overflow-hidden shadow-xs">
-                      {a.thumbnail_url ? (
-                        <img
-                          src={a.thumbnail_url}
-                          alt={a.keyword}
-                          referrerPolicy="no-referrer"
-                          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="h-full w-full flex flex-col items-center justify-center p-3 bg-gradient-to-br from-[#2B1414] via-[#1A1A1A] to-[#111111] text-white select-none">
-                          <div className="h-8 w-8 rounded-full bg-[#FF0000]/20 flex items-center justify-center text-[#FF0000] mb-1.5 animate-pulse">
-                            <Radio className="h-4 w-4" />
-                          </div>
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-center text-white/90 truncate max-w-full px-2">
-                            {a.keyword}
-                          </span>
-                          <span className="text-[9px] text-white/60">
-                            {a.location || 'Jakarta'}
-                          </span>
-                        </div>
-                      )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-x-4 sm:gap-x-5 gap-y-7 sm:gap-y-8 w-full pb-12">
+                {alerts.map((a) => {
+                  const isMenuOpen = openMenuId === a.id;
+                  const displayTitle = a.last_matched_item || `Pantauan: “${a.keyword}”`;
+                  const sellerName = a.seller_name || 'Penjual Facebook';
 
-                      {/* Hover Play Button Overlay (YouTube style) */}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
-                        <div className="h-10 w-10 rounded-full bg-[#FF0000] text-white flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
-                          <Play className="h-4 w-4 fill-white ml-0.5" />
-                        </div>
-                      </div>
-
-
-                      {/* Bottom Right: Duration Badge (YouTube Black Pill with count) */}
-                      <div className="absolute bottom-2 right-2 z-10">
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-black/85 text-white backdrop-blur-xs flex items-center gap-1">
-                          <span>{(a.match_count && a.match_count > 0) ? `${a.match_count} IKLAN` : '0 IKLAN'}</span>
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Right: Info & Actions Column */}
-                    <div className="flex-1 min-w-0 flex flex-col justify-between space-y-2">
-                      <div>
-                        {/* Title & Price */}
-                        <div>
-                          <h3 className="text-sm sm:text-base font-bold text-foreground group-hover:text-[#FF0000] transition-colors truncate leading-snug" title={a.keyword}>
-                            Pantauan: “{a.keyword}”
-                          </h3>
-                          <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            <span className="text-xs sm:text-sm font-extrabold text-[#FF0000] tabular-price">
-                              Maks. {formatRupiah(a.max_price)}
-                            </span>
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#0000000A] dark:bg-[#FFFFFF14] text-foreground flex items-center gap-1">
-                              <Clock className="h-2.5 w-2.5 text-[#FF0000]" />
-                              Tiap {a.interval_minutes || 5} mnt
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Meta Seller Row */}
-                        <div className="flex items-center gap-1.5 text-[11px] text-[#606060] dark:text-[#AAAAAA] mt-1.5 flex-wrap">
-                          <div 
-                            className="relative h-4.5 w-4.5 rounded-full overflow-hidden bg-[#E5E5E5] dark:bg-[#272727] shrink-0 ring-1 ring-border/20"
-                            title={a.seller_name || 'Penjual FB Marketplace'}
-                          >
-                            <img
-                              src={getSellerAvatar(a.seller_name)}
-                              alt={a.seller_name || 'Penjual'}
-                              className="h-full w-full object-cover"
-                              loading="lazy"
-                            />
-                          </div>
-                          <span className="font-semibold text-foreground/90 truncate max-w-[160px] sm:max-w-[220px]" title={a.seller_name || 'Penjual FB Marketplace'}>
-                            {a.seller_name || 'Penjual FB Marketplace'}
-                          </span>
-                          <span>•</span>
-                          <div className="flex items-center gap-0.5">
-                            <MapPin className="h-2.5 w-2.5 text-[#FF0000]" />
-                            <span>{a.location || 'Jakarta'} ({a.radius_km || 50}km)</span>
-                          </div>
-                          <span>•</span>
-                          <span className="truncate">{a.last_scanned_at ? formatTimeAgo(a.last_scanned_at) : 'Baru dipasang'}</span>
-                        </div>
-
-                        {/* Snippet caught item */}
-                        <div className="mt-2">
-                          {(a.match_count && a.match_count > 0) ? (
-                            <div className="text-[11px] text-foreground/90 bg-[#00000005] dark:bg-[#FFFFFF08] p-2 rounded-lg border border-[#0000000A] dark:border-[#FFFFFF0D] flex items-start gap-1.5">
-                              <div className="min-w-0 flex-1 truncate">
-                                <span className="font-bold text-emerald-600 dark:text-emerald-400 mr-1">
-                                  {a.match_count} baru:
-                                </span>
-                                <span className="text-[#606060] dark:text-[#AAAAAA]">
-                                  {a.last_matched_item || 'Iklan sesuai kriteria'}
-                                </span>
-                              </div>
+                  return (
+                    <div
+                      key={a.id}
+                      className="group flex flex-col cursor-pointer select-none relative"
+                      onClick={() => setActiveWatchAlert(a)}
+                    >
+                      {/* 16:9 Video-Style Thumbnail */}
+                      <div className="relative aspect-video w-full rounded-xl sm:rounded-2xl bg-[#1F1F1F] dark:bg-[#181818] overflow-hidden shadow-2xs">
+                        {a.thumbnail_url ? (
+                          <img
+                            src={a.thumbnail_url}
+                            alt={a.keyword}
+                            referrerPolicy="no-referrer"
+                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex flex-col items-center justify-center p-3 bg-gradient-to-br from-[#2B1414] via-[#1A1A1A] to-[#111111] text-white select-none">
+                            <div className="h-10 w-10 rounded-full bg-[#FF0000]/20 flex items-center justify-center text-[#FF0000] mb-2 animate-pulse">
+                              <Radio className="h-5 w-5" />
                             </div>
-                          ) : (
-                            <div className="text-[11px] text-[#606060] dark:text-[#AAAAAA] flex items-center gap-1.5 py-0.5">
-                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                              <span className="truncate">Memantau harga pasar &le; {formatRupiah(a.max_price)}</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-center text-white/90 truncate max-w-full px-2">
+                              {a.keyword}
+                            </span>
+                            <span className="text-[10px] text-white/60">
+                              {a.location || 'Jakarta'}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Hover Play Button Overlay (YouTube style) */}
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[0.5px]">
+                          <div className="h-11 w-11 rounded-full bg-[#FF0000] text-white flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
+                            <Play className="h-5 w-5 fill-white ml-0.5" />
+                          </div>
+                        </div>
+
+                        {/* Bottom Right: Duration Badge (YouTube Black Pill) */}
+                        <div className="absolute bottom-2 right-2 z-10 pointer-events-none">
+                          <span className="px-1.5 py-0.5 rounded text-[11px] font-semibold bg-black/85 text-white backdrop-blur-xs tracking-tight">
+                            {(a.match_count && a.match_count > 0) ? `${a.match_count} IKLAN` : '0 IKLAN'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Info Row: Avatar + Details + Three Dots */}
+                      <div className="flex items-start gap-3 pt-3">
+                        {/* Circular Seller Avatar */}
+                        <div 
+                          className="relative h-9 w-9 rounded-full overflow-hidden bg-[#E5E5E5] dark:bg-[#272727] shrink-0 mt-0.5 ring-1 ring-border/20"
+                          title={sellerName}
+                        >
+                          <img
+                            src={getSellerAvatar(sellerName)}
+                            alt={sellerName}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+
+                        {/* Title & Channel & Meta */}
+                        <div className="flex-1 min-w-0 space-y-0.5">
+                          {/* Title */}
+                          <h3 
+                            className="font-semibold text-sm sm:text-[15px] text-[#0F0F0F] dark:text-[#F1F1F1] line-clamp-2 leading-snug group-hover:text-foreground/90 transition-colors"
+                            title={displayTitle}
+                          >
+                            {displayTitle}
+                          </h3>
+
+                          {/* Channel / Seller Name + Verified Badge */}
+                          <div className="flex items-center gap-1 text-xs text-[#606060] dark:text-[#AAAAAA] hover:text-[#0F0F0F] dark:hover:text-[#F1F1F1] transition-colors pt-0.5">
+                            <span className="truncate max-w-[180px] sm:max-w-[220px]">
+                              {sellerName}
+                            </span>
+                            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-[#606060] dark:fill-[#AAAAAA] shrink-0" aria-hidden="true">
+                              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zM9.8 17.3l-4.2-4.1 1.4-1.4 2.8 2.7 7.4-7.4 1.4 1.4-8.8 8.8z" />
+                            </svg>
+                          </div>
+
+                          {/* Meta: Keyword / Price / Time */}
+                          <div className="text-xs text-[#606060] dark:text-[#AAAAAA] flex items-center gap-1.5 flex-wrap">
+                            <span>Pantauan “{a.keyword}”</span>
+                            <span>•</span>
+                            <span className="font-semibold text-foreground/85">Maks. {formatRupiah(a.max_price)}</span>
+                            <span>•</span>
+                            <span>{a.last_scanned_at ? formatTimeAgo(a.last_scanned_at) : 'Baru saja'}</span>
+                          </div>
+                        </div>
+
+                        {/* Three Dots Button (YouTube More Menu) */}
+                        <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={() => setOpenMenuId(isMenuOpen ? null : a.id)}
+                            className="h-8 w-8 rounded-full flex items-center justify-center text-[#606060] dark:text-[#AAAAAA] hover:text-[#0F0F0F] dark:hover:text-white hover:bg-[#0000000F] dark:hover:bg-[#FFFFFF1A] opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                            title="Opsi lainnya"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </button>
+
+                          {/* YouTube Popover Dropdown Menu */}
+                          {isMenuOpen && (
+                            <div className="absolute right-0 top-full mt-1 z-30 w-52 py-1.5 rounded-xl bg-[#FFFFFF] dark:bg-[#282828] shadow-2xl border border-[#0000001A] dark:border-[#FFFFFF1A] text-xs font-medium text-foreground divide-y divide-[#0000000D] dark:divide-[#FFFFFF14]">
+                              <div className="py-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    setActiveWatchAlert(a);
+                                  }}
+                                  className="w-full px-3.5 py-2 flex items-center gap-2.5 hover:bg-[#0000000A] dark:hover:bg-[#FFFFFF14] transition-colors text-left cursor-pointer"
+                                >
+                                  <Play className="h-3.5 w-3.5 fill-current text-[#FF0000]" />
+                                  <span>Tonton Iklan ({a.match_count || 0})</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    setOpenMenuId(null);
+                                    handleScanSingle(a.id, e);
+                                  }}
+                                  disabled={scanningAlertId === a.id}
+                                  className="w-full px-3.5 py-2 flex items-center gap-2.5 hover:bg-[#0000000A] dark:hover:bg-[#FFFFFF14] transition-colors text-left cursor-pointer disabled:opacity-50"
+                                >
+                                  <RefreshCw className={`h-3.5 w-3.5 ${scanningAlertId === a.id ? 'animate-spin text-[#FF0000]' : ''}`} />
+                                  <span>{scanningAlertId === a.id ? 'Sedang Memindai...' : 'Pindai Sekarang'}</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    setOpenMenuId(null);
+                                    handleEditAlert(a, e);
+                                  }}
+                                  className="w-full px-3.5 py-2 flex items-center gap-2.5 hover:bg-[#0000000A] dark:hover:bg-[#FFFFFF14] transition-colors text-left cursor-pointer"
+                                >
+                                  <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                                  <span>Edit Alert</span>
+                                </button>
+                              </div>
+
+                              <div className="py-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    handleToggle(a.id, a.is_active);
+                                  }}
+                                  className="w-full px-3.5 py-2 flex items-center justify-between hover:bg-[#0000000A] dark:hover:bg-[#FFFFFF14] transition-colors text-left cursor-pointer"
+                                >
+                                  <span className="flex items-center gap-2.5">
+                                    <Bell className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <span>Status Pantauan</span>
+                                  </span>
+                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                    a.is_active 
+                                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                                      : 'bg-muted text-muted-foreground'
+                                  }`}>
+                                    {a.is_active ? 'AKTIF' : 'MATI'}
+                                  </span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    handleDelete(a.id);
+                                  }}
+                                  className="w-full px-3.5 py-2 flex items-center gap-2.5 hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 transition-colors text-left cursor-pointer"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                  <span>Hapus Alert</span>
+                                </button>
+                              </div>
                             </div>
                           )}
                         </div>
                       </div>
-
-                      {/* Actions Row */}
-                      <div className="flex items-center gap-1.5 pt-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          onClick={() => setActiveWatchAlert(a)}
-                          className="h-7 sm:h-8 px-3 rounded-full bg-[#FF0000] hover:bg-[#CC0000] text-white text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
-                        >
-                          <Play className="h-3 w-3 fill-white" />
-                          <span>Tonton ({a.match_count || 0})</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={(e) => handleScanSingle(a.id, e)}
-                          disabled={scanningAlertId === a.id}
-                          className="h-7 sm:h-8 px-2.5 rounded-full bg-[#0000000D] dark:bg-[#FFFFFF14] hover:bg-[#0000001A] dark:hover:bg-[#FFFFFF26] text-foreground text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
-                          title={`Picu scraping kata kunci "${a.keyword}" sekarang`}
-                        >
-                          <RefreshCw className={`h-3 w-3 ${scanningAlertId === a.id ? 'animate-spin text-[#FF0000]' : ''}`} />
-                          <span className="hidden sm:inline">{scanningAlertId === a.id ? 'Memindai...' : 'Pindai'}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={(e) => handleEditAlert(a, e)}
-                          className="h-7 sm:h-8 px-2.5 rounded-full bg-[#0000000D] dark:bg-[#FFFFFF14] hover:bg-[#0000001A] dark:hover:bg-[#FFFFFF26] text-foreground text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                          title="Edit alert & waktu scraping"
-                        >
-                          <Pencil className="h-3 w-3" />
-                          <span className="hidden sm:inline">Edit</span>
-                        </button>
-
-                        <div className="flex items-center px-1.5 h-7 sm:h-8 rounded-full bg-[#00000008] dark:bg-[#FFFFFF0D]" title={a.is_active ? 'Alert Aktif' : 'Alert Nonaktif'}>
-                          <Switch
-                            checked={a.is_active}
-                            onCheckedChange={() => handleToggle(a.id, a.is_active)}
-                          />
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(a.id)}
-                          className="h-7 sm:h-8 w-7 sm:w-8 rounded-full bg-[#0000000D] dark:bg-[#FFFFFF14] hover:bg-[#FFE5E5] hover:text-[#CC0000] text-[#606060] dark:text-[#AAAAAA] flex items-center justify-center transition-colors cursor-pointer ml-auto"
-                          title="Hapus alert"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

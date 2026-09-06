@@ -20,6 +20,7 @@ import { PriceAlert } from '@/types';
 import { formatRupiah, formatTimeAgo, getSellerAvatar } from '@/lib/format';
 import { 
   Bell,
+  BellOff,
   Radio, 
   Plus, 
   Trash2, 
@@ -201,7 +202,7 @@ export default function AlertsPage() {
                   return (
                     <div
                       key={a.id}
-                      className="group flex flex-col cursor-pointer select-none relative p-2.5 -m-2.5 rounded-2xl transition-colors duration-150 hover:bg-[#CCCCCC] dark:hover:bg-[#272727]"
+                      className="group flex flex-col cursor-pointer select-none relative p-2.5 -m-2.5 rounded-2xl transition-colors duration-150 hover:bg-[#F2F2F2] dark:hover:bg-[#272727]"
                       onClick={() => setActiveWatchAlert(a)}
                     >
                       {/* 16:9 Video-Style Thumbnail */}
@@ -250,7 +251,7 @@ export default function AlertsPage() {
 
                           {/* Meta: Price / Count / Time */}
                           <div className="text-xs text-[#606060] dark:text-[#AAAAAA] flex items-center gap-1.5 flex-wrap">
-                            <span className="font-semibold text-foreground/85">Maks. {formatRupiah(a.max_price)}</span>
+                            <span className="font-semibold text-foreground/85">{formatRupiah(a.max_price)}</span>
                             <span>•</span>
                             <span>{(a.match_count && a.match_count > 0) ? `${a.match_count} iklan` : '0 iklan'}</span>
                             <span>•</span>
@@ -263,87 +264,91 @@ export default function AlertsPage() {
                           <button
                             type="button"
                             onClick={() => setOpenMenuId(isMenuOpen ? null : a.id)}
-                            className="h-8 w-8 rounded-full flex items-center justify-center text-[#606060] dark:text-[#AAAAAA] hover:text-[#0F0F0F] dark:hover:text-white hover:bg-[#0000000F] dark:hover:bg-[#FFFFFF1A] opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                            className="h-9 w-9 rounded-full flex items-center justify-center text-[#0F0F0F] dark:text-[#F1F1F1] hover:bg-[#00000010] dark:hover:bg-[#FFFFFF1A] opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
                             title="Opsi lainnya"
                           >
-                            <MoreVertical className="h-4 w-4" />
+                            <MoreVertical className="h-5 w-5 stroke-[1.5]" />
                           </button>
 
-                          {/* YouTube Popover Dropdown Menu */}
+                          {/* YouTube Popover Dropdown Menu - Exactly Matching Screenshot */}
                           {isMenuOpen && (
-                            <div className="absolute right-0 top-full mt-1 z-30 w-52 py-1.5 rounded-xl bg-[#FFFFFF] dark:bg-[#282828] shadow-2xl border border-[#0000001A] dark:border-[#FFFFFF1A] text-xs font-medium text-foreground divide-y divide-[#0000000D] dark:divide-[#FFFFFF14]">
-                              <div className="py-1">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setOpenMenuId(null);
-                                    setActiveWatchAlert(a);
-                                  }}
-                                  className="w-full px-3.5 py-2 flex items-center gap-2.5 hover:bg-[#0000000A] dark:hover:bg-[#FFFFFF14] transition-colors text-left cursor-pointer"
-                                >
-                                  <Play className="h-3.5 w-3.5 fill-current text-[#FF0000]" />
-                                  <span>Tonton Iklan ({a.match_count || 0})</span>
-                                </button>
+                            <div 
+                              className="absolute right-0 top-full mt-1.5 z-40 w-[260px] py-2 rounded-xl bg-white dark:bg-[#282828] shadow-[0_4px_32px_0_rgba(0,0,0,0.14)] dark:border dark:border-[#FFFFFF1A] dark:shadow-2xl"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOpenMenuId(null);
+                                  setActiveWatchAlert(a);
+                                }}
+                                className="w-full px-4 py-2.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
+                              >
+                                <Play className="h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0" />
+                                <span className="text-sm font-normal text-[#0F0F0F] dark:text-[#F1F1F1]">
+                                  Tonton Iklan ({(a.match_count && a.match_count > 0) ? a.match_count : 0})
+                                </span>
+                              </button>
 
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    setOpenMenuId(null);
-                                    handleScanSingle(a.id, e);
-                                  }}
-                                  disabled={scanningAlertId === a.id}
-                                  className="w-full px-3.5 py-2 flex items-center gap-2.5 hover:bg-[#0000000A] dark:hover:bg-[#FFFFFF14] transition-colors text-left cursor-pointer disabled:opacity-50"
-                                >
-                                  <RefreshCw className={`h-3.5 w-3.5 ${scanningAlertId === a.id ? 'animate-spin text-[#FF0000]' : ''}`} />
-                                  <span>{scanningAlertId === a.id ? 'Sedang Memindai...' : 'Pindai Sekarang'}</span>
-                                </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  setOpenMenuId(null);
+                                  handleScanSingle(a.id, e);
+                                }}
+                                disabled={scanningAlertId === a.id}
+                                className="w-full px-4 py-2.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer disabled:opacity-50"
+                              >
+                                <RefreshCw className={`h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0 ${scanningAlertId === a.id ? "animate-spin" : ""}`} />
+                                <span className="text-sm font-normal text-[#0F0F0F] dark:text-[#F1F1F1]">
+                                  {scanningAlertId === a.id ? "Sedang Memindai..." : "Pindai Sekarang"}
+                                </span>
+                              </button>
 
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    setOpenMenuId(null);
-                                    handleEditAlert(a, e);
-                                  }}
-                                  className="w-full px-3.5 py-2 flex items-center gap-2.5 hover:bg-[#0000000A] dark:hover:bg-[#FFFFFF14] transition-colors text-left cursor-pointer"
-                                >
-                                  <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                                  <span>Edit Alert</span>
-                                </button>
-                              </div>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  setOpenMenuId(null);
+                                  handleEditAlert(a, e);
+                                }}
+                                className="w-full px-4 py-2.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
+                              >
+                                <Pencil className="h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0" />
+                                <span className="text-sm font-normal text-[#0F0F0F] dark:text-[#F1F1F1]">
+                                  Edit Pantauan
+                                </span>
+                              </button>
 
-                              <div className="py-1">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    handleToggle(a.id, a.is_active);
-                                  }}
-                                  className="w-full px-3.5 py-2 flex items-center justify-between hover:bg-[#0000000A] dark:hover:bg-[#FFFFFF14] transition-colors text-left cursor-pointer"
-                                >
-                                  <span className="flex items-center gap-2.5">
-                                    <Bell className="h-3.5 w-3.5 text-muted-foreground" />
-                                    <span>Status Pantauan</span>
-                                  </span>
-                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                                    a.is_active 
-                                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
-                                      : 'bg-muted text-muted-foreground'
-                                  }`}>
-                                    {a.is_active ? 'AKTIF' : 'MATI'}
-                                  </span>
-                                </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleToggle(a.id, a.is_active);
+                                }}
+                                className="w-full px-4 py-2.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
+                              >
+                                {a.is_active ? (
+                                  <BellOff className="h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0" />
+                                ) : (
+                                  <Bell className="h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0" />
+                                )}
+                                <span className="text-sm font-normal text-[#0F0F0F] dark:text-[#F1F1F1]">
+                                  {a.is_active ? "Jeda Pantauan" : "Aktifkan Pantauan"}
+                                </span>
+                              </button>
 
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setOpenMenuId(null);
-                                    handleDelete(a.id);
-                                  }}
-                                  className="w-full px-3.5 py-2 flex items-center gap-2.5 hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 transition-colors text-left cursor-pointer"
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                  <span>Hapus Alert</span>
-                                </button>
-                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOpenMenuId(null);
+                                  handleDelete(a.id);
+                                }}
+                                className="w-full px-4 py-2.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
+                              >
+                                <Trash2 className="h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0" />
+                                <span className="text-sm font-normal text-[#0F0F0F] dark:text-[#F1F1F1]">
+                                  Hapus Pantauan
+                                </span>
+                              </button>
                             </div>
                           )}
                         </div>

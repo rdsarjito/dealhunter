@@ -158,35 +158,27 @@ export function ListingDetailModal({
             </div>
 
             {/* Specifications Grid */}
-            <div className="pt-1 space-y-2 text-xs">
-              <span className="font-semibold text-foreground">Informasi Barang</span>
-              <div className="space-y-2 text-xs">
+            <div className="pt-2 space-y-2.5 text-xs">
+              <span className="font-semibold text-foreground block">Informasi Barang</span>
+              <div className="grid grid-cols-[68px_1fr] gap-x-3 gap-y-2 text-xs items-baseline">
                 {/* Kondisi */}
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground shrink-0 w-16 sm:w-20">Kondisi</span>
-                  <span className="font-medium text-foreground text-right">{listing.condition || 'Bekas - Siap Pakai'}</span>
-                </div>
+                <span className="text-muted-foreground">Kondisi</span>
+                <span className="font-medium text-foreground">{listing.condition || 'Bekas - Siap Pakai'}</span>
 
                 {/* Lokasi & Jarak */}
-                <div className="flex items-start justify-between gap-4">
-                  <span className="text-muted-foreground shrink-0 w-16 sm:w-20 pt-0.5">Lokasi</span>
-                  <div className="flex flex-col items-end text-right min-w-0 flex-1">
-                    <span className="font-medium text-foreground leading-snug">
-                      {listing.location || 'Indonesia'}
+                <span className="text-muted-foreground">Lokasi</span>
+                <div className="font-medium text-foreground leading-relaxed">
+                  <span>{listing.location || 'Indonesia'}</span>
+                  {listing.distance_km !== undefined && listing.distance_km !== null && (
+                    <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-semibold inline-flex items-center">
+                      • {listing.distance_km < 1 ? `${Math.round(listing.distance_km * 1000)} m` : `${listing.distance_km.toFixed(1)} km`} dari rumah Anda
                     </span>
-                    {listing.distance_km !== undefined && listing.distance_km !== null && (
-                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
-                        {listing.distance_km < 1 ? `${Math.round(listing.distance_km * 1000)} m` : `${listing.distance_km.toFixed(1)} km`} dari rumah Anda
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
 
                 {/* Penjual */}
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-muted-foreground shrink-0 w-16 sm:w-20">Penjual</span>
-                  <span className="font-medium text-foreground text-right truncate">{listing.seller_name || 'Penjual FB'}</span>
-                </div>
+                <span className="text-muted-foreground">Penjual</span>
+                <span className="font-medium text-foreground">{listing.seller_name || 'Penjual FB'}</span>
               </div>
             </div>
 

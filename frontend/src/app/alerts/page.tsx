@@ -196,7 +196,7 @@ export default function AlertsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-x-4 sm:gap-x-5 gap-y-7 sm:gap-y-8 w-full pb-12">
                 {alerts.map((a) => {
                   const isMenuOpen = openMenuId === a.id;
-                  const displayTitle = a.last_matched_item || `Pantauan: “${a.keyword}”`;
+                  const displayTitle = `Pantauan: “${a.keyword}”`;
                   const sellerName = a.seller_name || 'Penjual Facebook';
 
                   return (
@@ -279,11 +279,11 @@ export default function AlertsPage() {
                             </svg>
                           </div>
 
-                          {/* Meta: Keyword / Price / Time */}
+                          {/* Meta: Price / Count / Time */}
                           <div className="text-xs text-[#606060] dark:text-[#AAAAAA] flex items-center gap-1.5 flex-wrap">
-                            <span>Pantauan “{a.keyword}”</span>
-                            <span>•</span>
                             <span className="font-semibold text-foreground/85">Maks. {formatRupiah(a.max_price)}</span>
+                            <span>•</span>
+                            <span>{(a.match_count && a.match_count > 0) ? `${a.match_count} iklan` : '0 iklan'}</span>
                             <span>•</span>
                             <span>{a.last_scanned_at ? formatTimeAgo(a.last_scanned_at) : 'Baru saja'}</span>
                           </div>

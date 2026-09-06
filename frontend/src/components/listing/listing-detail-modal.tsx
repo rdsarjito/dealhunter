@@ -116,7 +116,7 @@ export function ListingDetailModal({
             </div>
 
             {/* Actions */}
-            <div className="pt-1 space-y-2.5">
+            <div className="space-y-2.5">
               <a
                 href={listing.fb_url}
                 target="_blank"
@@ -158,19 +158,19 @@ export function ListingDetailModal({
             </div>
 
             {/* Specifications Grid */}
-            <div className="pt-2 space-y-2.5 text-xs">
+            <div className="space-y-2 text-xs">
               <span className="font-semibold text-foreground block">Informasi Barang</span>
-              <div className="grid grid-cols-[68px_1fr] gap-x-3 gap-y-2 text-xs items-baseline">
+              <div className="grid grid-cols-[68px_1fr] gap-x-3 gap-y-2 text-xs items-baseline leading-relaxed">
                 {/* Kondisi */}
                 <span className="text-muted-foreground">Kondisi</span>
                 <span className="font-medium text-foreground">{listing.condition || 'Bekas - Siap Pakai'}</span>
 
                 {/* Lokasi & Jarak */}
                 <span className="text-muted-foreground">Lokasi</span>
-                <div className="font-medium text-foreground leading-relaxed">
+                <div className="font-medium text-foreground">
                   <span>{listing.location || 'Indonesia'}</span>
                   {listing.distance_km !== undefined && listing.distance_km !== null && (
-                    <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <span className="ml-1 text-emerald-600 dark:text-emerald-400 font-semibold">
                       ({listing.distance_km < 1 ? `${Math.round(listing.distance_km * 1000)} m` : `${listing.distance_km < 10 ? listing.distance_km.toFixed(1) : Math.round(listing.distance_km)} km`} dari rumah Anda)
                     </span>
                   )}
@@ -183,8 +183,8 @@ export function ListingDetailModal({
             </div>
 
             {/* Description */}
-            <div className="pt-1 space-y-1.5 text-xs">
-              <span className="font-semibold text-foreground">Deskripsi</span>
+            <div className="space-y-2 text-xs">
+              <span className="font-semibold text-foreground block">Deskripsi</span>
               <p className="text-muted-foreground leading-relaxed whitespace-pre-line text-xs">
                 {listing.description || 'Tidak ada deskripsi rinci dari penjual.'}
               </p>

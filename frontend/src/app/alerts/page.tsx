@@ -32,6 +32,32 @@ import {
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
+
+const AVATAR_POOL = [
+  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80",
+  "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&q=80",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80",
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80",
+  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80",
+  "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=120&q=80",
+  "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=120&q=80",
+  "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=120&q=80",
+  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80",
+  "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=120&q=80",
+  "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=120&q=80",
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
+];
+
+function getSellerAvatar(name?: string): string {
+  if (!name) return AVATAR_POOL[0];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const idx = Math.abs(hash) % AVATAR_POOL.length;
+  return AVATAR_POOL[idx];
+}
+
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -186,6 +212,7 @@ export default function AlertsPage() {
                         <img
                           src={a.thumbnail_url}
                           alt={a.keyword}
+                          referrerPolicy="no-referrer"
                           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
                           loading="lazy"
                         />
@@ -241,10 +268,15 @@ export default function AlertsPage() {
                         {/* Meta Seller Row */}
                         <div className="flex items-center gap-1.5 text-[11px] text-[#606060] dark:text-[#AAAAAA] mt-1.5 flex-wrap">
                           <div 
-                            className="h-4 w-4 rounded-full bg-[#E5E5E5] dark:bg-[#272727] text-[#0F0F0F] dark:text-[#F1F1F1] font-bold text-[8px] flex items-center justify-center shrink-0"
+                            className="relative h-4.5 w-4.5 rounded-full overflow-hidden bg-[#E5E5E5] dark:bg-[#272727] shrink-0 ring-1 ring-border/20"
                             title={a.seller_name || 'Penjual FB Marketplace'}
                           >
-                            {(a.seller_name || 'Penjual FB Marketplace').charAt(0).toUpperCase()}
+                            <img
+                              src={getSellerAvatar(a.seller_name)}
+                              alt={a.seller_name || 'Penjual'}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
                           </div>
                           <span className="font-semibold text-foreground/90 truncate max-w-[160px] sm:max-w-[220px]" title={a.seller_name || 'Penjual FB Marketplace'}>
                             {a.seller_name || 'Penjual FB Marketplace'}

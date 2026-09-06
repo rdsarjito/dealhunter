@@ -19,7 +19,8 @@ import {
   ChevronRight,
   KeyRound,
   Settings,
-  HelpCircle
+  HelpCircle,
+  X
 } from 'lucide-react';
 import { useSearchStore } from '@/stores/search-store';
 
@@ -145,8 +146,18 @@ export function Navbar({
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
                   placeholder="Telusuri"
-                  className="w-full h-10 pl-4 pr-3 rounded-l-full border border-[#CCCCCC] dark:border-[#303030] bg-card text-foreground text-base placeholder:text-[#606060] dark:placeholder:text-[#888888] focus:outline-none focus:border-[#065FD4] transition-colors shadow-xs"
+                  className="w-full h-10 pl-4 pr-9 rounded-l-full border border-[#CCCCCC] dark:border-[#303030] bg-card text-foreground text-base placeholder:text-[#606060] dark:placeholder:text-[#888888] focus:outline-none focus:border-[#065FD4] transition-colors shadow-xs"
                 />
+                {keyword && (
+                  <button
+                    type="button"
+                    onClick={() => setKeyword('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full hover:bg-black/5 dark:hover:bg-white/10 flex items-center justify-center text-[#606060] dark:text-[#AAAAAA] hover:text-foreground transition-colors cursor-pointer"
+                    title="Hapus penelusuran"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
               <button
                 type="submit"
@@ -367,7 +378,7 @@ export function Navbar({
               autoFocus
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              placeholder="Telusuri FB Marketplace..."
+              placeholder="Telusuri"
               className="flex-1 h-9 px-3.5 rounded-l-full border border-[#CCCCCC] dark:border-[#303030] bg-card text-foreground text-xs focus:outline-none focus:border-[#065FD4]"
             />
             <button

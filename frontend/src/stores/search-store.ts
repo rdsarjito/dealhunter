@@ -26,7 +26,7 @@ interface SearchState {
 }
 
 export const useSearchStore = create<SearchState>((set) => ({
-  keyword: 'iPhone 13',
+  keyword: '',
   location: 'Jakarta',
   radiusKm: 50,
   minPrice: undefined,

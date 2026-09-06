@@ -96,7 +96,7 @@ export function ListingDetailModal({
           </div>
 
           {/* Right Column: Information & Actions */}
-          <div className="md:col-span-5 flex flex-col p-6 overflow-y-auto bg-card divide-y divide-border space-y-4">
+          <div className="md:col-span-5 flex flex-col p-6 overflow-y-auto bg-card space-y-4">
             {/* Header & Price */}
             <div className="space-y-2">
               <div className="flex items-center text-xs text-muted-foreground">
@@ -116,7 +116,7 @@ export function ListingDetailModal({
             </div>
 
             {/* Actions */}
-            <div className="pt-4 space-y-2.5">
+            <div className="pt-1 space-y-2.5">
               <a
                 href={listing.fb_url}
                 target="_blank"
@@ -158,17 +158,17 @@ export function ListingDetailModal({
             </div>
 
             {/* Specifications Grid */}
-            <div className="pt-4 space-y-2 text-xs">
+            <div className="pt-1 space-y-2 text-xs">
               <span className="font-semibold text-foreground">Informasi Barang</span>
-              <div className="divide-y divide-border/40 text-xs">
+              <div className="space-y-2 text-xs">
                 {/* Kondisi */}
-                <div className="flex items-center justify-between gap-4 py-2">
+                <div className="flex items-center justify-between gap-4">
                   <span className="text-muted-foreground shrink-0 w-16 sm:w-20">Kondisi</span>
                   <span className="font-medium text-foreground text-right">{listing.condition || 'Bekas - Siap Pakai'}</span>
                 </div>
 
                 {/* Lokasi & Jarak */}
-                <div className="flex items-start justify-between gap-4 py-2">
+                <div className="flex items-start justify-between gap-4">
                   <span className="text-muted-foreground shrink-0 w-16 sm:w-20 pt-0.5">Lokasi</span>
                   <div className="flex flex-col items-end text-right min-w-0 flex-1">
                     <span className="font-medium text-foreground leading-snug">
@@ -183,7 +183,7 @@ export function ListingDetailModal({
                 </div>
 
                 {/* Penjual */}
-                <div className="flex items-center justify-between gap-4 py-2">
+                <div className="flex items-center justify-between gap-4">
                   <span className="text-muted-foreground shrink-0 w-16 sm:w-20">Penjual</span>
                   <span className="font-medium text-foreground text-right truncate">{listing.seller_name || 'Penjual FB'}</span>
                 </div>
@@ -191,7 +191,7 @@ export function ListingDetailModal({
             </div>
 
             {/* Description */}
-            <div className="pt-4 space-y-1.5 text-xs">
+            <div className="pt-1 space-y-1.5 text-xs">
               <span className="font-semibold text-foreground">Deskripsi</span>
               <p className="text-muted-foreground leading-relaxed whitespace-pre-line text-xs">
                 {listing.description || 'Tidak ada deskripsi rinci dari penjual.'}

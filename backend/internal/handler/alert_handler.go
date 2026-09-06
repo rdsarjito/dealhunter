@@ -307,3 +307,18 @@ func (h *AlertHandler) GetWatcherStatus(c *fiber.Ctx) error {
 		"data":   h.watcher.GetStatus(),
 	})
 }
+
+func (h *AlertHandler) GetNotifications(c *fiber.Ctx) error {
+	limit := c.QueryInt("limit", 20)
+	list, err := h.repo.GetRecentNotifications(limit)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  false,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status": true,
+		"data":   list,
+	})
+}

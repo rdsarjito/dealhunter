@@ -1,4 +1,4 @@
-import { Listing, WatchlistItem, SavedSearch, PriceAlert, SearchResponse, TelegramSetting, WatcherStatus } from '@/types';
+import { Listing, WatchlistItem, SavedSearch, PriceAlert, SearchResponse, TelegramSetting, WatcherStatus, NotificationItem } from '@/types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
@@ -233,4 +233,17 @@ export async function scanNow(): Promise<void> {
     method: 'POST',
   });
   if (!res.ok) throw new Error('Gagal memicu pemindaian');
+}
+
+
+export async function getNotifications(limit: number = 20): Promise<NotificationItem[]> {
+  try {
+    const res = await fetch(`${API_BASE}/notifications?limit=${limit}`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data || [];
+  } catch (err) {
+    console.error('Failed to get notifications:', err);
+    return [];
+  }
 }

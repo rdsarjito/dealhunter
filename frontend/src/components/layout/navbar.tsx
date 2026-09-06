@@ -1,6 +1,10 @@
 'use client';
 
 import { ScraperStatusBar } from '@/components/alerts/scraper-status-bar';
+import { NotificationPopover } from '@/components/layout/notification-popover';
+import { ListingDetailModal } from '@/components/listing/listing-detail-modal';
+import { Listing } from '@/types';
+
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -51,6 +55,32 @@ export function Navbar({
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notifCount, setNotifCount] = useState(0);
+  const [selectedNotifListing, setSelectedNotifListing] = useState<Listing | null>(null);
+  const [notifModalOpen, setNotifModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target as Node)) {
+        setNotificationOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setNotificationOpen(false);
+      }
+    };
+    if (notificationOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [notificationOpen]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -211,19 +241,41 @@ export function Navbar({
             <span className="hidden sm:inline text-sm font-medium">Buat</span>
           </button>
 
-          {/* 2. YouTube Bell Notification Icon with Dot */}
-          <Link
-            href="/alerts"
-            title="Notifikasi"
-            onClick={() => router.push('/alerts')}
-            className="relative w-10 h-10 rounded-full hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] text-foreground flex items-center justify-center transition-colors cursor-pointer shrink-0"
-          >
-            <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-current stroke-[1.8]">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.73 21a2 2 0 0 1-3.46 0" />
-            </svg>
-            <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-[#FF0000]" />
-          </Link>
+          {/* 2. YouTube Bell Notification Icon with Interactive Popover */}
+          <div className="relative" ref={notificationRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setNotificationOpen((prev) => !prev);
+                setProfileMenuOpen(false);
+              }}
+              title="Notifikasi Deal"
+              className={`relative w-10 h-10 rounded-full hover:bg-[#0000000D] dark:hover:bg-[#FFFFFF14] text-foreground flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
+                notificationOpen ? 'bg-[#0000000D] dark:bg-[#FFFFFF14]' : ''
+              }`}
+            >
+              <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-current stroke-[1.8]">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              {notifCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF0000] text-white text-[10px] font-bold flex items-center justify-center border-2 border-card shadow-xs">
+                  {notifCount > 9 ? '9+' : notifCount}
+                </span>
+              )}
+            </button>
+
+            <NotificationPopover
+              open={notificationOpen}
+              onClose={() => setNotificationOpen(false)}
+              onSelectListing={(listing) => {
+                setSelectedNotifListing(listing);
+                setNotifModalOpen(true);
+                setNotificationOpen(false);
+              }}
+              onCountUpdate={setNotifCount}
+            />
+          </div>
 
           {/* 3. YouTube Profile Avatar Circle & Dropdown Menu */}
           <div className="relative" ref={profileMenuRef}>
@@ -396,6 +448,13 @@ export function Navbar({
             Batal
           </button>
         </div>
+      )}
+      {selectedNotifListing && (
+        <ListingDetailModal
+          listing={selectedNotifListing}
+          open={notifModalOpen}
+          onOpenChange={setNotifModalOpen}
+        />
       )}
     </header>
   );

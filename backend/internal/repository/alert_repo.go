@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rdsarjito/dealhunter-backend/internal/domain/dto"
 	"github.com/rdsarjito/dealhunter-backend/internal/domain/model"
 	"gorm.io/gorm"
 )
@@ -174,4 +175,44 @@ func (r *TelegramSettingRepository) GetActive() ([]model.TelegramSetting, error)
 
 func (r *TelegramSettingRepository) DeactivateAll() error {
 	return r.db.Model(&model.TelegramSetting{}).Where("1=1").Update("is_active", false).Error
+}
+
+func (r *AlertRepository) GetRecentNotifications(limit int) ([]dto.NotificationItem, error) {
+	if limit <= 0 || limit > 50 {
+		limit = 20
+	}
+
+	type QueryRow struct {
+		ID           uuid.UUID `gorm:"column:id"`
+		CreatedAt    time.Time `gorm:"column:created_at"`
+		AlertID      uuid.UUID `gorm:"column:alert_id"`
+		AlertKeyword string    `gorm:"column:alert_keyword"`
+		model.Listing
+	}
+
+	var rows []QueryRow
+	err := r.db.Table("alert_matched_listings aml").
+		Select("aml.id, aml.created_at, aml.alert_id, a.keyword as alert_keyword, listings.*").
+		Joins("JOIN price_alerts a ON a.id = aml.alert_id").
+		Joins("JOIN listings ON listings.id = aml.listing_id").
+		Where("a.deleted_at IS NULL").
+		Order("aml.created_at DESC").
+		Limit(limit).
+		Scan(&rows).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]dto.NotificationItem, len(rows))
+	for i, row := range rows {
+		items[i] = dto.NotificationItem{
+			ID:           row.ID,
+			CreatedAt:    row.CreatedAt,
+			AlertID:      row.AlertID,
+			AlertKeyword: row.AlertKeyword,
+			Listing:      row.Listing,
+		}
+	}
+	return items, nil
 }

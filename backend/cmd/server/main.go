@@ -130,6 +130,7 @@ func main() {
 	api.Post("/alerts/:id/scan", alertHandler.ScanSingle)
 	api.Get("/alerts/watcher/status", alertHandler.GetWatcherStatus)
 	api.Get("/alerts/:id/listings", alertHandler.GetAlertListings)
+	api.Get("/notifications", alertHandler.GetNotifications)
 
 	// Telegram Settings & Test
 	api.Get("/telegram/status", telegramHandler.GetStatus)

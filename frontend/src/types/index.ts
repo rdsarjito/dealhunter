@@ -102,3 +102,12 @@ export interface WatcherStatus {
   interval_minutes?: number;
   next_scan_at?: string;
 }
+
+
+export interface NotificationItem {
+  id: string;
+  created_at: string;
+  alert_id: string;
+  alert_keyword: string;
+  listing: Listing;
+}

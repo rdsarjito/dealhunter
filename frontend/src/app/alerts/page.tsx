@@ -48,11 +48,49 @@ export default function AlertsPage() {
   const [activeWatchAlert, setActiveWatchAlert] = useState<PriceAlert | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
+  const handleOpenWatch = (a: PriceAlert) => {
+    setActiveWatchAlert(a);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('id', a.id);
+      window.history.pushState({ alertId: a.id }, '', url.toString());
+    }
+  };
+
+  const handleBackFromWatch = () => {
+    setActiveWatchAlert(null);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('id');
+      window.history.pushState({}, '', url.toString());
+    }
+  };
+
   useEffect(() => {
     loadAlerts();
     getTelegramStatus().then((res) => setTelegramConnected(res.connected)).catch(() => {});
     getFacebookStatus().then((res) => setFacebookConnected(res.is_connected)).catch(() => {});
   }, []);
+
+  // Listen to browser Back/Forward (popstate) to sync URL with active alert view
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window === 'undefined') return;
+      const params = new URLSearchParams(window.location.search);
+      const urlId = params.get('id');
+      if (urlId) {
+        const match = alerts.find((x) => x.id === urlId);
+        if (match) {
+          setActiveWatchAlert(match);
+        }
+      } else {
+        setActiveWatchAlert(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [alerts]);
 
   useEffect(() => {
     const handleClickOutside = () => setOpenMenuId(null);
@@ -67,6 +105,18 @@ export default function AlertsPage() {
     try {
       const data = await getAlerts();
       setAlerts(data);
+
+      // Auto-open watch page if 'id' query param is present in URL (e.g. from reload or shared link)
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const urlId = params.get('id');
+        if (urlId) {
+          const match = data.find((x) => x.id === urlId);
+          if (match) {
+            setActiveWatchAlert(match);
+          }
+        }
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -116,7 +166,7 @@ export default function AlertsPage() {
       await deleteAlert(id);
       setAlerts((prev) => prev.filter((a) => a.id !== id));
       if (activeWatchAlert?.id === id) {
-        setActiveWatchAlert(null);
+        handleBackFromWatch();
       }
     } catch (err) {
       console.error(err);
@@ -145,7 +195,7 @@ export default function AlertsPage() {
         {activeWatchAlert ? (
           <AlertWatchPage
             alert={activeWatchAlert}
-            onBack={() => setActiveWatchAlert(null)}
+            onBack={handleBackFromWatch}
           />
         ) : (
           <div className="space-y-4 w-full">
@@ -203,7 +253,7 @@ export default function AlertsPage() {
                     <div
                       key={a.id}
                       className="group flex flex-col cursor-pointer select-none relative p-2.5 -m-2.5 rounded-2xl transition-colors duration-150 hover:bg-[#F2F2F2] dark:hover:bg-[#272727]"
-                      onClick={() => setActiveWatchAlert(a)}
+                      onClick={() => handleOpenWatch(a)}
                     >
                       {/* 16:9 Video-Style Thumbnail */}
                       <div className="relative aspect-video w-full rounded-xl bg-[#1F1F1F] dark:bg-[#181818] overflow-hidden">
@@ -285,13 +335,13 @@ export default function AlertsPage() {
                                 type="button"
                                 onClick={() => {
                                   setOpenMenuId(null);
-                                  setActiveWatchAlert(a);
+                                  handleOpenWatch(a);
                                 }}
                                 className="w-full px-4 py-2.5 first:pt-3.5 last:pb-3.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
                               >
                                 <Play className="h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0" />
                                 <span className="text-sm font-normal text-[#0F0F0F] dark:text-[#F1F1F1]">
-                                  Tonton Iklan ({(a.match_count && a.match_count > 0) ? a.match_count : 0})
+                                  Lihat Iklan ({(a.match_count && a.match_count > 0) ? a.match_count : 0})
                                 </span>
                               </button>
 

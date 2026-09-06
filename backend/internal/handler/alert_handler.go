@@ -135,6 +135,7 @@ func (h *AlertHandler) Update(c *fiber.Ctx) error {
 	existing.Location = req.Location
 	existing.RadiusKM = req.RadiusKM
 	existing.IntervalMinutes = req.IntervalMinutes
+	existing.ThumbnailURL = req.ThumbnailURL
 	if req.Latitude != nil && *req.Latitude != 0 {
 		existing.Latitude = req.Latitude
 	}

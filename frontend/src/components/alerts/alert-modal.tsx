@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import { Send, CheckCircle2, Clock, Zap } from 'lucide-react';
+import { Send, CheckCircle2, Clock, Zap, Image as ImageIcon, Upload, Trash2 } from 'lucide-react';
 import { createAlert, updateAlert, getTelegramStatus } from '@/lib/api';
 import { LocationMapPicker } from './location-map-picker';
 import { PriceAlert } from '@/types';
@@ -59,6 +59,7 @@ export function AlertModal({
   });
   const [radiusKm, setRadiusKm] = useState(50);
   const [intervalMinutes, setIntervalMinutes] = useState<number>(defaultInterval);
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [telegramConnected, setTelegramConnected] = useState(false);
@@ -71,6 +72,7 @@ export function AlertModal({
         setLocation(alertToEdit.location || 'Jakarta');
         setRadiusKm(alertToEdit.radius_km || 50);
         setIntervalMinutes(alertToEdit.interval_minutes && alertToEdit.interval_minutes > 0 ? alertToEdit.interval_minutes : 5);
+        setThumbnailUrl(alertToEdit.thumbnail_url || '');
         if (alertToEdit.latitude && alertToEdit.longitude) {
           setCoords({ lat: alertToEdit.latitude, lng: alertToEdit.longitude });
         }
@@ -79,6 +81,7 @@ export function AlertModal({
         setLocation(defaultLocation);
         setMaxPrice(defaultMaxPrice);
         setIntervalMinutes(defaultInterval || 5);
+        setThumbnailUrl('');
       }
       setSuccess(false);
       getTelegramStatus().then((res) => {
@@ -104,6 +107,7 @@ export function AlertModal({
           radius_km: radiusKm,
           interval_minutes: validInterval,
           category: alertToEdit.category || 'Semua',
+          thumbnail_url: thumbnailUrl.trim(),
         });
       } else {
         await createAlert({
@@ -115,6 +119,7 @@ export function AlertModal({
           radius_km: radiusKm,
           interval_minutes: validInterval,
           category: 'Semua',
+          thumbnail_url: thumbnailUrl.trim(),
         });
       }
 
@@ -184,6 +189,78 @@ export function AlertModal({
                   className="w-full h-10 px-3 rounded-xl bg-white dark:bg-[#121212] border border-[#CCCCCC] dark:border-[#303030] text-foreground text-xs tabular-price focus:outline-none focus:border-[#FF0000]"
                 />
               </div>
+            </div>
+
+            {/* Foto Cover Thumbnail (Upload / URL) */}
+            <div className="p-3.5 rounded-xl bg-[#F9F9F9] dark:bg-[#181818] border border-[#E5E5E5] dark:border-[#303030] space-y-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                  <ImageIcon className="h-4 w-4 text-[#FF0000]" />
+                  <span>Foto Cover Pantauan (Opsional)</span>
+                </div>
+                {thumbnailUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setThumbnailUrl('')}
+                    className="text-[11px] font-semibold text-rose-600 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    <span>Hapus Foto</span>
+                  </button>
+                )}
+              </div>
+
+              {thumbnailUrl ? (
+                <div className="relative aspect-video w-full max-w-xs mx-auto rounded-xl overflow-hidden bg-black/5 dark:bg-black/40 border border-[#E5E5E5] dark:border-[#303030]">
+                  <img
+                    src={thumbnailUrl}
+                    alt="Preview Thumbnail"
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                    Preview 16:9
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <label className="flex-1 h-9 px-3 rounded-xl bg-white dark:bg-[#121212] border border-dashed border-[#CCCCCC] dark:border-[#404040] hover:border-[#FF0000] flex items-center justify-center gap-2 text-xs text-[#606060] dark:text-[#AAAAAA] hover:text-foreground cursor-pointer transition-colors">
+                      <Upload className="h-3.5 w-3.5 text-[#FF0000]" />
+                      <span>Upload Foto dari Perangkat</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              if (typeof event.target?.result === 'string') {
+                                setThumbnailUrl(event.target.result);
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+
+                    <div className="flex-1">
+                      <input
+                        type="url"
+                        placeholder="Atau tempel link URL foto (https://...)"
+                        value={thumbnailUrl}
+                        onChange={(e) => setThumbnailUrl(e.target.value)}
+                        className="w-full h-9 px-3 rounded-xl bg-white dark:bg-[#121212] border border-[#CCCCCC] dark:border-[#303030] text-foreground text-xs focus:outline-none focus:border-[#FF0000]"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-[#606060] dark:text-[#AAAAAA]">
+                    Gambar ini akan tampil sebagai thumbnail kartu pantauan ala video YouTube.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Waktu Scraping / Interval Picker (Requested Feature) */}

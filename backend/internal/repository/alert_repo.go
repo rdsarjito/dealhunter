@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -36,12 +35,7 @@ func (r *AlertRepository) GetAll() ([]model.PriceAlert, error) {
 				} else {
 					alerts[i].SellerName = "Penjual FB Marketplace"
 				}
-				if listings[0].Images != "" {
-					var imgs []string
-					if err := json.Unmarshal([]byte(listings[0].Images), &imgs); err == nil && len(imgs) > 0 {
-						alerts[i].ThumbnailURL = imgs[0]
-					}
-				}
+
 			}
 		}
 	}
@@ -116,6 +110,7 @@ func (r *AlertRepository) Update(id uuid.UUID, a *model.PriceAlert) error {
 		"category":         a.Category,
 		"interval_minutes": a.IntervalMinutes,
 		"is_active":        a.IsActive,
+		"thumbnail_url":    a.ThumbnailURL,
 	}
 	if a.Latitude != nil && *a.Latitude != 0 {
 		updates["latitude"] = a.Latitude

@@ -21,7 +21,7 @@ type PriceAlert struct {
 	TelegramChatID    string         `gorm:"type:varchar(100)" json:"telegram_chat_id"`
 	TriggerCount      int            `gorm:"default:0" json:"trigger_count"`
 	MatchCount        int            `gorm:"-" json:"match_count"`
-	ThumbnailURL      string         `gorm:"-" json:"thumbnail_url"`
+	ThumbnailURL      string         `gorm:"type:text" json:"thumbnail_url"`
 	SellerName        string         `gorm:"-" json:"seller_name"`
 	LastTriggeredAt   *time.Time     `json:"last_triggered_at"`
 	LastScannedAt     *time.Time     `json:"last_scanned_at"`

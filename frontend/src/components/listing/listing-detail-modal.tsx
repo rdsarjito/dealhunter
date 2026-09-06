@@ -9,7 +9,6 @@ import {
 } from '@/components/ui/dialog';
 import { Listing } from '@/types';
 import { formatRupiah, parseImages, formatTimeAgo } from '@/lib/format';
-import { DealBadge } from './deal-badge';
 import { 
   ArrowUpRight, 
   MapPin, 
@@ -17,7 +16,6 @@ import {
   Bookmark, 
   Check, 
   Share2,
-  TrendingDown
 } from 'lucide-react';
 import { addToWatchlist, removeFromWatchlist } from '@/lib/api';
 
@@ -117,24 +115,6 @@ export function ListingDetailModal({
                   {formatRupiah(listing.price)}
                 </div>
 
-                {listing.market_avg_price > 0 && listing.discount_percent > 0 && (
-                  <div className="flex items-center gap-2 mt-1 text-xs">
-                    <span className="text-muted-foreground line-through tabular-price">
-                      Pasaran: {formatRupiah(listing.market_avg_price)}
-                    </span>
-                    <span className="font-semibold text-emerald-600 dark:text-emerald-400 inline-flex items-center">
-                      <TrendingDown className="h-3.5 w-3.5 mr-0.5" />
-                      Hemat {formatRupiah(listing.market_avg_price - listing.price)} ({Math.round(listing.discount_percent)}%)
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-1">
-                <DealBadge
-                  rating={listing.deal_rating}
-                  discount={listing.discount_percent}
-                />
               </div>
             </div>
 

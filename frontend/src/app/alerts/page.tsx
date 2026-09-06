@@ -273,7 +273,7 @@ export default function AlertsPage() {
                           {/* YouTube Popover Dropdown Menu - Exactly Matching Screenshot */}
                           {isMenuOpen && (
                             <div 
-                              className="absolute right-0 top-full mt-1.5 z-40 w-[260px] py-2 rounded-xl bg-white dark:bg-[#282828] shadow-[0_4px_32px_0_rgba(0,0,0,0.14)] dark:border dark:border-[#FFFFFF1A] dark:shadow-2xl"
+                              className="absolute right-0 top-full mt-1.5 z-40 w-[260px] rounded-xl bg-white dark:bg-[#282828] shadow-[0_4px_32px_0_rgba(0,0,0,0.14)] dark:border dark:border-[#FFFFFF1A] dark:shadow-2xl overflow-hidden py-0"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <button
@@ -282,7 +282,7 @@ export default function AlertsPage() {
                                   setOpenMenuId(null);
                                   setActiveWatchAlert(a);
                                 }}
-                                className="w-full px-4 py-2.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
+                                className="w-full px-4 py-2.5 first:pt-3.5 last:pb-3.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
                               >
                                 <Play className="h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0" />
                                 <span className="text-sm font-normal text-[#0F0F0F] dark:text-[#F1F1F1]">
@@ -297,7 +297,7 @@ export default function AlertsPage() {
                                   handleScanSingle(a.id, e);
                                 }}
                                 disabled={scanningAlertId === a.id}
-                                className="w-full px-4 py-2.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer disabled:opacity-50"
+                                className="w-full px-4 py-2.5 first:pt-3.5 last:pb-3.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer disabled:opacity-50"
                               >
                                 <RefreshCw className={`h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0 ${scanningAlertId === a.id ? "animate-spin" : ""}`} />
                                 <span className="text-sm font-normal text-[#0F0F0F] dark:text-[#F1F1F1]">
@@ -311,7 +311,7 @@ export default function AlertsPage() {
                                   setOpenMenuId(null);
                                   handleEditAlert(a, e);
                                 }}
-                                className="w-full px-4 py-2.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
+                                className="w-full px-4 py-2.5 first:pt-3.5 last:pb-3.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
                               >
                                 <Pencil className="h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0" />
                                 <span className="text-sm font-normal text-[#0F0F0F] dark:text-[#F1F1F1]">
@@ -324,7 +324,7 @@ export default function AlertsPage() {
                                 onClick={() => {
                                   handleToggle(a.id, a.is_active);
                                 }}
-                                className="w-full px-4 py-2.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
+                                className="w-full px-4 py-2.5 first:pt-3.5 last:pb-3.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
                               >
                                 {a.is_active ? (
                                   <BellOff className="h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0" />
@@ -342,7 +342,7 @@ export default function AlertsPage() {
                                   setOpenMenuId(null);
                                   handleDelete(a.id);
                                 }}
-                                className="w-full px-4 py-2.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
+                                className="w-full px-4 py-2.5 first:pt-3.5 last:pb-3.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
                               >
                                 <Trash2 className="h-5 w-5 stroke-[1.5] text-[#0F0F0F] dark:text-[#F1F1F1] shrink-0" />
                                 <span className="text-sm font-normal text-[#0F0F0F] dark:text-[#F1F1F1]">

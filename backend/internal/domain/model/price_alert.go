@@ -10,6 +10,7 @@ import (
 type PriceAlert struct {
 	ID                uuid.UUID      `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
 	Keyword           string         `gorm:"type:varchar(255);not null" json:"keyword"`
+	MinPrice          float64        `gorm:"type:decimal(15,2);default:0" json:"min_price"`
 	MaxPrice          float64        `gorm:"type:decimal(15,2);not null" json:"max_price"`
 	Location          string         `gorm:"type:varchar(255)" json:"location"`
 	Latitude          *float64       `gorm:"type:decimal(10,7)" json:"latitude"`

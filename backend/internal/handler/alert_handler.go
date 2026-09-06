@@ -131,6 +131,7 @@ func (h *AlertHandler) Update(c *fiber.Ctx) error {
 	}
 
 	existing.Keyword = req.Keyword
+	existing.MinPrice = req.MinPrice
 	existing.MaxPrice = req.MaxPrice
 	existing.Location = req.Location
 	existing.RadiusKM = req.RadiusKM

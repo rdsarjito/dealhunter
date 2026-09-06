@@ -194,13 +194,23 @@ func (w *AlertWatcher) scanAlertList(ctx context.Context, alerts []model.PriceAl
 		log.Printf("[AlertWatcher] Checking alert: '%s' in '%s' (Interval: %dm, Target <= Rp %.0f)",
 			alert.Keyword, alert.Location, alert.IntervalMinutes, alert.MaxPrice)
 
-		items, err := w.scraper.Search(ctx, alert.Keyword, alert.Location, alert.RadiusKM, nil, nil)
+		var minP *float64
+		if alert.MinPrice > 0 {
+			p := alert.MinPrice
+			minP = &p
+		}
+		var maxP *float64
+		if alert.MaxPrice > 0 {
+			p := alert.MaxPrice
+			maxP = &p
+		}
+		items, err := w.scraper.Search(ctx, alert.Keyword, alert.Location, alert.RadiusKM, minP, maxP)
 		if err == nil && len(items) > 0 {
 			totalItemsScraped += len(items)
 			savedListings, _ := w.listingRepo.UpsertScrapedItems(items, alert.Keyword)
 
 			for _, item := range savedListings {
-				if item.Price > 0 && item.Price <= alert.MaxPrice {
+				if item.Price > 0 && item.Price <= alert.MaxPrice && (alert.MinPrice <= 0 || item.Price >= alert.MinPrice) {
 					if w.alertRepo.HasMatch(alert.ID, item.ID) {
 						continue
 					}
@@ -232,7 +242,11 @@ func (w *AlertWatcher) scanAlertList(ctx context.Context, alerts []model.PriceAl
 		// Also link any valid existing database listings matching alert keyword, price, & location
 		var existingListings []model.Listing
 		kw := "%" + strings.ToLower(alert.Keyword) + "%"
-		if err := w.listingRepo.DB().Where("LOWER(title) LIKE ? AND price >= 10000 AND price <= ?", kw, alert.MaxPrice).Find(&existingListings).Error; err == nil {
+		minSearchPrice := 10000.0
+		if alert.MinPrice > 0 {
+			minSearchPrice = alert.MinPrice
+		}
+		if err := w.listingRepo.DB().Where("LOWER(title) LIKE ? AND price >= ? AND price <= ?", kw, minSearchPrice, alert.MaxPrice).Find(&existingListings).Error; err == nil {
 			for _, exItem := range existingListings {
 				if time.Since(exItem.ScrapedAt) > 24*time.Hour {
 					continue

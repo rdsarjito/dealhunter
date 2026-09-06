@@ -50,6 +50,7 @@ export interface SavedSearch {
 export interface PriceAlert {
   id: string;
   keyword: string;
+  min_price?: number;
   max_price: number;
   location: string;
   latitude?: number;

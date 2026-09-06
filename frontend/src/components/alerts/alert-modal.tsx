@@ -51,6 +51,7 @@ export function AlertModal({
   const isEditMode = Boolean(alertToEdit);
 
   const [keyword, setKeyword] = useState(defaultKeyword);
+  const [minPrice, setMinPrice] = useState<number>(0);
   const [maxPrice, setMaxPrice] = useState<number>(defaultMaxPrice);
   const [location, setLocation] = useState(defaultLocation);
   const [coords, setCoords] = useState<{ lat: number; lng: number }>({
@@ -68,6 +69,7 @@ export function AlertModal({
     if (open) {
       if (alertToEdit) {
         setKeyword(alertToEdit.keyword || '');
+        setMinPrice(alertToEdit.min_price || 0);
         setMaxPrice(alertToEdit.max_price || 0);
         setLocation(alertToEdit.location || 'Jakarta');
         setRadiusKm(alertToEdit.radius_km || 50);
@@ -79,6 +81,7 @@ export function AlertModal({
       } else {
         setKeyword(defaultKeyword);
         setLocation(defaultLocation);
+        setMinPrice(0);
         setMaxPrice(defaultMaxPrice);
         setIntervalMinutes(defaultInterval || 5);
         setThumbnailUrl('');
@@ -100,6 +103,7 @@ export function AlertModal({
       if (isEditMode && alertToEdit) {
         await updateAlert(alertToEdit.id, {
           keyword: keyword.trim(),
+          min_price: Number(minPrice) || 0,
           max_price: Number(maxPrice),
           location: location.trim(),
           latitude: coords.lat,
@@ -112,6 +116,7 @@ export function AlertModal({
       } else {
         await createAlert({
           keyword: keyword.trim(),
+          min_price: Number(minPrice) || 0,
           max_price: Number(maxPrice),
           location: location.trim(),
           latitude: coords.lat,
@@ -164,17 +169,32 @@ export function AlertModal({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-            {/* Keyword and Max Price */}
+            {/* Kata Kunci */}
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-foreground">Kata Kunci Barang</label>
+              <input
+                type="text"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="Contoh: iPhone 13, Monitor A24i"
+                required
+                className="w-full h-10 px-3 rounded-xl bg-white dark:bg-[#121212] border border-[#CCCCCC] dark:border-[#303030] text-foreground text-xs focus:outline-none focus:border-[#FF0000]"
+              />
+            </div>
+
+            {/* Rentang Harga: Minimal & Maksimal */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-foreground">Kata Kunci Barang</label>
+                <label className="text-xs font-semibold text-foreground flex items-center justify-between">
+                  <span>Harga Minimal (Rp)</span>
+                  <span className="text-[10px] font-normal text-[#606060] dark:text-[#AAAAAA]">Opsional</span>
+                </label>
                 <input
-                  type="text"
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                  placeholder="Contoh: iPhone 13, Monitor A24i"
-                  required
-                  className="w-full h-10 px-3 rounded-xl bg-white dark:bg-[#121212] border border-[#CCCCCC] dark:border-[#303030] text-foreground text-xs focus:outline-none focus:border-[#FF0000]"
+                  type="number"
+                  value={minPrice === 0 ? '' : minPrice}
+                  onChange={(e) => setMinPrice(e.target.value === '' ? 0 : Number(e.target.value))}
+                  placeholder="0 (Tanpa batas bawah)"
+                  className="w-full h-10 px-3 rounded-xl bg-white dark:bg-[#121212] border border-[#CCCCCC] dark:border-[#303030] text-foreground text-xs tabular-price focus:outline-none focus:border-[#FF0000]"
                 />
               </div>
 

@@ -110,7 +110,7 @@ func (s *SearchService) checkPriceAlerts(keyword string, listings []model.Listin
 
 		// Find best matching listing that satisfies max price
 		for _, item := range listings {
-			if item.Price > 0 && item.Price <= alert.MaxPrice {
+			if item.Price > 0 && item.Price <= alert.MaxPrice && (alert.MinPrice <= 0 || item.Price >= alert.MinPrice) {
 				// Avoid spamming if triggered recently on same item
 				if alert.LastMatchedItem == item.Title && alert.LastTriggeredAt != nil &&
 					time.Since(*alert.LastTriggeredAt) < 2*time.Hour {

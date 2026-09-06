@@ -104,6 +104,7 @@ func (r *AlertRepository) RecordTrigger(id uuid.UUID, matchedTitle string) error
 func (r *AlertRepository) Update(id uuid.UUID, a *model.PriceAlert) error {
 	updates := map[string]interface{}{
 		"keyword":          a.Keyword,
+		"min_price":        a.MinPrice,
 		"max_price":        a.MaxPrice,
 		"location":         a.Location,
 		"radius_km":        a.RadiusKM,

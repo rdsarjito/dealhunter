@@ -196,7 +196,7 @@ export default function AlertsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-x-4 sm:gap-x-5 gap-y-7 sm:gap-y-8 w-full pb-12">
                 {alerts.map((a) => {
                   const isMenuOpen = openMenuId === a.id;
-                  const displayTitle = `Pantauan: “${a.keyword}”`;
+                  const displayTitle = a.keyword;
 
                   return (
                     <div

@@ -197,7 +197,6 @@ export default function AlertsPage() {
                 {alerts.map((a) => {
                   const isMenuOpen = openMenuId === a.id;
                   const displayTitle = `Pantauan: “${a.keyword}”`;
-                  const sellerName = a.seller_name || 'Penjual Facebook';
 
                   return (
                     <div
@@ -244,40 +243,17 @@ export default function AlertsPage() {
                         </div>
                       </div>
 
-                      {/* Info Row: Avatar + Details + Three Dots */}
-                      <div className="flex items-start gap-3 pt-3">
-                        {/* Circular Seller Avatar */}
-                        <div 
-                          className="relative h-9 w-9 rounded-full overflow-hidden bg-[#E5E5E5] dark:bg-[#272727] shrink-0 mt-0.5 ring-1 ring-border/20"
-                          title={sellerName}
-                        >
-                          <img
-                            src={getSellerAvatar(sellerName)}
-                            alt={sellerName}
-                            className="h-full w-full object-cover"
-                            loading="lazy"
-                          />
-                        </div>
-
-                        {/* Title & Channel & Meta */}
-                        <div className="flex-1 min-w-0 space-y-0.5">
+                      {/* Info Row: Title & Meta + Three Dots */}
+                      <div className="flex items-start justify-between gap-2.5 pt-2.5">
+                        {/* Title & Meta */}
+                        <div className="flex-1 min-w-0 space-y-1">
                           {/* Title */}
                           <h3 
-                            className="font-semibold text-sm sm:text-[15px] text-[#0F0F0F] dark:text-[#F1F1F1] line-clamp-2 leading-snug group-hover:text-foreground/90 transition-colors"
+                            className="font-semibold text-sm sm:text-base text-[#0F0F0F] dark:text-[#F1F1F1] line-clamp-2 leading-snug group-hover:text-foreground/90 transition-colors"
                             title={displayTitle}
                           >
                             {displayTitle}
                           </h3>
-
-                          {/* Channel / Seller Name + Verified Badge */}
-                          <div className="flex items-center gap-1 text-xs text-[#606060] dark:text-[#AAAAAA] hover:text-[#0F0F0F] dark:hover:text-[#F1F1F1] transition-colors pt-0.5">
-                            <span className="truncate max-w-[180px] sm:max-w-[220px]">
-                              {sellerName}
-                            </span>
-                            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-[#606060] dark:fill-[#AAAAAA] shrink-0" aria-hidden="true">
-                              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zM9.8 17.3l-4.2-4.1 1.4-1.4 2.8 2.7 7.4-7.4 1.4 1.4-8.8 8.8z" />
-                            </svg>
-                          </div>
 
                           {/* Meta: Price / Count / Time */}
                           <div className="text-xs text-[#606060] dark:text-[#AAAAAA] flex items-center gap-1.5 flex-wrap">

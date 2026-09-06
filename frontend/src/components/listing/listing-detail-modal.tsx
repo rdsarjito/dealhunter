@@ -99,10 +99,7 @@ export function ListingDetailModal({
           <div className="md:col-span-5 flex flex-col p-6 overflow-y-auto bg-card divide-y divide-border space-y-4">
             {/* Header & Price */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span className="uppercase font-mono text-[10px] tracking-wider">
-                  {listing.category || 'Marketplace'}
-                </span>
+              <div className="flex items-center text-xs text-muted-foreground">
                 <span>{formatTimeAgo(listing.listed_at || listing.created_at)}</span>
               </div>
 

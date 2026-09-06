@@ -170,8 +170,8 @@ export function ListingDetailModal({
                 <div className="font-medium text-foreground leading-relaxed">
                   <span>{listing.location || 'Indonesia'}</span>
                   {listing.distance_km !== undefined && listing.distance_km !== null && (
-                    <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-semibold inline-flex items-center">
-                      • {listing.distance_km < 1 ? `${Math.round(listing.distance_km * 1000)} m` : `${listing.distance_km.toFixed(1)} km`} dari rumah Anda
+                    <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                      ({listing.distance_km < 1 ? `${Math.round(listing.distance_km * 1000)} m` : `${listing.distance_km < 10 ? listing.distance_km.toFixed(1) : Math.round(listing.distance_km)} km`} dari rumah Anda)
                     </span>
                   )}
                 </div>

@@ -26,6 +26,7 @@ type Listing struct {
 	DealRating      string         `gorm:"type:varchar(50)" json:"deal_rating"` // great_deal, good_deal, fair_price, overpriced
 	MarketAvgPrice  float64        `gorm:"type:decimal(15,2)" json:"market_avg_price"`
 	DiscountPercent float64        `gorm:"type:decimal(5,2)" json:"discount_percent"`
+	DistanceKM      *float64       `gorm:"-" json:"distance_km,omitempty"`
 	ListedAt        *time.Time     `json:"listed_at"`
 	ScrapedAt       time.Time      `json:"scraped_at"`
 	CreatedAt       time.Time      `json:"created_at"`

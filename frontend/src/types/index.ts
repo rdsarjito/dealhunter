@@ -17,6 +17,7 @@ export interface Listing {
   deal_rating: 'great_deal' | 'good_deal' | 'fair_price' | 'overpriced';
   market_avg_price: number;
   discount_percent: number;
+  distance_km?: number;
   listed_at?: string;
   scraped_at: string;
   created_at: string;

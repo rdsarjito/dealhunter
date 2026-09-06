@@ -190,7 +190,14 @@ export function ListingDetailModal({
                 </div>
                 <div className="flex justify-between py-1 border-b border-border/50">
                   <span>Lokasi</span>
-                  <span className="font-medium text-foreground">{listing.location || 'Indonesia'}</span>
+                  <span className="font-medium text-foreground">
+                    {listing.location || 'Indonesia'}
+                    {listing.distance_km !== undefined && listing.distance_km !== null && (
+                      <span className="ml-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                        ({listing.distance_km < 1 ? `${Math.round(listing.distance_km * 1000)} m` : `${listing.distance_km.toFixed(1)} km`} dari rumah)
+                      </span>
+                    )}
+                  </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-border/50">
                   <span>Penjual</span>

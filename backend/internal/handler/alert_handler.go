@@ -280,6 +280,7 @@ func (h *AlertHandler) GetAlertListings(c *fiber.Ctx) error {
 			continue
 		}
 		if service.MatchesAlertLocation(alert, it.Location) {
+			it.DistanceKM = service.ComputeDistance(alert, it.Location, it.Latitude, it.Longitude)
 			validListings = append(validListings, it)
 		}
 	}

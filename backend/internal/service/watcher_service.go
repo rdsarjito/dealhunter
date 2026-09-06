@@ -429,6 +429,29 @@ func MatchesAlertLocation(alert *model.PriceAlert, itemLoc string) bool {
 	return true
 }
 
+
+func ComputeDistance(alert *model.PriceAlert, itemLoc string, itemLat, itemLon *float64) *float64 {
+	var alertCoord GeoCoord
+	if alert.Latitude != nil && alert.Longitude != nil && *alert.Latitude != 0 && *alert.Longitude != 0 {
+		alertCoord = GeoCoord{Lat: *alert.Latitude, Lon: *alert.Longitude}
+	} else if c, ok := resolveLocation(alert.Location); ok {
+		alertCoord = c
+	} else {
+		alertCoord = knownLocations["kebayoran lama"]
+	}
+
+	var itemCoord GeoCoord
+	if itemLat != nil && itemLon != nil && *itemLat != 0 && *itemLon != 0 {
+		itemCoord = GeoCoord{Lat: *itemLat, Lon: *itemLon}
+	} else if c, ok := resolveLocation(itemLoc); ok {
+		itemCoord = c
+	} else {
+		return nil
+	}
+
+	dist := haversineDistance(alertCoord.Lat, alertCoord.Lon, itemCoord.Lat, itemCoord.Lon)
+	return &dist
+}
 func (w *AlertWatcher) GetStatus() WatcherStatus {
 	w.mu.Lock()
 	defer w.mu.Unlock()

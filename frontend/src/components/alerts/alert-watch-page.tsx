@@ -110,7 +110,7 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
     <div className="space-y-5 w-full pb-16">
       {/* Loading Skeleton */}
       {isLoading && (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 w-full">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-x-4 sm:gap-x-5 gap-y-7 sm:gap-y-8 w-full">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="space-y-2">
               <div className="aspect-square w-full rounded-2xl bg-[#E5E5E5] dark:bg-[#272727] animate-pulse" />
@@ -164,7 +164,7 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
 
       {/* Main Facebook Marketplace Grid - Matching User Reference Screenshot */}
       {!isLoading && listings.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 w-full">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-x-4 sm:gap-x-5 gap-y-7 sm:gap-y-8 w-full">
           {listings.map((item) => {
             const images = parseImages(item.images);
             const thumb = images[0] || 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=600&q=80';
@@ -174,7 +174,7 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
               <div
                 key={item.id}
                 onClick={() => handleOpenDetail(item)}
-                className="group flex flex-col text-left cursor-pointer select-none transition-all duration-200"
+                className="group flex flex-col text-left cursor-pointer select-none relative p-2.5 -m-2.5 rounded-2xl transition-colors duration-150 hover:bg-[#F2F2F2] dark:hover:bg-[#272727]"
               >
                 {/* 1:1 Aspect Ratio Square Photo with Rounded Corners */}
                 <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-[#242526] dark:bg-[#1C1C1D]">
@@ -182,7 +182,7 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
                     src={thumb}
                     alt={item.title}
                     referrerPolicy="no-referrer"
-                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="h-full w-full object-cover"
                     loading="lazy"
                   />
 

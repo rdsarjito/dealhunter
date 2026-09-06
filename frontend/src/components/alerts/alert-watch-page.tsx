@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { PriceAlert, Listing } from '@/types';
 import { getAlertListings, scanSingleAlert, addToWatchlist, removeFromWatchlist } from '@/lib/api';
 import { formatRupiah, parseImages } from '@/lib/format';
-import { DealBadge } from '@/components/listing/deal-badge';
 import { ListingDetailModal } from '@/components/listing/listing-detail-modal';
 import { 
   ArrowLeft, 
@@ -187,16 +186,6 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
                     loading="lazy"
                   />
 
-                  {/* Top Left: Deal Badge (if discounted or good deal) */}
-                  {(item.deal_rating === 'great_deal' || item.deal_rating === 'good_deal' || item.discount_percent > 10) && (
-                    <div className="absolute top-2 left-2 z-10">
-                      <DealBadge
-                        rating={item.deal_rating}
-                        discount={item.discount_percent}
-                      />
-                    </div>
-                  )}
-
                   {/* Top Right: Bookmark Quick Action */}
                   <button
                     type="button"
@@ -210,15 +199,6 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
                       <Bookmark className="h-4 w-4" />
                     )}
                   </button>
-
-                  {/* Bottom Right: Condition Pill */}
-                  {item.condition && (
-                    <div className="absolute bottom-2 right-2 z-10">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-black/80 text-white backdrop-blur-xs">
-                        {item.condition}
-                      </span>
-                    </div>
-                  )}
                 </div>
 
                 {/* Info Lines (Exact Match to User Reference Screenshot) */}

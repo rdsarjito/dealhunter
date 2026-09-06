@@ -238,12 +238,17 @@ export default function AlertsPage() {
                           </div>
                         </div>
 
-                        {/* Meta Channel Row */}
+                        {/* Meta Seller Row */}
                         <div className="flex items-center gap-1.5 text-[11px] text-[#606060] dark:text-[#AAAAAA] mt-1.5 flex-wrap">
-                          <div className="h-4 w-4 rounded-full bg-[#FF0000] text-white font-black text-[8px] flex items-center justify-center shrink-0">
-                            DH
+                          <div 
+                            className="h-4 w-4 rounded-full bg-[#E5E5E5] dark:bg-[#272727] text-[#0F0F0F] dark:text-[#F1F1F1] font-bold text-[8px] flex items-center justify-center shrink-0"
+                            title={a.seller_name || 'Penjual FB Marketplace'}
+                          >
+                            {(a.seller_name || 'Penjual FB Marketplace').charAt(0).toUpperCase()}
                           </div>
-                          <span className="font-semibold text-foreground/90">DealHunter</span>
+                          <span className="font-semibold text-foreground/90 truncate max-w-[160px] sm:max-w-[220px]" title={a.seller_name || 'Penjual FB Marketplace'}>
+                            {a.seller_name || 'Penjual FB Marketplace'}
+                          </span>
                           <span>•</span>
                           <div className="flex items-center gap-0.5">
                             <MapPin className="h-2.5 w-2.5 text-[#FF0000]" />
@@ -257,10 +262,6 @@ export default function AlertsPage() {
                         <div className="mt-2">
                           {(a.match_count && a.match_count > 0) ? (
                             <div className="text-[11px] text-foreground/90 bg-[#00000005] dark:bg-[#FFFFFF08] p-2 rounded-lg border border-[#0000000A] dark:border-[#FFFFFF0D] flex items-start gap-1.5">
-                              <span className="relative flex h-2 w-2 mt-0.5 shrink-0">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                              </span>
                               <div className="min-w-0 flex-1 truncate">
                                 <span className="font-bold text-emerald-600 dark:text-emerald-400 mr-1">
                                   {a.match_count} baru:

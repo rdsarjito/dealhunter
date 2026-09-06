@@ -194,18 +194,7 @@ export function ListingDetailModal({
               </p>
             </div>
 
-            {/* COD Safety Note */}
-            <div className="pt-4 text-xs">
-              <div className="p-3 rounded-xl bg-secondary/50 border border-border/60 space-y-1">
-                <div className="flex items-center gap-1.5 font-medium text-foreground">
-                  <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>Transaksi Aman</span>
-                </div>
-                <p className="text-[11px] text-muted-foreground leading-normal">
-                  Selalu utamakan COD di tempat umum. Cek fungsi barang sebelum membayar.
-                </p>
-              </div>
-            </div>
+
           </div>
         </div>
       </DialogContent>

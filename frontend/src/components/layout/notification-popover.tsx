@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Bell, RefreshCw, ExternalLink, Settings, Radio, MoreVertical, Flame } from 'lucide-react';
+import { Bell, RefreshCw, ExternalLink, Settings, Radio, MoreVertical } from 'lucide-react';
 import { NotificationItem, Listing } from '@/types';
 import { formatRupiah, formatTimeAgo } from '@/lib/format';
 import { getNotifications } from '@/lib/api';
@@ -88,12 +88,12 @@ export function NotificationPopover({
         {loading && notifications.length === 0 ? (
           <div className="py-14 flex flex-col items-center justify-center gap-2 text-[#606060] dark:text-[#AAAAAA] text-xs">
             <RefreshCw className="h-5 w-5 animate-spin text-[#E1002D]" />
-            <span>Memuat notifikasi deal terbaru...</span>
+            <span>Memuat notifikasi terbaru...</span>
           </div>
         ) : notifications.length === 0 ? (
           <div className="py-14 px-6 text-center space-y-3">
-            <div className="h-14 w-14 rounded-full bg-[#E1002D]/10 text-[#E1002D] flex items-center justify-center mx-auto">
-              <Bell className="h-7 w-7" />
+            <div className="h-14 w-14 rounded-full bg-secondary text-foreground flex items-center justify-center mx-auto">
+              <Bell className="h-7 w-7 text-muted-foreground" />
             </div>
             <div className="space-y-1">
               <h4 className="text-sm font-semibold text-foreground">Belum ada notifikasi</h4>
@@ -119,11 +119,22 @@ export function NotificationPopover({
                 onClick={() => onSelectListing(notif.listing)}
                 className="px-4 py-3 flex items-start gap-3 hover:bg-[#00000008] dark:hover:bg-[#FFFFFF0D] transition-colors cursor-pointer group relative"
               >
-                {/* Left: Unread Blue Indicator Dot + Avatar Circle */}
+                {/* Left: Unread Blue Indicator Dot + Gambar dari Alerts */}
                 <div className="flex items-center gap-1.5 shrink-0 pt-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#065FD4] dark:bg-[#3EA6FF]" />
-                  <div className="w-9 h-9 rounded-full bg-[#E1002D]/10 text-[#E1002D] flex items-center justify-center overflow-hidden border border-[#E1002D]/20">
-                    <Flame className="w-4 h-4 text-[#E1002D]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#065FD4] dark:bg-[#3EA6FF] shrink-0" />
+                  <div className="w-9 h-9 rounded-full bg-secondary text-foreground flex items-center justify-center overflow-hidden border border-border shrink-0">
+                    {notif.alert_thumbnail ? (
+                      <img
+                        src={notif.alert_thumbnail}
+                        alt={notif.alert_keyword}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-[#FF0000]/10 text-[#FF0000]">
+                        <Radio className="w-4 h-4" />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -148,7 +159,7 @@ export function NotificationPopover({
                   </div>
                 </div>
 
-                {/* Right: Item Thumbnail (Like YouTube Video Thumbnail on Right) */}
+                {/* Right: Item Thumbnail (Clean without Deal / Discount Badge) */}
                 <div className="w-20 h-13 rounded-lg overflow-hidden shrink-0 relative bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10">
                   {img ? (
                     <img
@@ -159,12 +170,7 @@ export function NotificationPopover({
                     />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center text-muted-foreground bg-muted/20">
-                      <Radio className="h-4 w-4 text-[#E1002D]/70" />
-                    </div>
-                  )}
-                  {notif.listing.discount_percent > 0 && (
-                    <div className="absolute top-0.5 right-0.5 bg-[#2BA640] text-white text-[8px] font-bold px-1 rounded shadow-xs">
-                      -{Math.round(notif.listing.discount_percent)}%
+                      <Radio className="h-4 w-4 text-muted-foreground" />
                     </div>
                   )}
                 </div>

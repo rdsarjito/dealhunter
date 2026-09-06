@@ -109,5 +109,6 @@ export interface NotificationItem {
   created_at: string;
   alert_id: string;
   alert_keyword: string;
+  alert_thumbnail?: string;
   listing: Listing;
 }

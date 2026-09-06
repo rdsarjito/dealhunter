@@ -183,16 +183,17 @@ func (r *AlertRepository) GetRecentNotifications(limit int) ([]dto.NotificationI
 	}
 
 	type QueryRow struct {
-		ID           uuid.UUID `gorm:"column:id"`
-		CreatedAt    time.Time `gorm:"column:created_at"`
-		AlertID      uuid.UUID `gorm:"column:alert_id"`
-		AlertKeyword string    `gorm:"column:alert_keyword"`
+		ID             uuid.UUID `gorm:"column:id"`
+		CreatedAt      time.Time `gorm:"column:created_at"`
+		AlertID        uuid.UUID `gorm:"column:alert_id"`
+		AlertKeyword   string    `gorm:"column:alert_keyword"`
+		AlertThumbnail string    `gorm:"column:alert_thumbnail"`
 		model.Listing
 	}
 
 	var rows []QueryRow
 	err := r.db.Table("alert_matched_listings aml").
-		Select("aml.id, aml.created_at, aml.alert_id, a.keyword as alert_keyword, listings.*").
+		Select("aml.id, aml.created_at, aml.alert_id, a.keyword as alert_keyword, COALESCE(a.thumbnail_url, '') as alert_thumbnail, listings.*").
 		Joins("JOIN price_alerts a ON a.id = aml.alert_id").
 		Joins("JOIN listings ON listings.id = aml.listing_id").
 		Where("a.deleted_at IS NULL").
@@ -207,11 +208,12 @@ func (r *AlertRepository) GetRecentNotifications(limit int) ([]dto.NotificationI
 	items := make([]dto.NotificationItem, len(rows))
 	for i, row := range rows {
 		items[i] = dto.NotificationItem{
-			ID:           row.ID,
-			CreatedAt:    row.CreatedAt,
-			AlertID:      row.AlertID,
-			AlertKeyword: row.AlertKeyword,
-			Listing:      row.Listing,
+			ID:             row.ID,
+			CreatedAt:      row.CreatedAt,
+			AlertID:        row.AlertID,
+			AlertKeyword:   row.AlertKeyword,
+			AlertThumbnail: row.AlertThumbnail,
+			Listing:        row.Listing,
 		}
 	}
 	return items, nil

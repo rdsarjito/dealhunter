@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Bookmark, Check } from 'lucide-react';
 import { Listing } from '@/types';
-import { formatRupiah, parseImages, formatTimeAgo } from '@/lib/format';
+import { formatRupiah, parseImages, formatTimeAgo, getSellerAvatar } from '@/lib/format';
 import { DealBadge } from './deal-badge';
 import { addToWatchlist, removeFromWatchlist } from '@/lib/api';
 
@@ -45,7 +45,6 @@ export function ListingCard({
     }
   };
 
-  const sellerInitial = (listing.seller_name || 'P').charAt(0).toUpperCase();
 
   return (
     <div 
@@ -94,10 +93,15 @@ export function ListingCard({
       {/* Info Section (Avatar on Left, Title & Price on Right) */}
       <div className="flex items-start gap-3">
         <div 
-          className="h-9 w-9 rounded-full bg-[#E5E5E5] dark:bg-[#272727] text-[#0F0F0F] dark:text-[#F1F1F1] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5"
+          className="relative h-9 w-9 rounded-full overflow-hidden bg-[#E5E5E5] dark:bg-[#272727] shrink-0 mt-0.5 ring-1 ring-border/20"
           title={listing.seller_name || 'Penjual FB'}
         >
-          {sellerInitial}
+          <img
+            src={getSellerAvatar(listing.seller_name)}
+            alt={listing.seller_name || 'Penjual'}
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
         </div>
 
         <div className="flex-1 min-w-0 space-y-0.5">

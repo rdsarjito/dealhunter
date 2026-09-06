@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { PriceAlert, Listing } from '@/types';
 import { getAlertListings, addToWatchlist, removeFromWatchlist } from '@/lib/api';
-import { formatRupiah, parseImages, formatTimeAgo } from '@/lib/format';
+import { formatRupiah, parseImages, formatTimeAgo, getSellerAvatar } from '@/lib/format';
 import { DealBadge } from '@/components/listing/deal-badge';
 import { 
   ArrowLeft, 
@@ -278,8 +278,13 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
           <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[#F2F2F2] dark:bg-[#272727] border border-[#E5E5E5] dark:border-[#383838] space-y-2.5 text-xs">
             <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-[#CCCCCC] dark:border-[#383838]">
               <div className="flex items-center gap-2 sm:gap-2.5">
-                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-foreground text-background flex items-center justify-center font-bold text-xs sm:text-sm shrink-0">
-                  {(currentItem.seller_name || 'P').charAt(0).toUpperCase()}
+                <div className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-full overflow-hidden bg-muted shrink-0 ring-1 ring-border/20">
+                  <img
+                    src={getSellerAvatar(currentItem.seller_name)}
+                    alt={currentItem.seller_name || 'Penjual'}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
                 </div>
                 <div>
                   <div className="font-bold text-foreground text-xs sm:text-sm truncate max-w-[200px] sm:max-w-xs">

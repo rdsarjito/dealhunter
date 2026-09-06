@@ -170,9 +170,23 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 	// Wait up to 5 seconds for content
 	_ = page.Timeout(5 * time.Second).WaitLoad()
 
+	// Dismiss any blocking login modal / dialog overlay and restore overflow
+	_, _ = page.Eval(`() => {
+		const closeButtons = document.querySelectorAll('div[role="dialog"] div[aria-label="Close"], div[role="dialog"] div[aria-label="Tutup"]');
+		for (const b of closeButtons) b.click();
+		const dialogs = document.querySelectorAll('div[role="dialog"], div[aria-modal="true"]');
+		for (const d of dialogs) d.remove();
+		document.body.style.setProperty("overflow", "auto", "important");
+		document.documentElement.style.setProperty("overflow", "auto", "important");
+	}`)
+
 	// Scroll down continuously until we hit the boundary: "Hasil dari luar pencarian Anda"
 	maxScrolls := 35
 	for s := 0; s < maxScrolls; s++ {
+		_, _ = page.Eval(`() => {
+			document.body.style.setProperty("overflow", "auto", "important");
+			document.documentElement.style.setProperty("overflow", "auto", "important");
+		}`)
 		_, _ = page.Eval(`() => window.scrollTo(0, document.body.scrollHeight)`)
 		time.Sleep(1200 * time.Millisecond)
 
@@ -326,6 +340,17 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 	return results, nil
 }
 
+var priceLineCleaner = regexp.MustCompile(`(?i)(?:Rp\.?|IDR|\$|\d|[\s\.,\-\/])+`)
+
+func isPriceLine(line string, re *regexp.Regexp) bool {
+	if !re.MatchString(line) {
+		return false
+	}
+	// Check if stripping currencies, digits, and punctuation leaves no significant letters
+	stripped := priceLineCleaner.ReplaceAllString(line, "")
+	return strings.TrimSpace(stripped) == ""
+}
+
 func parseTitleAndLocation(raw, keyword, defaultLoc string, re *regexp.Regexp) (string, string) {
 	rawLines := strings.Split(raw, "\n")
 	var cleaned []string
@@ -339,8 +364,8 @@ func parseTitleAndLocation(raw, keyword, defaultLoc string, re *regexp.Regexp) (
 		if low == "just listed" || low == "free" || low == "gratis" || low == "baru saja" || low == "terjual" {
 			continue
 		}
-		// If line is just the price
-		if re.MatchString(t) && len(t) < 20 {
+		// If line is just the price (supports discounted double prices e.g. IDR800,000IDR1,100,000)
+		if isPriceLine(t, re) {
 			continue
 		}
 		cleaned = append(cleaned, t)

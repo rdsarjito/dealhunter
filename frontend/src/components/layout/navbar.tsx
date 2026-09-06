@@ -259,7 +259,7 @@ export function Navbar({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
               {notifCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF0000] text-white text-[10px] font-bold flex items-center justify-center border-2 border-card shadow-xs">
+                <span className="absolute top-[6px] right-[2px] h-[16px] min-w-[20px] px-1 rounded-full bg-[#E1002D] text-white text-[10px] font-bold flex items-center justify-center border-2 border-card leading-none select-none pointer-events-none">
                   {notifCount > 9 ? '9+' : notifCount}
                 </span>
               )}

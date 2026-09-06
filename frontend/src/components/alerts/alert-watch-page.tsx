@@ -109,67 +109,6 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
 
   return (
     <div className="space-y-5 w-full pb-16">
-      {/* Top Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E5E5E5] dark:border-[#303030]">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#F2F2F2] dark:bg-[#272727] hover:bg-[#E5E5E5] dark:hover:bg-[#383838] text-foreground text-xs font-bold transition-colors shrink-0"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Kembali ke Alert</span>
-          </button>
-
-          <div className="min-w-0">
-            <h1 className="text-base sm:text-lg font-bold text-foreground truncate flex items-center gap-2">
-              <span>{alert.keyword}</span>
-              <span className="px-2 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-black">
-                {listings.length}
-              </span>
-            </h1>
-          </div>
-        </div>
-
-        {/* Right Info Badges & Action Buttons */}
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-          {/* Target Price */}
-          <div className="px-2.5 py-1 rounded-full bg-muted/70 text-[11px] font-semibold text-foreground/85 shrink-0">
-            Target: {alert.min_price !== undefined && alert.min_price !== null && alert.min_price > 0
-              ? `${formatRupiah(alert.min_price)} - ${formatRupiah(alert.max_price)}`
-              : formatRupiah(alert.max_price)
-            }
-          </div>
-
-          {/* User House Location Anchor */}
-          <div className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[11px] font-semibold flex items-center gap-1 shrink-0">
-            <Home className="h-3 w-3" />
-            <span>Rumah: {alert.location || 'Kebayoran Lama, Jakarta'}</span>
-          </div>
-
-          {/* Scan Now */}
-          <button
-            type="button"
-            onClick={handleScanNow}
-            disabled={isScanning}
-            className="h-8 px-3 rounded-full border border-[#E5E5E5] dark:border-[#303030] bg-card hover:bg-[#F2F2F2] dark:hover:bg-[#272727] text-foreground text-xs font-semibold inline-flex items-center gap-1.5 transition-colors disabled:opacity-50 shrink-0"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${isScanning ? 'animate-spin text-red-500' : ''}`} />
-            <span>{isScanning ? 'Memindai...' : 'Pindai'}</span>
-          </button>
-
-          {/* Open In Search */}
-          <button
-            type="button"
-            onClick={handleOpenInSearch}
-            className="h-8 px-3 rounded-full bg-foreground text-background hover:opacity-90 text-xs font-semibold inline-flex items-center gap-1.5 transition-all shrink-0"
-          >
-            <span>Feed</span>
-            <ArrowUpRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-
       {/* Loading Skeleton */}
       {isLoading && (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 w-full">

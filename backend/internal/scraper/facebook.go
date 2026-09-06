@@ -2,6 +2,9 @@ package scraper
 
 import (
 	"context"
+	"html"
+	"io"
+	"net/http"
 	"fmt"
 	"hash/fnv"
 	"log"
@@ -301,7 +304,13 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 		results = append(results, ScrapedItem{
 			FBListingID: itemID,
 			Title:       title,
-			Description: fmt.Sprintf("Listing %s di %s. Cek kondisi dan tawar via Facebook Marketplace.", title, loc),
+			Description: func() string {
+				d := fetchRealListingDescription(fullURL)
+				if d != "" && !strings.Contains(d, "Cek kondisi dan tawar") {
+					return d
+				}
+				return fmt.Sprintf("Listing %s di %s. Cek kondisi dan tawar via Facebook Marketplace.", title, loc)
+			}(),
 			Price:       price,
 			Currency:    "IDR",
 			Location:    loc,
@@ -454,4 +463,40 @@ func generateSellerName(itemID, title string) string {
 		idx = -idx
 	}
 	return indonesianSellers[idx]
+}
+
+func fetchRealListingDescription(fbURL string) string {
+	if fbURL == "" {
+		return ""
+	}
+	client := &http.Client{Timeout: 4 * time.Second}
+	req, err := http.NewRequest("GET", fbURL, nil)
+	if err != nil {
+		return ""
+	}
+	req.Header.Set("User-Agent", "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)")
+	req.Header.Set("Accept-Language", "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return ""
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return ""
+	}
+
+	re := regexp.MustCompile(`(?i)<meta\s+property=["']og:description["']\s+content=["']([^"']+)["']`)
+	match := re.FindStringSubmatch(string(body))
+	if len(match) > 1 {
+		desc := html.UnescapeString(match[1])
+		return strings.TrimSpace(desc)
+	}
+	return ""
 }

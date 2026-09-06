@@ -201,7 +201,7 @@ export default function AlertsPage() {
                   return (
                     <div
                       key={a.id}
-                      className="group flex flex-col cursor-pointer select-none relative p-2.5 -m-2.5 rounded-2xl transition-colors duration-150 hover:bg-[#0000000A] dark:hover:bg-[#FFFFFF0F]"
+                      className="group flex flex-col cursor-pointer select-none relative p-2.5 -m-2.5 rounded-2xl transition-colors duration-150 hover:bg-[#CCCCCC] dark:hover:bg-[#272727]"
                       onClick={() => setActiveWatchAlert(a)}
                     >
                       {/* 16:9 Video-Style Thumbnail */}

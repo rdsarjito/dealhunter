@@ -208,17 +208,17 @@ export function AlertWatchPage({ alert, onBack }: AlertWatchPageProps) {
                     {formatRupiah(item.price)}
                   </div>
 
-                  {/* Line 2: Title */}
+                  {/* Line 2: Title (1 line with ellipsis ...) */}
                   <h3
-                    className="text-xs sm:text-sm text-foreground/90 font-normal leading-snug line-clamp-2 group-hover:text-foreground transition-colors"
+                    className="text-xs sm:text-sm text-foreground/90 font-normal leading-snug truncate group-hover:text-foreground transition-colors"
                     title={item.title}
                   >
                     {item.title}
                   </h3>
 
                   {/* Line 3: Location and Distance from User's House */}
-                  <div className="text-[11px] sm:text-xs text-[#606060] dark:text-[#AAAAAA] line-clamp-1 flex items-center gap-1 pt-0.5">
-                    <span className="truncate">{item.location || 'Indonesia'}</span>
+                  <div className="text-[11px] sm:text-xs text-[#606060] dark:text-[#AAAAAA] truncate flex items-center gap-1 pt-0.5">
+                    <span className="truncate max-w-[140px] sm:max-w-[180px]">{item.location || 'Indonesia'}</span>
                     <span className="shrink-0">•</span>
                     <span className="shrink-0 text-emerald-600 dark:text-emerald-400 font-medium">
                       {formatDistance(item.distance_km)}

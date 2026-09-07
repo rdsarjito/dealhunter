@@ -113,13 +113,13 @@ func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, 
 		radiusKM = 25
 	}
 
-	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search?daysSinceListed=1&sortBy=creation_time_descend&query=%s&exact=false&radius=%d",
+	searchURL := fmt.Sprintf("https://www.facebook.com/marketplace/%s/search?daysSinceListed=1&exact=false&query=%s&radius=%d",
 		url.PathEscape(citySlug),
 		url.QueryEscape(keyword),
 		radiusKM,
 	)
 
-	log.Printf("[Scraper] Patrolling FB Marketplace (Radius: %d km, daysSinceListed=1, sortBy=creation_time_descend): '%s' in '%s' -> %s",
+	log.Printf("[Scraper] Patrolling FB Marketplace (Radius: %d km, daysSinceListed=1): '%s' in '%s' -> %s",
 		radiusKM, keyword, location, searchURL)
 
 	items, err := s.scrapeWithRod(ctx, searchURL, keyword, location, radiusKM)
@@ -186,8 +186,32 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 		_, _ = page.Eval(`() => {
 			document.body.style.setProperty("overflow", "auto", "important");
 			document.documentElement.style.setProperty("overflow", "auto", "important");
+
+			// Scroll internal container if present
+			const main = document.querySelector('div[role="main"]');
+			let curr = main;
+			let container = null;
+			while (curr && curr !== document.body) {
+				const style = window.getComputedStyle(curr);
+				if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+					container = curr;
+					break;
+				}
+				curr = curr.parentElement;
+			}
+			if (container) {
+				container.scrollTop = container.scrollHeight;
+				container.dispatchEvent(new Event('scroll', { bubbles: true }));
+			}
+
+			// Also scroll last item into view
+			const links = document.querySelectorAll('a[href*="/marketplace/item/"]');
+			if (links.length > 0) {
+				links[links.length - 1].scrollIntoView({ behavior: 'smooth', block: 'end' });
+			}
+			window.scrollTo(0, document.body.scrollHeight);
 		}`)
-		_, _ = page.Eval(`() => window.scrollTo(0, document.body.scrollHeight)`)
+		_ = page.Mouse.Scroll(0, 2000, 5)
 		time.Sleep(1200 * time.Millisecond)
 
 		// Check if boundary text appeared

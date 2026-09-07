@@ -287,12 +287,24 @@ var knownLocations = map[string]GeoCoord{
 	"pasar minggu":      {-6.2863, 106.8406},
 	"jagakarsa":         {-6.3315, 106.8248},
 	"jakarta selatan":   {-6.2615, 106.8106},
+	"senayan":           {-6.2217, 106.8000},
+	"kemang":            {-6.2611, 106.8156},
+	"fatmawati":         {-6.2889, 106.7967},
+	"lebak bulus":       {-6.2994, 106.7797},
+	"ragunan":           {-6.3075, 106.8286},
+	"pesanggrahan":      {-6.2483, 106.7583},
+	"petukangan":        {-6.2345, 106.7561},
+	"petukangan utara":  {-6.2290, 106.7550},
+	"petukangan selatan":{-6.2410, 106.7570},
+	"ulujami":           {-6.2428, 106.7644},
 
 	// Jakarta Pusat & General Jakarta
 	"jakarta pusat":     {-6.1805, 106.8284},
 	"jakarta":           {-6.1754, 106.8272},
 	"tanah abang":       {-6.1950, 106.8142},
 	"menteng":           {-6.1966, 106.8378},
+	"kuningan":          {-6.2297, 106.8294},
+	"setiabudi":         {-6.2133, 106.8294},
 
 	// Jakarta Barat
 	"jakarta barat":     {-6.1683, 106.7588},
@@ -314,11 +326,34 @@ var knownLocations = map[string]GeoCoord{
 	"kelapa gading":     {-6.1581, 106.9098},
 	"pluit":             {-6.1205, 106.7892},
 	"tanjung priok":     {-6.1215, 106.8797},
+	"pik":               {-6.1111, 106.7417},
+	"pantai indah kapuk":{-6.1111, 106.7417},
+	"sunter":            {-6.1400, 106.8667},
+	"muara karang":      {-6.1180, 106.7800},
 
 	// Tangerang & Tangerang Selatan
+	"sudimara":          {-6.2890, 106.7110},
+	"perumahan sudimara":{-6.2890, 106.7110},
+	"sudimara timur":    {-6.2375, 106.7150},
+	"sudimara barat":    {-6.2380, 106.7020},
+	"sudimara jaya":     {-6.2290, 106.7120},
+	"sudimara selatan":  {-6.2450, 106.7110},
+	"bintaro":           {-6.2818, 106.7289},
+	"bintarojaya":       {-6.2818, 106.7289},
+	"bintaro jaya":      {-6.2818, 106.7289},
+	"pondok ranji":      {-6.2764, 106.7447},
+	"jurangmangu":       {-6.2872, 106.7214},
+	"jurang mangu":      {-6.2872, 106.7214},
+	"jurang mangu barat":{-6.2750, 106.7180},
+	"jurang mangu timur":{-6.2850, 106.7290},
+	"rempoa":            {-6.2917, 106.7667},
+	"cireundeu":         {-6.3122, 106.7694},
+	"cirendeu":          {-6.3122, 106.7694},
+	"pondok betung":     {-6.2625, 106.7469},
+	"pondok kacang":     {-6.2514, 106.7025},
+	"kreo":              {-6.2333, 106.7417},
 	"ciledug":           {-6.2245, 106.7088},
 	"larangan":          {-6.2372, 106.7258},
-	"bintaro":           {-6.2818, 106.7289},
 	"ciputat":           {-6.3117, 106.7460},
 	"pamulang":          {-6.3427, 106.7381},
 	"pondok aren":       {-6.2736, 106.7029},
@@ -326,6 +361,12 @@ var knownLocations = map[string]GeoCoord{
 	"bsd":               {-6.3015, 106.6800},
 	"bumi serpong":      {-6.3015, 106.6800},
 	"jombang":           {-6.2950, 106.7050},
+	"alam sutera":       {-6.2230, 106.6540},
+	"gading serpong":    {-6.2415, 106.6285},
+	"lippo karawaci":    {-6.2256, 106.6083},
+	"cipondoh":          {-6.1833, 106.6833},
+	"pinang":            {-6.2167, 106.6833},
+	"karang tengah":     {-6.2167, 106.7167},
 	"tangerang selatan": {-6.2888, 106.7179},
 	"tangsel":           {-6.2888, 106.7179},
 	"tangerang":         {-6.1783, 106.6319},
@@ -348,13 +389,15 @@ var knownLocations = map[string]GeoCoord{
 	"cikarang":          {-6.3110, 107.1520},
 	"pebayuran":         {-6.1368, 107.2185},
 
-	// Bogor & Outlying Southern areas
+	// Bogor & Outlying Southern/Eastern areas
 	"cibinong":          {-6.4817, 106.8536},
 	"karanggan":         {-6.4422, 106.8970},
 	"gunung putri":      {-6.4422, 106.8970},
 	"citeureup":         {-6.4890, 106.8820},
 	"bojonggede":        {-6.4950, 106.7950},
 	"parung":            {-6.4250, 106.7280},
+	"wanaherang":        {-6.3950, 106.9450},
+	"cileungsi":         {-6.3980, 106.9600},
 	"bogor kota":        {-6.5971, 106.8060},
 	"bogor":             {-6.5971, 106.8060},
 	"ciomas":            {-6.6022, 106.7645},
@@ -408,10 +451,24 @@ func MatchesAlertLocation(alert *model.PriceAlert, itemLoc string) bool {
 	// 2. Resolve Item location coordinate
 	itemCoord, ok := resolveLocation(itemLoc)
 	if !ok {
-		// Fallback: If location string is generic or unknown, check direct substring
+		// Fallback: If exact coordinate is unknown, check direct substring
 		al := strings.ToLower(alert.Location)
 		il := strings.ToLower(itemLoc)
-		return strings.Contains(il, al) || strings.Contains(al, il)
+		if strings.Contains(il, al) || strings.Contains(al, il) {
+			return true
+		}
+		// Since FB search was already executed within the designated city / radius,
+		// any listing indicating Greater Jakarta / Indonesia without foreign markings is acceptable
+		jabodetabekKeywords := []string{
+			"jakarta", "tangerang", "tangsel", "depok", "bekasi", "bogor",
+			"banten", "jawa barat", "indonesia", "selatan", "barat", "pusat", "timur", "utara",
+		}
+		for _, jkw := range jabodetabekKeywords {
+			if strings.Contains(il, jkw) {
+				return true
+			}
+		}
+		return false
 	}
 
 	// 3. Compute precise Haversine distance

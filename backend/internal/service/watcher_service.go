@@ -401,31 +401,6 @@ var knownLocations = map[string]GeoCoord{
 	"bogor kota":        {-6.5971, 106.8060},
 	"bogor":             {-6.5971, 106.8060},
 	"ciomas":            {-6.6022, 106.7645},
-
-	// Additional Jakarta & surrounding areas
-	"legoso":            {-6.3175, 106.7375},
-	"kranggan":          {-6.3700, 106.9150},
-	"pulogebang":        {-6.2200, 106.9500},
-	"nanggerang":        {-6.2350, 106.6250},
-	"nancaerang":        {-6.2350, 106.6250},
-	"picung":            {-6.5500, 106.3000},
-	"pisangan":          {-6.3700, 106.8350},
-	"sawah baru":        {-6.3133, 106.7417},
-	"sawah lama":        {-6.3067, 106.7383},
-	"lengkong gudang":   {-6.3050, 106.6950},
-	"pondok cabe":       {-6.3400, 106.7550},
-	"cempaka putih":     {-6.1769, 106.8672},
-	"taman sari":        {-6.1522, 106.8128},
-	"senen":             {-6.1767, 106.8444},
-	"kemayoran":         {-6.1581, 106.8548},
-	"pulo gadung":       {-6.1878, 106.8994},
-	"rawamangun":        {-6.1900, 106.8850},
-	"cakung":            {-6.1667, 106.9333},
-	"cipayung":          {-6.3078, 106.8867},
-	"pasar rebo":        {-6.3100, 106.8633},
-	"condet":            {-6.2817, 106.8600},
-	"kramat jati":       {-6.2683, 106.8700},
-	"makasar":           {-6.2567, 106.8867},
 }
 
 func haversineDistance(lat1, lon1, lat2, lon2 float64) float64 {
@@ -476,15 +451,23 @@ func MatchesAlertLocation(alert *model.PriceAlert, itemLoc string) bool {
 	// 2. Resolve Item location coordinate
 	itemCoord, ok := resolveLocation(itemLoc)
 	if !ok {
-		// Fallback: If exact coordinate is unknown, check direct substring match
+		// Fallback: If exact coordinate is unknown, check direct substring
 		al := strings.ToLower(alert.Location)
 		il := strings.ToLower(itemLoc)
 		if strings.Contains(il, al) || strings.Contains(al, il) {
 			return true
 		}
-		// Unknown location with no GPS coordinate match -> reject to avoid
-		// accepting listings from far-away unknown neighborhoods
-		log.Printf("[AlertWatcher] ⚠️ Unknown location '%s': not in knownLocations map, rejecting", itemLoc)
+		// Since FB search was already executed within the designated city / radius,
+		// any listing indicating Greater Jakarta / Indonesia without foreign markings is acceptable
+		jabodetabekKeywords := []string{
+			"jakarta", "tangerang", "tangsel", "depok", "bekasi", "bogor",
+			"banten", "jawa barat", "indonesia", "selatan", "barat", "pusat", "timur", "utara",
+		}
+		for _, jkw := range jabodetabekKeywords {
+			if strings.Contains(il, jkw) {
+				return true
+			}
+		}
 		return false
 	}
 

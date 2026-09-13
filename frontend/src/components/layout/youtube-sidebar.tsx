@@ -88,22 +88,6 @@ function FacebookBookmarkIcon({ active = false }: { active?: boolean }) {
   );
 }
 
-// Facebook-style Market Trends / Chart Icon
-function FacebookTrendsIcon({ active = false }: { active?: boolean }) {
-  if (active) {
-    return (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
-        <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z" />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-current stroke-[1.8]">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M23 6l-9.5 9.5-5-5L1 18" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M17 6h6v6" />
-    </svg>
-  );
-}
 
 interface YouTubeSidebarProps {
   onOpenTelegram?: () => void;
@@ -183,13 +167,6 @@ export function YouTubeSidebar({
       icon: (active: boolean) => <FacebookBookmarkIcon active={active} />,
       isActive: pathname === '/saved',
     },
-    {
-      href: '/trends',
-      label: 'Tren Pasar',
-      badge: false,
-      icon: (active: boolean) => <FacebookTrendsIcon active={active} />,
-      isActive: pathname === '/trends',
-    },
   ];
 
   // Drawer links
@@ -216,12 +193,6 @@ export function YouTubeSidebar({
       label: 'Barang Tersimpan', 
       badge: null,
       icon: (active: boolean) => <FacebookBookmarkIcon active={active} />,
-    },
-    { 
-      href: '/trends', 
-      label: 'Tren Harga Pasar', 
-      badge: null,
-      icon: (active: boolean) => <FacebookTrendsIcon active={active} />,
     },
   ];
 

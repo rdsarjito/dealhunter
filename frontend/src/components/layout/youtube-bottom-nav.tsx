@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Bookmark, Bell, History, TrendingUp } from 'lucide-react';
+import { Home, Bookmark, Bell, History } from 'lucide-react';
 
 export function YouTubeBottomNav() {
   const router = useRouter();
@@ -13,7 +13,6 @@ export function YouTubeBottomNav() {
     { href: '/watchlist', label: 'Watchlist', icon: Bookmark },
     { href: '/alerts', label: 'Alerts', icon: Bell },
     { href: '/saved', label: 'Tersimpan', icon: History },
-    { href: '/trends', label: 'Tren', icon: TrendingUp },
   ];
 
   return (

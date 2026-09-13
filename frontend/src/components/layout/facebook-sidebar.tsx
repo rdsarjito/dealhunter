@@ -8,7 +8,6 @@ import {
   Bookmark, 
   History, 
   Bell, 
-  TrendingUp, 
   MapPin, 
   SlidersHorizontal,
   ChevronDown,
@@ -78,7 +77,6 @@ export function FacebookSidebar({ onApplyFilters }: FacebookSidebarProps) {
     { href: '/alerts', label: 'Notifikasi & Alerts', icon: Bell },
     { href: '/watchlist', label: 'Watchlist Saya', icon: Bookmark },
     { href: '/saved', label: 'Pencarian Tersimpan', icon: History },
-    { href: '/trends', label: 'Tren & Analisis Harga', icon: TrendingUp },
   ];
 
   const handleApplyPrice = () => {

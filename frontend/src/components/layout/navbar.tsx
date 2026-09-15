@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import { ScraperStatusBar } from '@/components/alerts/scraper-status-bar';
 import { NotificationPopover } from '@/components/layout/notification-popover';
 import { ListingDetailModal } from '@/components/listing/listing-detail-modal';
@@ -11,7 +13,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Menu,
-  Play,
   Store, 
   Search, 
   Send, 
@@ -154,9 +155,14 @@ export function Navbar({
             className="flex items-center gap-1 group hover:opacity-95 transition-opacity select-none"
             title="DealHunter Beranda"
           >
-            <div className="h-5 w-7 rounded-[4px] bg-[#FF0000] text-white flex items-center justify-center shadow-xs">
-              <Play className="h-3 w-3 fill-white ml-0.5" />
-            </div>
+            <Image 
+              src="/icon.png" 
+              alt="DealHunter Logo" 
+              width={28} 
+              height={28} 
+              className="w-7 h-7 rounded-full object-cover shrink-0 shadow-xs" 
+              priority
+            />
             <span className="font-bold text-base sm:text-lg tracking-tighter text-foreground">
               Deal<span className="text-[#FF0000]">Hunter</span>
             </span>

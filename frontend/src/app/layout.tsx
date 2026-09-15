@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: 'DealHunter — Facebook Marketplace Deal Finder',
   description: 'Temukan barang murah dan pantau deal terbaik di Facebook Marketplace secara real-time.',
   keywords: ['facebook marketplace', 'deal finder', 'reseller', 'barang murah', 'indonesia'],
+  icons: {
+    icon: '/icon.png',
+    apple: '/icon.png',
+  },
 };
 
 export default function RootLayout({

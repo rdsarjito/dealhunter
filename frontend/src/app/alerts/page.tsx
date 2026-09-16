@@ -6,6 +6,7 @@ import { Navbar } from '@/components/layout/navbar';
 import { YouTubeSidebar } from '@/components/layout/youtube-sidebar';
 import { YouTubeBottomNav } from '@/components/layout/youtube-bottom-nav';
 import { AlertModal } from '@/components/alerts/alert-modal';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { AlertWatchPage } from '@/components/alerts/alert-watch-page';
 import { TelegramSettingsModal } from '@/components/telegram/telegram-settings-modal';
 import { FacebookSessionModal } from '@/components/facebook/facebook-session-modal';
@@ -47,6 +48,8 @@ function AlertsContent() {
   const [facebookOpen, setFacebookOpen] = useState(false);
   const [facebookConnected, setFacebookConnected] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [alertToDelete, setAlertToDelete] = useState<PriceAlert | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   // Directly derive activeWatchAlert from URL param: id
   const activeWatchAlert = currentAlertId
@@ -367,7 +370,8 @@ function AlertsContent() {
                                 type="button"
                                 onClick={() => {
                                   setOpenMenuId(null);
-                                  handleDelete(a.id);
+                                  setAlertToDelete(a);
+                                  setDeleteConfirmOpen(true);
                                 }}
                                 className="w-full px-4 py-2.5 first:pt-3.5 last:pb-3.5 flex items-center gap-4 hover:bg-[#F2F2F2] dark:hover:bg-[#383838] transition-colors text-left cursor-pointer"
                               >
@@ -414,6 +418,26 @@ function AlertsContent() {
         open={facebookOpen}
         onOpenChange={setFacebookOpen}
         onConnectedSuccess={() => setFacebookConnected(true)}
+      />
+      <ConfirmationModal
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title={`Hapus Pantauan "${alertToDelete?.keyword || ''}"?`}
+        description={
+          <span>
+            Alert radar untuk <strong>&quot;{alertToDelete?.keyword}&quot;</strong> di{' '}
+            <strong>{alertToDelete?.location}</strong> akan dihapus secara permanen. Anda tidak akan lagi menerima notifikasi deal murah untuk kata kunci ini.
+          </span>
+        }
+        confirmText="Hapus Pantauan"
+        cancelText="Batal"
+        variant="danger"
+        onConfirm={async () => {
+          if (alertToDelete) {
+            await handleDelete(alertToDelete.id);
+            setAlertToDelete(null);
+          }
+        }}
       />
     </div>
   );

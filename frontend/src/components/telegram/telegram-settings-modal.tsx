@@ -9,6 +9,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { Send, CheckCircle2, AlertCircle, HelpCircle, Bot, LogOut, Loader2 } from 'lucide-react';
 import { connectTelegram, sendTestTelegram, disconnectTelegram } from '@/lib/api';
 
@@ -29,6 +30,7 @@ export function TelegramSettingsModal({
   const [chatId, setChatId] = useState('');
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
+  const [disconnectConfirmOpen, setDisconnectConfirmOpen] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const handleConnect = async (e: React.FormEvent) => {
@@ -222,6 +224,17 @@ export function TelegramSettingsModal({
           </DialogFooter>
         </form>
       </DialogContent>
+
+      <ConfirmationModal
+        open={disconnectConfirmOpen}
+        onOpenChange={setDisconnectConfirmOpen}
+        title="Putuskan Bot Telegram?"
+        description="Notifikasi real-time deal murah dan pantauan radar Facebook Marketplace tidak akan lagi dikirimkan ke Telegram Anda."
+        confirmText="Ya, Putuskan Bot"
+        cancelText="Batal"
+        variant="danger"
+        onConfirm={handleDisconnect}
+      />
     </Dialog>
   );
 }

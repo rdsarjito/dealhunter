@@ -7,6 +7,7 @@ import { Navbar } from '@/components/layout/navbar';
 import { YouTubeSidebar } from '@/components/layout/youtube-sidebar';
 import { YouTubeBottomNav } from '@/components/layout/youtube-bottom-nav';
 import { TelegramSettingsModal } from '@/components/telegram/telegram-settings-modal';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { getSavedSearches, deleteSavedSearch, getTelegramStatus } from '@/lib/api';
 import { SavedSearch } from '@/types';
 import { useSearchStore } from '@/stores/search-store';
@@ -16,6 +17,8 @@ import { History, Search, Trash2, MapPin, ArrowUpRight } from 'lucide-react';
 export default function SavedSearchesPage() {
   const router = useRouter();
   const [searches, setSearches] = useState<SavedSearch[]>([]);
+  const [searchToDelete, setSearchToDelete] = useState<SavedSearch | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [telegramOpen, setTelegramOpen] = useState(false);
   const [telegramConnected, setTelegramConnected] = useState(false);
@@ -162,7 +165,10 @@ export default function SavedSearchesPage() {
 
                     <button
                       type="button"
-                      onClick={() => handleDelete(s.id)}
+                      onClick={() => {
+                        setSearchToDelete(s);
+                        setDeleteConfirmOpen(true);
+                      }}
                       className="h-8 w-8 rounded-full bg-[#F2F2F2] dark:bg-[#272727] hover:bg-[#FFE5E5] hover:text-[#CC0000] text-[#606060] flex items-center justify-center transition-colors"
                       title="Hapus"
                     >
@@ -183,6 +189,26 @@ export default function SavedSearchesPage() {
         onOpenChange={setTelegramOpen}
         onConnectedSuccess={() => setTelegramConnected(true)}
         isConnected={telegramConnected}
+      />
+      <ConfirmationModal
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Hapus Pencarian Tersimpan?"
+        description={
+          <span>
+            Pencarian tersimpan untuk <strong>&quot;{searchToDelete?.keyword}&quot;</strong> di{' '}
+            <strong>{searchToDelete?.location}</strong> akan dihapus dari daftar favorit Anda.
+          </span>
+        }
+        confirmText="Hapus Pencarian"
+        cancelText="Batal"
+        variant="danger"
+        onConfirm={async () => {
+          if (searchToDelete) {
+            await handleDelete(searchToDelete.id);
+            setSearchToDelete(null);
+          }
+        }}
       />
     </div>
   );

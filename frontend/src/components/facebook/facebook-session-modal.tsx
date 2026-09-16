@@ -9,6 +9,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { KeyRound, CheckCircle2, AlertCircle, HelpCircle, ShieldCheck, LogOut, Loader2 } from 'lucide-react';
 import { connectFacebook, disconnectFacebook, getFacebookStatus } from '@/lib/api';
 
@@ -29,6 +30,7 @@ export function FacebookSessionModal({
   const [useRaw, setUseRaw] = useState(true);
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [disconnectConfirmOpen, setDisconnectConfirmOpen] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<{ is_connected: boolean; account_name?: string; c_user?: string } | null>(null);
 
   useEffect(() => {
@@ -123,11 +125,7 @@ export function FacebookSessionModal({
             </div>
           </div>
           {currentStatus?.is_connected && (
-            <button
-              type="button"
-              onClick={handleDisconnect}
-              disabled={loading}
-              className="text-xs font-semibold text-[#CC0000] hover:underline flex items-center gap-1"
+            <button type="button" onClick={() => setDisconnectConfirmOpen(true)} disabled={loading} className="text-xs font-semibold text-[#CC0000] hover:underline flex items-center gap-1"
             >
               <LogOut className="h-3 w-3" />
               Putus
@@ -251,6 +249,17 @@ export function FacebookSessionModal({
           </DialogFooter>
         </form>
       </DialogContent>
+
+      <ConfirmationModal
+        open={disconnectConfirmOpen}
+        onOpenChange={setDisconnectConfirmOpen}
+        title="Putuskan Akun Facebook?"
+        description="Sesi cookie Facebook Anda akan dihapus dari sistem DealHunter. Bot pemantau latar belakang tidak dapat mencari listing atas nama akun Anda sampai Anda memasukkan cookie baru."
+        confirmText="Ya, Putuskan Sesi"
+        cancelText="Batal"
+        variant="danger"
+        onConfirm={handleDisconnect}
+      />
     </Dialog>
   );
 }

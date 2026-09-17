@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/rdsarjito/dealhunter-backend/internal/domain/model"
@@ -29,53 +31,63 @@ func (t *TelegramNotifier) SetBotToken(token string) {
 	t.botToken = token
 }
 
-// SendDealAlert formats and sends a Telegram notification for a matched deal
+// SendDealAlert formats and sends a clean, direct Telegram notification for a matched deal
 func (t *TelegramNotifier) SendDealAlert(chatID string, alert *model.PriceAlert, listing *model.Listing) error {
 	if t.botToken == "" || chatID == "" {
 		log.Printf("[Telegram] Bot token or chat ID is empty. Skipping notification.")
 		return nil
 	}
 
-	dealBadge := "🟢 MURAH BANGET"
-	if listing.DealScore < 0.75 {
-		dealBadge = "🟡 HARGA BAGUS"
+	var lines []string
+
+	// Keyword alert tag
+	if alert != nil && alert.Keyword != "" {
+		lines = append(lines, fmt.Sprintf("<b>[Alert: %s]</b>", html.EscapeString(alert.Keyword)))
 	}
 
-	msgText := fmt.Sprintf(
-		"🎯 <b>DEAL DITEMUKAN: %s</b>\n\n"+
-			"🏷️ <b>Barang:</b> %s\n"+
-			"💰 <b>Harga:</b> Rp %s (%s)\n"+
-			"📊 <b>Pasaran:</b> Rp %s (Hemat %.0f%%)\n"+
-			"📍 <b>Lokasi:</b> %s\n"+
-			"👤 <b>Penjual:</b> %s\n\n"+
-			"🔗 <a href=\"%s\">Lihat di Facebook Marketplace</a>\n\n"+
-			"<i>Ditemukan oleh DealHunter Bot</i>",
-		alert.Keyword,
-		listing.Title,
-		formatRupiah(listing.Price),
-		dealBadge,
-		formatRupiah(listing.MarketAvgPrice),
-		listing.DiscountPercent,
-		listing.Location,
-		listing.SellerName,
-		listing.FBURL,
-	)
+	// Title & Price
+	lines = append(lines, fmt.Sprintf("<b>%s</b>", html.EscapeString(listing.Title)))
+	lines = append(lines, fmt.Sprintf("<b>Rp %s</b>", formatRupiah(listing.Price)))
+	lines = append(lines, "")
 
+	// Location
+	if listing.Location != "" {
+		locStr := html.EscapeString(listing.Location)
+		if listing.DistanceKM != nil && *listing.DistanceKM > 0 {
+			locStr = fmt.Sprintf("%s (%.1f km)", locStr, *listing.DistanceKM)
+		}
+		lines = append(lines, fmt.Sprintf("Lokasi: %s", locStr))
+	}
+
+	// Seller
+	if listing.SellerName != "" {
+		lines = append(lines, fmt.Sprintf("Penjual: %s", html.EscapeString(listing.SellerName)))
+	}
+
+	// Direct link
+	lines = append(lines, "")
+	lines = append(lines, fmt.Sprintf("<a href=\"%s\">Buka di Facebook Marketplace</a>", html.EscapeString(listing.FBURL)))
+
+	msgText := strings.Join(lines, "\n")
 	return t.sendMessage(chatID, msgText)
 }
 
-// SendTestMessage sends a test ping to verify Telegram connection
+// SendTestMessage sends a clean test ping to verify Telegram connection
 func (t *TelegramNotifier) SendTestMessage(chatID, username string) error {
 	if t.botToken == "" {
 		return fmt.Errorf("TELEGRAM_BOT_TOKEN is not configured in .env")
 	}
 
+	userLabel := username
+	if userLabel == "" {
+		userLabel = chatID
+	}
+
 	msg := fmt.Sprintf(
-		"👋 <b>Halo %s!</b>\n\n"+
-			"✅ <b>Koneksi DealHunter Bot Berhasil!</b>\n\n"+
-			"Anda akan menerima notifikasi otomatis ketika ada barang murah yang sesuai dengan kriteria Price Alert Anda.\n\n"+
-			"Selamat berburu deal murah! 🎯",
-		username,
+		"<b>Koneksi DealHunter Berhasil</b>\n\n"+
+			"Akun Telegram Anda (%s) sudah terhubung.\n"+
+			"Notifikasi akan dikirimkan otomatis ke sini saat radar menemukan barang yang sesuai kriteria alert Anda.",
+		html.EscapeString(userLabel),
 	)
 
 	return t.sendMessage(chatID, msg)
@@ -85,9 +97,10 @@ func (t *TelegramNotifier) sendMessage(chatID, text string) error {
 	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", t.botToken)
 
 	payload := map[string]interface{}{
-		"chat_id":    chatID,
-		"text":       text,
-		"parse_mode": "HTML",
+		"chat_id":                  chatID,
+		"text":                     text,
+		"parse_mode":               "HTML",
+		"disable_web_page_preview": false,
 	}
 
 	body, err := json.Marshal(payload)

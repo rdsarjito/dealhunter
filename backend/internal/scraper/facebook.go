@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"regexp"
 	"strconv"
+	"sync"
 	"strings"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 )
 
 type FacebookScraper struct {
+	mu         sync.Mutex
 	headless   bool
 	cUser      string
 	xsToken    string
@@ -106,8 +108,23 @@ func isForeignListing(loc, text string, price float64) bool {
 	return false
 }
 
-// Search queries Facebook Marketplace and scrolls until reaching the search boundary ('Hasil dari luar pencarian Anda')
+// Search queries Facebook Marketplace for interactive requests (quick scrape, max 4 scrolls, breaks early on 15+ items)
 func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, radiusKM int, minPrice, maxPrice *float64) ([]ScrapedItem, error) {
+	return s.SearchWithParams(ctx, keyword, location, radiusKM, minPrice, maxPrice, 4, 350*time.Millisecond)
+}
+
+// SearchDeep queries Facebook Marketplace for background jobs (more scrolls for complete coverage)
+func (s *FacebookScraper) SearchDeep(ctx context.Context, keyword, location string, radiusKM int, minPrice, maxPrice *float64) ([]ScrapedItem, error) {
+	return s.SearchWithParams(ctx, keyword, location, radiusKM, minPrice, maxPrice, 12, 500*time.Millisecond)
+}
+
+func (s *FacebookScraper) SearchWithParams(ctx context.Context, keyword, location string, radiusKM int, minPrice, maxPrice *float64, maxScrolls int, scrollDelay time.Duration) ([]ScrapedItem, error) {
+	if !s.mu.TryLock() {
+		log.Printf("[Scraper] Scraper is already busy with another request, skipping to avoid high load for keyword='%s'", keyword)
+		return nil, nil
+	}
+	defer s.mu.Unlock()
+
 	citySlug := toFacebookCitySlug(location)
 	if radiusKM <= 0 {
 		radiusKM = 25
@@ -119,20 +136,20 @@ func (s *FacebookScraper) Search(ctx context.Context, keyword, location string, 
 		radiusKM,
 	)
 
-	log.Printf("[Scraper] Patrolling FB Marketplace (Radius: %d km, daysSinceListed=1): '%s' in '%s' -> %s",
-		radiusKM, keyword, location, searchURL)
+	log.Printf("[Scraper] Patrolling FB Marketplace (Radius: %d km, maxScrolls: %d): '%s' in '%s'",
+		radiusKM, maxScrolls, keyword, location)
 
-	items, err := s.scrapeWithRod(ctx, searchURL, keyword, location, radiusKM)
+	items, err := s.scrapeWithRod(ctx, searchURL, keyword, location, radiusKM, maxScrolls, scrollDelay)
 	if err != nil {
 		log.Printf("[Scraper] Scrape error for '%s': %v", keyword, err)
 		return nil, nil
 	}
 
-	log.Printf("[Scraper] Found %d matching '%s' items before search boundary", len(items), keyword)
+	log.Printf("[Scraper] Found %d matching '%s' items", len(items), keyword)
 	return items, nil
 }
 
-func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword, defaultLocation string, radiusKM int) ([]ScrapedItem, error) {
+func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword, defaultLocation string, radiusKM int, maxScrolls int, scrollDelay time.Duration) ([]ScrapedItem, error) {
 	// Setup launcher with stealth flags and Indonesian language
 	path, _ := launcher.LookPath()
 	u := launcher.New().
@@ -140,6 +157,9 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 		Headless(s.headless).
 		Set("no-sandbox").
 		Set("disable-setuid-sandbox").
+		Set("disable-dev-shm-usage").
+		Set("disable-gpu").
+		Set("no-first-run").
 		Set("disable-blink-features", "AutomationControlled").
 		Set("lang", "id-ID,id,en-US,en").
 		Set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36").
@@ -180,9 +200,15 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 		document.documentElement.style.setProperty("overflow", "auto", "important");
 	}`)
 
-	// Scroll down continuously until we hit the boundary: "Hasil dari luar pencarian Anda"
-	maxScrolls := 35
+	// Scroll down with early exit when boundary is reached or sufficient items are loaded
 	for s := 0; s < maxScrolls; s++ {
+		select {
+		case <-ctx.Done():
+			log.Printf("[Scraper] Context timeout reached at scroll #%d, stopping early", s+1)
+			break
+		default:
+		}
+
 		_, _ = page.Eval(`() => {
 			document.body.style.setProperty("overflow", "auto", "important");
 			document.documentElement.style.setProperty("overflow", "auto", "important");
@@ -212,7 +238,7 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 			window.scrollTo(0, document.body.scrollHeight);
 		}`)
 		_ = page.Mouse.Scroll(0, 2000, 5)
-		time.Sleep(1200 * time.Millisecond)
+		time.Sleep(scrollDelay)
 
 		// Check if boundary text appeared
 		bodyEl, err := page.Element("body")
@@ -224,6 +250,12 @@ func (s *FacebookScraper) scrapeWithRod(ctx context.Context, targetURL, keyword,
 				log.Printf("[Scraper] 🛑 Reached search boundary: 'Hasil dari luar pencarian Anda' at scroll #%d. Halting scroll!", s+1)
 				break
 			}
+		}
+
+		// Early break if >= 16 items already visible
+		if links, err := page.Elements("a[href*='/marketplace/item/']"); err == nil && len(links) >= 16 {
+			log.Printf("[Scraper] Fast search: loaded %d items at scroll #%d, stopping early", len(links), s+1)
+			break
 		}
 	}
 

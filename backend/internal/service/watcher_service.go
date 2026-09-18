@@ -204,7 +204,7 @@ func (w *AlertWatcher) scanAlertList(ctx context.Context, alerts []model.PriceAl
 			p := alert.MaxPrice
 			maxP = &p
 		}
-		items, err := w.scraper.Search(ctx, alert.Keyword, alert.Location, alert.RadiusKM, minP, maxP)
+		items, err := w.scraper.SearchDeep(ctx, alert.Keyword, alert.Location, alert.RadiusKM, minP, maxP)
 		if err == nil && len(items) > 0 {
 			totalItemsScraped += len(items)
 			savedListings, _ := w.listingRepo.UpsertScrapedItems(items, alert.Keyword)

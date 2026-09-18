@@ -75,10 +75,11 @@ export default function HomePage() {
     }
   }, [keyword, location, radiusKm, minPrice, maxPrice, category, condition, sortBy]);
 
-  // Initial load
+  // Initial load once on mount
   useEffect(() => {
     executeSearch(false);
-  }, [executeSearch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSaveSearch = async () => {
     try {

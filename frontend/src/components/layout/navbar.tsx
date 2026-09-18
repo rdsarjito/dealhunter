@@ -52,7 +52,12 @@ export function Navbar({
     setKeyword, 
     toggleDrawer 
   } = useSearchStore();
+  const [localKeyword, setLocalKeyword] = useState(keyword);
   const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    setLocalKeyword(keyword);
+  }, [keyword]);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -129,8 +134,9 @@ export function Navbar({
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setMobileSearchOpen(false);
+    setKeyword(localKeyword);
     if (onSearchSubmit) {
-      onSearchSubmit(keyword);
+      onSearchSubmit(localKeyword);
     } else {
       router.push('/');
     }
@@ -179,15 +185,19 @@ export function Navbar({
               <div className="relative flex-1">
                 <input
                   type="text"
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
+                  value={localKeyword}
+                  onChange={(e) => setLocalKeyword(e.target.value)}
                   placeholder="Telusuri"
                   className="w-full h-10 pl-4 pr-9 rounded-l-full border border-[#CCCCCC] dark:border-[#303030] bg-card text-foreground text-base placeholder:text-[#606060] dark:placeholder:text-[#888888] focus:outline-none focus:border-[#065FD4] transition-colors shadow-xs"
                 />
-                {keyword && (
+                {localKeyword && (
                   <button
                     type="button"
-                    onClick={() => setKeyword('')}
+                    onClick={() => {
+                      setLocalKeyword('');
+                      setKeyword('');
+                      if (onSearchSubmit) onSearchSubmit('');
+                    }}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full hover:bg-black/5 dark:hover:bg-white/10 flex items-center justify-center text-[#606060] dark:text-[#AAAAAA] hover:text-foreground transition-colors cursor-pointer"
                     title="Hapus penelusuran"
                   >
@@ -434,8 +444,8 @@ export function Navbar({
             <input
               type="text"
               autoFocus
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
+              value={localKeyword}
+              onChange={(e) => setLocalKeyword(e.target.value)}
               placeholder="Telusuri"
               className="flex-1 h-9 px-3.5 rounded-l-full border border-[#CCCCCC] dark:border-[#303030] bg-card text-foreground text-xs focus:outline-none focus:border-[#065FD4]"
             />

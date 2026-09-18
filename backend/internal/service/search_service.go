@@ -50,10 +50,14 @@ func (s *SearchService) Search(ctx context.Context, req dto.SearchRequest) (*dto
 	// First query DB
 	listings, total, avg, min, max, err := s.listingRepo.Search(req)
 
-	// If no results or user requested live scrape, trigger scraper
-	if err != nil || total == 0 || req.LiveScrape {
-		log.Printf("[SearchService] Triggering scraper for keyword='%s', location='%s'", req.Keyword, req.Location)
-		items, err := s.scraper.Search(ctx, req.Keyword, req.Location, req.RadiusKM, req.MinPrice, req.MaxPrice)
+	// If user requested live scrape OR no results found in DB
+	if req.LiveScrape || (total == 0 && err == nil) {
+		log.Printf("[SearchService] Triggering scraper for keyword='%s', location='%s' (live=%v, total=%d)", req.Keyword, req.Location, req.LiveScrape, total)
+		// Strict 6-second timeout context so API never hangs indefinitely
+		scrapeCtx, cancel := context.WithTimeout(ctx, 6*time.Second)
+		items, err := s.scraper.Search(scrapeCtx, req.Keyword, req.Location, req.RadiusKM, req.MinPrice, req.MaxPrice)
+		cancel()
+
 		if err == nil && len(items) > 0 {
 			scrapedLive = true
 			_, _ = s.listingRepo.UpsertScrapedItems(items, req.Keyword)

@@ -22,4 +22,5 @@ type ScrapedItem struct {
 
 type MarketplaceScraper interface {
 	Search(ctx context.Context, keyword, location string, radiusKM int, minPrice, maxPrice *float64) ([]ScrapedItem, error)
+	SearchDeep(ctx context.Context, keyword, location string, radiusKM int, minPrice, maxPrice *float64) ([]ScrapedItem, error)
 }

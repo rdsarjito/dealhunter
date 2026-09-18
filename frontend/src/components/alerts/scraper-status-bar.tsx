@@ -29,7 +29,7 @@ export function ScraperStatusBar({ onScanTriggered, compact = false }: ScraperSt
   useEffect(() => {
     fetchStatus();
     // Poll every 4 seconds so user sees live transitions between scanning and idle
-    const timer = setInterval(fetchStatus, 4000);
+    const timer = setInterval(fetchStatus, 20000);
     return () => clearInterval(timer);
   }, [fetchStatus]);
 

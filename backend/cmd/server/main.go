@@ -17,6 +17,7 @@ import (
 	"github.com/rdsarjito/dealhunter-backend/internal/repository"
 	"github.com/rdsarjito/dealhunter-backend/internal/scraper"
 	"github.com/rdsarjito/dealhunter-backend/internal/service"
+	"github.com/rdsarjito/dealhunter-backend/internal/storage"
 )
 
 func main() {
@@ -27,6 +28,21 @@ func main() {
 	db.Exec("DELETE FROM listings WHERE price < 10000 OR location ILIKE '%CA%' OR location ILIKE '%NY%' OR location ILIKE '%TX%' OR location ILIKE '%FL%' OR location ILIKE '%San Francisco%' OR location ILIKE '%Los Angeles%' OR location ILIKE '%Daly City%' OR location ILIKE '%Monterey%' OR location ILIKE '%Carmel%' OR location ILIKE '%Walnut Creek%' OR location ILIKE '%Pacifica%' OR location ILIKE '%United States%' OR location ILIKE '%USA%'")
 	db.Exec("UPDATE telegram_settings SET is_active = false WHERE chat_id = '999999999'")
 	log.Println("[DB] Cleaned up foreign/invalid listings and dummy telegram records from database.")
+
+	// MinIO Storage Service
+	storageSvc, err := storage.New(
+		cfg.MinioEndpoint,
+		cfg.MinioAccessKey,
+		cfg.MinioSecretKey,
+		cfg.MinioBucket,
+		cfg.MinioPublicURL,
+		cfg.MinioUseSSL,
+	)
+	if err != nil {
+		// Storage tidak fatal — log warning dan lanjut tanpa MinIO
+		log.Printf("[Storage] WARNING: MinIO unavailable (%v) — thumbnail upload disabled", err)
+		storageSvc = nil
+	}
 
 	// Repositories
 	listingRepo := repository.NewListingRepository(db)
@@ -68,7 +84,7 @@ func main() {
 	searchHandler := handler.NewSearchHandler(searchService)
 	listingHandler := handler.NewListingHandler(listingRepo)
 	savedHandler := handler.NewSavedHandler(savedRepo)
-	alertHandler := handler.NewAlertHandler(alertRepo, alertWatcher)
+	alertHandler := handler.NewAlertHandler(alertRepo, alertWatcher, storageSvc)
 	telegramHandler := handler.NewTelegramHandler(telegramRepo, telegramNotifier)
 	fbHandler := handler.NewFacebookHandler(fbSettingRepo, fbScraper)
 

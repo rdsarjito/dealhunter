@@ -2,22 +2,53 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/rdsarjito/dealhunter-backend/internal/domain/model"
 	"github.com/rdsarjito/dealhunter-backend/internal/repository"
 	"github.com/rdsarjito/dealhunter-backend/internal/service"
+	"github.com/rdsarjito/dealhunter-backend/internal/storage"
 )
 
 type AlertHandler struct {
 	repo    *repository.AlertRepository
 	watcher *service.AlertWatcher
+	storage *storage.Service // nil jika MinIO tidak tersedia
 }
 
-func NewAlertHandler(repo *repository.AlertRepository, watcher *service.AlertWatcher) *AlertHandler {
-	return &AlertHandler{repo: repo, watcher: watcher}
+func NewAlertHandler(repo *repository.AlertRepository, watcher *service.AlertWatcher, storageSvc *storage.Service) *AlertHandler {
+	return &AlertHandler{repo: repo, watcher: watcher, storage: storageSvc}
+}
+
+// uploadThumbnailIfNeeded mengecek apakah thumbnail berupa base64 data URL.
+// Jika ya, upload ke MinIO dan kembalikan URL publik-nya.
+// Jika bukan (sudah URL biasa) atau MinIO tidak tersedia, kembalikan nilai aslinya.
+func (h *AlertHandler) uploadThumbnailIfNeeded(ctx context.Context, alertID, base64OrURL string) string {
+	if base64OrURL == "" || !storage.IsBase64(base64OrURL) {
+		return base64OrURL // sudah URL atau kosong, tidak perlu diapa-apakan
+	}
+	if h.storage == nil {
+		return base64OrURL // MinIO tidak tersedia, fallback ke base64
+	}
+
+	ext := "png"
+	if strings.Contains(base64OrURL[:50], "jpeg") || strings.Contains(base64OrURL[:50], "jpg") {
+		ext = "jpg"
+	} else if strings.Contains(base64OrURL[:50], "webp") {
+		ext = "webp"
+	}
+	objectName := fmt.Sprintf("thumbnails/alert-%s-%d.%s", alertID, time.Now().UnixMilli(), ext)
+
+	url, err := h.storage.UploadBase64(ctx, objectName, base64OrURL)
+	if err != nil {
+		// Gagal upload: fallback ke base64 agar tidak break UI
+		return base64OrURL
+	}
+	return url
 }
 
 func (h *AlertHandler) GetAll(c *fiber.Ctx) error {
@@ -71,11 +102,23 @@ func (h *AlertHandler) Create(c *fiber.Ctx) error {
 	}
 
 	a.IsActive = true
+
+	// Simpan dulu ke DB untuk dapat ID, kemudian upload thumbnail
 	if err := h.repo.Create(&a); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  false,
 			"message": err.Error(),
 		})
+	}
+
+	// Upload thumbnail ke MinIO jika berupa base64
+	if a.ThumbnailURL != "" {
+		uploaded := h.uploadThumbnailIfNeeded(c.Context(), a.ID.String(), a.ThumbnailURL)
+		if uploaded != a.ThumbnailURL {
+			// URL berubah (base64 → MinIO URL), simpan URL ke DB
+			a.ThumbnailURL = uploaded
+			_ = h.repo.Update(a.ID, &a)
+		}
 	}
 
 	// Trigger immediate scan in background so new alert is evaluated right away
@@ -136,12 +179,16 @@ func (h *AlertHandler) Update(c *fiber.Ctx) error {
 	existing.Location = req.Location
 	existing.RadiusKM = req.RadiusKM
 	existing.IntervalMinutes = req.IntervalMinutes
-	existing.ThumbnailURL = req.ThumbnailURL
 	if req.Latitude != nil && *req.Latitude != 0 {
 		existing.Latitude = req.Latitude
 	}
 	if req.Longitude != nil && *req.Longitude != 0 {
 		existing.Longitude = req.Longitude
+	}
+
+	// Upload thumbnail baru ke MinIO jika berupa base64
+	if req.ThumbnailURL != "" {
+		existing.ThumbnailURL = h.uploadThumbnailIfNeeded(c.Context(), id.String(), req.ThumbnailURL)
 	}
 
 	if err := h.repo.Update(id, existing); err != nil {

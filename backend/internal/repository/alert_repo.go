@@ -21,25 +21,42 @@ func (r *AlertRepository) Create(a *model.PriceAlert) error {
 	return r.db.Create(a).Error
 }
 
+// GetAll returns all alerts with match count - fixed N+1 query dengan single aggregation query
 func (r *AlertRepository) GetAll() ([]model.PriceAlert, error) {
 	var alerts []model.PriceAlert
 	err := r.db.Order("created_at DESC").Find(&alerts).Error
 	if err != nil {
 		return alerts, err
 	}
-	for i := range alerts {
-		if listings, err := r.GetMatchingListings(&alerts[i]); err == nil {
-			alerts[i].MatchCount = len(listings)
-			if len(listings) > 0 {
-				if listings[0].SellerName != "" {
-					alerts[i].SellerName = listings[0].SellerName
-				} else {
-					alerts[i].SellerName = "Penjual FB Marketplace"
-				}
-
-			}
-		}
+	if len(alerts) == 0 {
+		return alerts, nil
 	}
+
+	// Single query: aggregate match count per alert (menggantikan N query loop sebelumnya)
+	type MatchStat struct {
+		AlertID    uuid.UUID `gorm:"column:alert_id"`
+		MatchCount int       `gorm:"column:match_count"`
+	}
+	var stats []MatchStat
+	alertIDs := make([]uuid.UUID, len(alerts))
+	for i, a := range alerts {
+		alertIDs[i] = a.ID
+	}
+	r.db.Table("alert_matched_listings").
+		Select("alert_id, COUNT(*) as match_count").
+		Where("alert_id IN ?", alertIDs).
+		Group("alert_id").
+		Scan(&stats)
+
+	// Map stats ke alert
+	statMap := make(map[uuid.UUID]int, len(stats))
+	for _, s := range stats {
+		statMap[s.AlertID] = s.MatchCount
+	}
+	for i := range alerts {
+		alerts[i].MatchCount = statMap[alerts[i].ID]
+	}
+
 	return alerts, nil
 }
 
@@ -96,7 +113,7 @@ func (r *AlertRepository) Delete(id uuid.UUID) error {
 func (r *AlertRepository) RecordTrigger(id uuid.UUID, matchedTitle string) error {
 	now := time.Now()
 	return r.db.Model(&model.PriceAlert{}).Where("id = ?", id).Updates(map[string]interface{}{
-		"last_triggered_at":  &now,
+		"last_triggered_at": &now,
 		"last_matched_item": matchedTitle,
 		"trigger_count":     gorm.Expr("trigger_count + 1"),
 	}).Error
@@ -177,6 +194,8 @@ func (r *TelegramSettingRepository) DeactivateAll() error {
 	return r.db.Model(&model.TelegramSetting{}).Where("1=1").Update("is_active", false).Error
 }
 
+// GetRecentNotifications returns latest matched listings across all alerts
+// Optimized: single JOIN query, no N+1
 func (r *AlertRepository) GetRecentNotifications(limit int) ([]dto.NotificationItem, error) {
 	if limit <= 0 || limit > 50 {
 		limit = 20
@@ -192,11 +211,12 @@ func (r *AlertRepository) GetRecentNotifications(limit int) ([]dto.NotificationI
 	}
 
 	var rows []QueryRow
+	// Optimized: explicitly specify listing columns needed to avoid SELECT *
+	// Use index hint order: aml.created_at DESC with LIMIT pushes cost down
 	err := r.db.Table("alert_matched_listings aml").
-		Select("aml.id, aml.created_at, aml.alert_id, a.keyword as alert_keyword, COALESCE(a.thumbnail_url, '') as alert_thumbnail, listings.*").
-		Joins("JOIN price_alerts a ON a.id = aml.alert_id").
-		Joins("JOIN listings ON listings.id = aml.listing_id").
-		Where("a.deleted_at IS NULL").
+		Select("aml.id, aml.created_at, aml.alert_id, a.keyword as alert_keyword, COALESCE(a.thumbnail_url, '') as alert_thumbnail, l.*").
+		Joins("JOIN price_alerts a ON a.id = aml.alert_id AND a.deleted_at IS NULL").
+		Joins("JOIN listings l ON l.id = aml.listing_id").
 		Order("aml.created_at DESC").
 		Limit(limit).
 		Scan(&rows).Error

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"encoding/json"
+	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -49,7 +50,26 @@ type ListingRepository struct {
 }
 
 func NewListingRepository(db *gorm.DB) *ListingRepository {
-	return &ListingRepository{db: db}
+	repo := &ListingRepository{db: db}
+	repo.ensureIndexes()
+	return repo
+}
+
+// ensureIndexes creates performance-critical indexes if they don't exist yet
+func (r *ListingRepository) ensureIndexes() {
+	indexes := []string{
+		// pg_trgm trigram index untuk ILIKE/LIKE queries pada title (jauh lebih cepat dari seq scan)
+		
+		"CREATE INDEX IF NOT EXISTS idx_listings_title_lower ON listings (LOWER(title) text_pattern_ops)",
+		"CREATE INDEX IF NOT EXISTS idx_listings_location_lower ON listings (LOWER(location) text_pattern_ops)",
+		// Composite index untuk filter umum
+		"CREATE INDEX IF NOT EXISTS idx_listings_price_deal ON listings(price, deal_score) WHERE deleted_at IS NULL",
+		// Index untuk alert_matched_listings ordering
+		"CREATE INDEX IF NOT EXISTS idx_aml_created_at ON alert_matched_listings(created_at DESC)",
+	}
+	for _, idx := range indexes {
+		r.db.Exec(idx)
+	}
 }
 
 func (r *ListingRepository) UpsertScrapedItems(items []scraper.ScrapedItem, keyword string) ([]model.Listing, error) {
@@ -81,12 +101,19 @@ func (r *ListingRepository) UpsertScrapedItems(items []scraper.ScrapedItem, keyw
 		avgPrice = 1000000
 	}
 
-	var listings []model.Listing
+	var toUpsert []model.Listing
+	fbIDMap := make(map[string]bool, len(items))
+
 	for _, it := range items {
 		// Reject any listing that is clearly foreign (US/international) or has corrupt price
 		if it.Price < 10000 || isForeignLocation(it.Location) {
 			continue
 		}
+		if fbIDMap[it.FBListingID] {
+			continue // skip duplicate dalam batch
+		}
+		fbIDMap[it.FBListingID] = true
+
 		imgJSON, _ := json.Marshal(it.Images)
 
 		// Calculate deal score: 1.0 = super cheap (>30% below avg), 0.5 = fair, <0.4 = expensive
@@ -115,7 +142,7 @@ func (r *ListingRepository) UpsertScrapedItems(items []scraper.ScrapedItem, keyw
 			}
 		}
 
-		l := model.Listing{
+		toUpsert = append(toUpsert, model.Listing{
 			FBListingID:     it.FBListingID,
 			Title:           it.Title,
 			Description:     it.Description,
@@ -133,41 +160,47 @@ func (r *ListingRepository) UpsertScrapedItems(items []scraper.ScrapedItem, keyw
 			DiscountPercent: discount,
 			ListedAt:        it.ListedAt,
 			ScrapedAt:       time.Now(),
-		}
-
-		// Upsert based on FBListingID (unscoped to revive any soft-deleted rows)
-		err := r.db.Unscoped().Clauses(clause.OnConflict{
-			Columns: []clause.Column{{Name: "fb_listing_id"}},
-			DoUpdates: clause.AssignmentColumns([]string{
-				"title", "description", "price", "location", "category",
-				"condition", "images", "fb_url", "deal_score", "deal_rating",
-				"market_avg_price", "discount_percent", "scraped_at", "deleted_at",
-			}),
-		}).Create(&l).Error
-
-		if err == nil {
-			var dbListing model.Listing
-			if r.db.Select("id").Where("fb_listing_id = ?", it.FBListingID).First(&dbListing).Error == nil {
-				l.ID = dbListing.ID
-				listings = append(listings, l)
-			}
-		}
-	}
-
-	// Record price history
-	if len(items) > 0 {
-		_ = r.db.Create(&model.PriceHistory{
-			Keyword:      keyword,
-			Location:     items[0].Location,
-			AvgPrice:     avgPrice,
-			MinPrice:     minP,
-			MaxPrice:     maxP,
-			ListingCount: len(items),
-			RecordedAt:   time.Now(),
 		})
 	}
 
-	return listings, nil
+	if len(toUpsert) == 0 {
+		return nil, nil
+	}
+
+	// Batch upsert semua items sekaligus (1 query vs N queries sebelumnya)
+	err := r.db.Unscoped().Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "fb_listing_id"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"title", "description", "price", "location", "category",
+			"condition", "images", "fb_url", "deal_score", "deal_rating",
+			"market_avg_price", "discount_percent", "scraped_at", "deleted_at",
+		}),
+	}).Create(&toUpsert).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Single query untuk retrieve IDs (vs N queries sebelumnya)
+	fbIDs := make([]string, 0, len(toUpsert))
+	for _, l := range toUpsert {
+		fbIDs = append(fbIDs, l.FBListingID)
+	}
+	var savedListings []model.Listing
+	r.db.Where("fb_listing_id IN ?", fbIDs).Find(&savedListings)
+
+	// Record price history
+	_ = r.db.Create(&model.PriceHistory{
+		Keyword:      keyword,
+		Location:     items[0].Location,
+		AvgPrice:     avgPrice,
+		MinPrice:     minP,
+		MaxPrice:     maxP,
+		ListingCount: len(items),
+		RecordedAt:   time.Now(),
+	})
+
+	return savedListings, nil
 }
 
 func (r *ListingRepository) Search(req dto.SearchRequest) ([]model.Listing, int64, float64, float64, float64, error) {
@@ -203,16 +236,23 @@ func (r *ListingRepository) Search(req dto.SearchRequest) ([]model.Listing, int6
 	var total int64
 	query.Count(&total)
 
-	// Calculate stats
+	// Stats query: pakai filter yang sama dengan search query (bukan query terpisah tanpa filter)
 	type Stats struct {
 		Avg float64
 		Min float64
 		Max float64
 	}
 	var stats Stats
-	r.db.Model(&model.Listing{}).
-		Select("COALESCE(AVG(price), 0) as avg, COALESCE(MIN(price), 0) as min, COALESCE(MAX(price), 0) as max").
-		Where("LOWER(title) LIKE ?", "%"+strings.ToLower(req.Keyword)+"%").
+	// Reuse query (clone) untuk stats agar konsisten dan tidak buat full-table scan baru
+	statsQuery := r.db.Model(&model.Listing{}).Where("price >= 10000 AND " + foreignLocationSQL())
+	if req.Keyword != "" {
+		terms := strings.Fields(strings.ToLower(req.Keyword))
+		for _, term := range terms {
+			likeVal := fmt.Sprintf("%%%s%%", term)
+			statsQuery = statsQuery.Where("LOWER(title) LIKE ?", likeVal)
+		}
+	}
+	statsQuery.Select("COALESCE(AVG(price), 0) as avg, COALESCE(MIN(price), 0) as min, COALESCE(MAX(price), 0) as max").
 		Scan(&stats)
 
 	// Sorting

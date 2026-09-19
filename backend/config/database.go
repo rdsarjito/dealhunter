@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/rdsarjito/dealhunter-backend/internal/domain/model"
 	"gorm.io/driver/postgres"
@@ -21,13 +22,27 @@ func InitDatabase(cfg *Config) *gorm.DB {
 	}
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		// Silent: matikan verbose SQL log di production - hemat CPU/IO signifikan
+		Logger:                 logger.Default.LogMode(logger.Silent),
+		PrepareStmt:            true, // cache prepared statements -> faster repeated queries
+		SkipDefaultTransaction: true, // skip implicit transaction untuk non-write queries
 	})
 	if err != nil {
 		log.Fatalf("[DB] Failed to connect to database: %v", err)
 	}
 
 	log.Println("[DB] Successfully connected to PostgreSQL")
+
+	// Configure connection pool untuk mencegah connection starvation
+	sqlDB, dbErr := db.DB()
+	if dbErr != nil {
+		log.Fatalf("[DB] Failed to get underlying sql.DB: %v", dbErr)
+	}
+	sqlDB.SetMaxOpenConns(25)                // max concurrent connections
+	sqlDB.SetMaxIdleConns(10)                // jaga 10 idle connections siap pakai
+	sqlDB.SetConnMaxLifetime(5 * time.Minute) // recycle connections tiap 5 menit
+	sqlDB.SetConnMaxIdleTime(2 * time.Minute) // tutup idle conn setelah 2 menit
+	log.Println("[DB] Connection pool configured: max=25, idle=10, lifetime=5m")
 
 	// AutoMigrate models
 	err = db.AutoMigrate(

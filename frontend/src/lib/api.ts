@@ -2,6 +2,22 @@ import { Listing, WatchlistItem, SavedSearch, PriceAlert, SearchResponse, Telegr
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
+/**
+ * Headers untuk semua request write (POST/PUT/DELETE).
+ * Menyertakan X-API-Key jika NEXT_PUBLIC_API_KEY di-set di env.
+ */
+function writeHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...extra,
+  };
+  const apiKey = process.env.NEXT_PUBLIC_API_KEY;
+  if (apiKey) {
+    headers['X-API-Key'] = apiKey;
+  }
+  return headers;
+}
+
 export interface SearchParams {
   keyword?: string;
   location?: string;
@@ -30,23 +46,17 @@ export async function searchListings(params: SearchParams): Promise<SearchRespon
   if (params.limit) query.set('limit', params.limit.toString());
   if (params.live) query.set('live', 'true');
 
-  const res = await fetch(`${API_BASE}/search?${query.toString()}`, {
-    cache: 'no-store',
-  });
+  const res = await fetch(`${API_BASE}/search?${query.toString()}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Gagal memuat hasil pencarian');
   const json = await res.json();
   return json.data;
 }
 
-
 export async function getListingDetail(id: string): Promise<{ listing: Listing; similar: Listing[] }> {
   const res = await fetch(`${API_BASE}/listings/${id}`);
   if (!res.ok) throw new Error('Gagal mengambil detail listing');
   const json = await res.json();
-  return {
-    listing: json.data,
-    similar: json.similar || [],
-  };
+  return { listing: json.data, similar: json.similar || [] };
 }
 
 export async function getWatchlist(): Promise<WatchlistItem[]> {
@@ -59,7 +69,7 @@ export async function getWatchlist(): Promise<WatchlistItem[]> {
 export async function addToWatchlist(listingId: string, notes: string = ''): Promise<WatchlistItem> {
   const res = await fetch(`${API_BASE}/watchlist`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: writeHeaders(),
     body: JSON.stringify({ listing_id: listingId, notes }),
   });
   if (!res.ok) throw new Error('Gagal menyimpan ke watchlist');
@@ -68,7 +78,10 @@ export async function addToWatchlist(listingId: string, notes: string = ''): Pro
 }
 
 export async function removeFromWatchlist(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/watchlist/${id}`, { method: 'DELETE' });
+  const res = await fetch(`${API_BASE}/watchlist/${id}`, {
+    method: 'DELETE',
+    headers: writeHeaders(),
+  });
   if (!res.ok) throw new Error('Gagal menghapus dari watchlist');
 }
 
@@ -82,7 +95,7 @@ export async function getSavedSearches(): Promise<SavedSearch[]> {
 export async function saveSearch(data: Partial<SavedSearch>): Promise<SavedSearch> {
   const res = await fetch(`${API_BASE}/saved-searches`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: writeHeaders(),
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error('Gagal menyimpan pencarian');
@@ -93,7 +106,10 @@ export async function saveSearch(data: Partial<SavedSearch>): Promise<SavedSearc
 export const createSavedSearch = saveSearch;
 
 export async function deleteSavedSearch(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/saved-searches/${id}`, { method: 'DELETE' });
+  const res = await fetch(`${API_BASE}/saved-searches/${id}`, {
+    method: 'DELETE',
+    headers: writeHeaders(),
+  });
   if (!res.ok) throw new Error('Gagal menghapus pencarian tersimpan');
 }
 
@@ -107,7 +123,7 @@ export async function getAlerts(): Promise<PriceAlert[]> {
 export async function createAlert(data: Partial<PriceAlert>): Promise<PriceAlert> {
   const res = await fetch(`${API_BASE}/alerts`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: writeHeaders(),
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error('Gagal membuat Price Alert');
@@ -118,7 +134,7 @@ export async function createAlert(data: Partial<PriceAlert>): Promise<PriceAlert
 export async function updateAlert(id: string, data: Partial<PriceAlert>): Promise<PriceAlert> {
   const res = await fetch(`${API_BASE}/alerts/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: writeHeaders(),
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error('Gagal memperbarui Price Alert');
@@ -129,6 +145,7 @@ export async function updateAlert(id: string, data: Partial<PriceAlert>): Promis
 export async function scanSingleAlert(id: string): Promise<void> {
   const res = await fetch(`${API_BASE}/alerts/${id}/scan`, {
     method: 'POST',
+    headers: writeHeaders(),
   });
   if (!res.ok) throw new Error('Gagal memindai alert ini');
 }
@@ -136,14 +153,17 @@ export async function scanSingleAlert(id: string): Promise<void> {
 export async function toggleAlert(id: string, isActive: boolean): Promise<void> {
   const res = await fetch(`${API_BASE}/alerts/${id}/toggle`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: writeHeaders(),
     body: JSON.stringify({ is_active: isActive }),
   });
   if (!res.ok) throw new Error('Gagal memperbarui status alert');
 }
 
 export async function deleteAlert(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/alerts/${id}`, { method: 'DELETE' });
+  const res = await fetch(`${API_BASE}/alerts/${id}`, {
+    method: 'DELETE',
+    headers: writeHeaders(),
+  });
   if (!res.ok) throw new Error('Gagal menghapus alert');
 }
 
@@ -161,7 +181,7 @@ export async function getAlertListings(alertId: string): Promise<{ alert: PriceA
 export async function connectTelegram(chatId: string, username: string = '', botToken: string = ''): Promise<TelegramSetting> {
   const res = await fetch(`${API_BASE}/telegram/connect`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: writeHeaders(),
     body: JSON.stringify({ chat_id: chatId, username, bot_token: botToken }),
   });
   if (!res.ok) throw new Error('Gagal menghubungkan Telegram');
@@ -179,7 +199,7 @@ export async function getTelegramStatus(): Promise<{ connected: boolean; setting
 export async function sendTestTelegram(chatId?: string): Promise<void> {
   const res = await fetch(`${API_BASE}/telegram/test`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: writeHeaders(),
     body: JSON.stringify({ chat_id: chatId }),
   });
   if (!res.ok) {
@@ -197,7 +217,7 @@ export async function getFacebookStatus(): Promise<{ is_connected: boolean; acco
 export async function connectFacebook(rawCookie: string, cUser: string = '', xsToken: string = ''): Promise<any> {
   const res = await fetch(`${API_BASE}/facebook/connect`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: writeHeaders(),
     body: JSON.stringify({ raw_cookie: rawCookie, c_user: cUser, xs_token: xsToken }),
   });
   const json = await res.json();
@@ -208,6 +228,7 @@ export async function connectFacebook(rawCookie: string, cUser: string = '', xsT
 export async function disconnectFacebook(): Promise<any> {
   const res = await fetch(`${API_BASE}/facebook/disconnect`, {
     method: 'POST',
+    headers: writeHeaders(),
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.message || 'Gagal memutus akun Facebook');
@@ -217,6 +238,7 @@ export async function disconnectFacebook(): Promise<any> {
 export async function disconnectTelegram(): Promise<void> {
   const res = await fetch(`${API_BASE}/telegram/disconnect`, {
     method: 'POST',
+    headers: writeHeaders(),
   });
   if (!res.ok) throw new Error('Gagal memutuskan koneksi Telegram');
 }
@@ -231,10 +253,10 @@ export async function getWatcherStatus(): Promise<WatcherStatus> {
 export async function scanNow(): Promise<void> {
   const res = await fetch(`${API_BASE}/alerts/scan-now`, {
     method: 'POST',
+    headers: writeHeaders(),
   });
   if (!res.ok) throw new Error('Gagal memicu pemindaian');
 }
-
 
 export async function getNotifications(limit: number = 20): Promise<NotificationItem[]> {
   try {

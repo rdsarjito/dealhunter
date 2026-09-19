@@ -84,7 +84,7 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-dealhunter}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-dealhunter_minio_secret}
       MINIO_BUCKET: ${MINIO_BUCKET:-dealhunter}
-      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-https://minio.ramadhaninursarjito.tech}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-https://minio.ramadhaninursarjito.tech/dealhunter}
       TZ: Asia/Jakarta
     expose:
       - "8080"

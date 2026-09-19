@@ -13,6 +13,7 @@ import (
 
 	"github.com/rdsarjito/dealhunter-backend/config"
 	"github.com/rdsarjito/dealhunter-backend/internal/handler"
+	"github.com/rdsarjito/dealhunter-backend/internal/middleware"
 	"github.com/rdsarjito/dealhunter-backend/internal/notifier"
 	"github.com/rdsarjito/dealhunter-backend/internal/repository"
 	"github.com/rdsarjito/dealhunter-backend/internal/scraper"
@@ -122,45 +123,48 @@ func main() {
 
 	api := app.Group("/api/v1")
 
-	// Search
+	// ── Public (read-only) — tidak perlu API key ────────────────────────────
 	api.Get("/search", searchHandler.Search)
-
-	// Listings & Watchlist
 	api.Get("/listings/:id", listingHandler.GetByID)
 	api.Get("/watchlist", listingHandler.GetWatchlist)
-	api.Post("/watchlist", listingHandler.AddToWatchlist)
-	api.Delete("/watchlist/:id", listingHandler.RemoveFromWatchlist)
-
-	// Saved Searches
 	api.Get("/saved-searches", savedHandler.GetAll)
-	api.Post("/saved-searches", savedHandler.Create)
-	api.Delete("/saved-searches/:id", savedHandler.Delete)
-
-	// Price Alerts
 	api.Get("/alerts", alertHandler.GetAll)
-	api.Post("/alerts", alertHandler.Create)
-	api.Put("/alerts/:id", alertHandler.Update)
-	api.Put("/alerts/:id/toggle", alertHandler.Toggle)
-	api.Delete("/alerts/:id", alertHandler.Delete)
-	api.Post("/alerts/scan-now", alertHandler.ScanNow)
-	api.Post("/alerts/:id/scan", alertHandler.ScanSingle)
 	api.Get("/alerts/watcher/status", alertHandler.GetWatcherStatus)
 	api.Get("/alerts/:id/listings", alertHandler.GetAlertListings)
 	api.Get("/notifications", alertHandler.GetNotifications)
-
-	// Telegram Settings & Test
 	api.Get("/telegram/status", telegramHandler.GetStatus)
-	api.Post("/telegram/connect", telegramHandler.Connect)
-	api.Post("/telegram/disconnect", telegramHandler.Disconnect)
-	api.Post("/telegram/test", telegramHandler.TestMessage)
-
-	// Facebook Session Settings
 	api.Get("/facebook/status", fbHandler.GetStatus)
-	api.Post("/facebook/connect", fbHandler.Connect)
-	api.Post("/facebook/disconnect", fbHandler.Disconnect)
 
-	// Admin / Maintenance API
-	api.Post("/admin/purge-foreign", func(c *fiber.Ctx) error {
+	// ── Protected (write) — wajib X-API-Key header ──────────────────────────
+	protected := api.Group("", middleware.RequireAPIKey())
+
+	// Watchlist
+	protected.Post("/watchlist", listingHandler.AddToWatchlist)
+	protected.Delete("/watchlist/:id", listingHandler.RemoveFromWatchlist)
+
+	// Saved Searches
+	protected.Post("/saved-searches", savedHandler.Create)
+	protected.Delete("/saved-searches/:id", savedHandler.Delete)
+
+	// Price Alerts
+	protected.Post("/alerts", alertHandler.Create)
+	protected.Put("/alerts/:id", alertHandler.Update)
+	protected.Put("/alerts/:id/toggle", alertHandler.Toggle)
+	protected.Delete("/alerts/:id", alertHandler.Delete)
+	protected.Post("/alerts/scan-now", alertHandler.ScanNow)
+	protected.Post("/alerts/:id/scan", alertHandler.ScanSingle)
+
+	// Telegram Settings
+	protected.Post("/telegram/connect", telegramHandler.Connect)
+	protected.Post("/telegram/disconnect", telegramHandler.Disconnect)
+	protected.Post("/telegram/test", telegramHandler.TestMessage)
+
+	// Facebook Session
+	protected.Post("/facebook/connect", fbHandler.Connect)
+	protected.Post("/facebook/disconnect", fbHandler.Disconnect)
+
+	// Admin / Maintenance API — wajib X-API-Key
+	protected.Post("/admin/purge-foreign", func(c *fiber.Ctx) error {
 		res := db.Exec("DELETE FROM listings WHERE price < 10000 OR location ILIKE '%, CA%' OR location ILIKE '%, NY%' OR location ILIKE '%, TX%' OR location ILIKE '%, FL%' OR location ILIKE '%California%' OR location ILIKE '%Los Angeles%' OR location ILIKE '%San Francisco%' OR location ILIKE '%Berkeley%' OR location ILIKE '%Sacramento%' OR location ILIKE '%Downey%' OR location ILIKE '%Azusa%' OR location ILIKE '%Los Banos%' OR location ILIKE '%Olivehurst%' OR location ILIKE '%USA%' OR location ILIKE '%United States%'")
 		return c.JSON(fiber.Map{
 			"status":       true,
@@ -168,7 +172,7 @@ func main() {
 			"message":      "Pembersihan listing asing dan harga abnormal berhasil dijalankan.",
 		})
 	})
-	api.Post("/admin/clear-all", func(c *fiber.Ctx) error {
+	protected.Post("/admin/clear-all", func(c *fiber.Ctx) error {
 		db.Exec("TRUNCATE listings, price_histories CASCADE; DELETE FROM price_alerts;")
 		return c.JSON(fiber.Map{
 			"status":  true,
@@ -178,7 +182,7 @@ func main() {
 
 	// One-shot migration: pindahkan thumbnail base64 lama dari DB ke MinIO
 	// Panggil sekali via: POST /api/v1/admin/migrate-thumbnails
-	api.Post("/admin/migrate-thumbnails", func(c *fiber.Ctx) error {
+	protected.Post("/admin/migrate-thumbnails", func(c *fiber.Ctx) error {
 		if storageSvc == nil {
 			return c.Status(503).JSON(fiber.Map{
 				"status":  false,

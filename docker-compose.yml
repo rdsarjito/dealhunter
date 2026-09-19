@@ -40,8 +40,10 @@ services:
       - minio_data:/data
     expose:
       - "9000"
-    ports:
-      - "9001:9001"  # MinIO web console (akses via http://server:9001)
+      - "9001"
+    # Port 9001 (MinIO console) tidak di-bind ke host karena bisa konflik.
+    # Akses console via: docker exec -it dealhunter-minio mc --help
+    # Atau tambahkan ke Caddy jika dibutuhkan.
     healthcheck:
       test: ["CMD", "mc", "ready", "local"]
       interval: 10s

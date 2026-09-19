@@ -17,6 +17,14 @@ type Config struct {
 	DBName           string
 	DBSSLMode        string
 	TelegramBotToken string
+
+	// MinIO / S3 object storage
+	MinioEndpoint  string
+	MinioAccessKey string
+	MinioSecretKey string
+	MinioBucket    string
+	MinioPublicURL string // public base URL for serving files
+	MinioUseSSL    bool
 }
 
 func LoadConfig() *Config {
@@ -61,7 +69,31 @@ func LoadConfig() *Config {
 
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 
-	log.Printf("[Config] Loaded environment for port: %s, DB: %s@%s:%s/%s", port, dbUser, dbHost, dbPort, dbName)
+	// MinIO config
+	minioEndpoint := os.Getenv("MINIO_ENDPOINT")
+	if minioEndpoint == "" {
+		minioEndpoint = "localhost:9000"
+	}
+	minioAccessKey := os.Getenv("MINIO_ACCESS_KEY")
+	if minioAccessKey == "" {
+		minioAccessKey = "dealhunter"
+	}
+	minioSecretKey := os.Getenv("MINIO_SECRET_KEY")
+	if minioSecretKey == "" {
+		minioSecretKey = "dealhunter_minio_secret"
+	}
+	minioBucket := os.Getenv("MINIO_BUCKET")
+	if minioBucket == "" {
+		minioBucket = "dealhunter"
+	}
+	minioPublicURL := os.Getenv("MINIO_PUBLIC_URL")
+	if minioPublicURL == "" {
+		minioPublicURL = "http://localhost:9000/dealhunter"
+	}
+	minioUseSSL := os.Getenv("MINIO_USE_SSL") == "true"
+
+	log.Printf("[Config] Loaded: port=%s DB=%s@%s:%s/%s MinIO=%s bucket=%s",
+		port, dbUser, dbHost, dbPort, dbName, minioEndpoint, minioBucket)
 
 	return &Config{
 		AppPort:          port,
@@ -73,5 +105,11 @@ func LoadConfig() *Config {
 		DBName:           dbName,
 		DBSSLMode:        dbSSLMode,
 		TelegramBotToken: botToken,
+		MinioEndpoint:    minioEndpoint,
+		MinioAccessKey:   minioAccessKey,
+		MinioSecretKey:   minioSecretKey,
+		MinioBucket:      minioBucket,
+		MinioPublicURL:   minioPublicURL,
+		MinioUseSSL:      minioUseSSL,
 	}
 }

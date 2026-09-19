@@ -91,17 +91,8 @@ func main() {
 
 	// Fiber app
 	app := fiber.New(fiber.Config{
-		AppName: "DealHunter API v1.0",
-		ErrorHandler: func(c *fiber.Ctx, err error) error {
-			code := fiber.StatusInternalServerError
-			if e, ok := err.(*fiber.Error); ok {
-				code = e.Code
-			}
-			return c.Status(code).JSON(fiber.Map{
-				"status":  false,
-				"message": err.Error(),
-			})
-		},
+		AppName:      "DealHunter API v1.0",
+		ErrorHandler: middleware.GlobalErrorHandler, // sanitize error — tidak expose internal error ke client
 	})
 
 	app.Use(logger.New())

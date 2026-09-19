@@ -227,7 +227,7 @@ func (r *AlertRepository) GetRecentNotifications(limit int) ([]dto.NotificationI
 
 	items := make([]dto.NotificationItem, len(rows))
 	for i, row := range rows {
-		items[i] = dto.NotificationItem{
+		item := dto.NotificationItem{
 			ID:             row.ID,
 			CreatedAt:      row.CreatedAt,
 			AlertID:        row.AlertID,
@@ -235,6 +235,9 @@ func (r *AlertRepository) GetRecentNotifications(limit int) ([]dto.NotificationI
 			AlertThumbnail: row.AlertThumbnail,
 			Listing:        row.Listing,
 		}
+		// Strip base64 data sebelum dikirim — cegah payload 26 MB untuk data lama
+		item.SanitizeThumbnail()
+		items[i] = item
 	}
 	return items, nil
 }

@@ -176,6 +176,74 @@ func main() {
 		})
 	})
 
+	// One-shot migration: pindahkan thumbnail base64 lama dari DB ke MinIO
+	// Panggil sekali via: POST /api/v1/admin/migrate-thumbnails
+	api.Post("/admin/migrate-thumbnails", func(c *fiber.Ctx) error {
+		if storageSvc == nil {
+			return c.Status(503).JSON(fiber.Map{
+				"status":  false,
+				"message": "MinIO tidak tersedia. Periksa konfigurasi MINIO_* env vars.",
+			})
+		}
+
+		type AlertRow struct {
+			ID           string `gorm:"column:id"`
+			ThumbnailURL string `gorm:"column:thumbnail_url"`
+		}
+		var alerts []AlertRow
+		db.Raw("SELECT id, thumbnail_url FROM price_alerts WHERE thumbnail_url LIKE 'data:%'").Scan(&alerts)
+
+		if len(alerts) == 0 {
+			return c.JSON(fiber.Map{
+				"status":  true,
+				"message": "Tidak ada thumbnail base64 yang perlu dimigrate.",
+				"migrated": 0,
+			})
+		}
+
+		ctx := c.Context()
+		success, failed := 0, 0
+		results := make([]fiber.Map, 0, len(alerts))
+
+		for _, a := range alerts {
+			ext := "png"
+			preview := a.ThumbnailURL
+			if len(preview) > 40 {
+				preview = preview[:40]
+			}
+			if len(a.ThumbnailURL) > 0 {
+				if len(a.ThumbnailURL) > 20 && (a.ThumbnailURL[11:15] == "jpeg" || a.ThumbnailURL[11:15] == "jpg/") {
+					ext = "jpg"
+				}
+			}
+			objectName := fmt.Sprintf("thumbnails/alert-%s.%s", a.ID, ext)
+
+			url, err := storageSvc.UploadBase64(ctx, objectName, a.ThumbnailURL)
+			if err != nil {
+				results = append(results, fiber.Map{"id": a.ID, "status": "failed", "error": err.Error()})
+				failed++
+				continue
+			}
+
+			if err := db.Exec("UPDATE price_alerts SET thumbnail_url = ? WHERE id = ?", url, a.ID).Error; err != nil {
+				results = append(results, fiber.Map{"id": a.ID, "status": "db_error", "error": err.Error()})
+				failed++
+				continue
+			}
+
+			results = append(results, fiber.Map{"id": a.ID, "status": "ok", "url": url})
+			success++
+		}
+
+		return c.JSON(fiber.Map{
+			"status":   true,
+			"total":    len(alerts),
+			"migrated": success,
+			"failed":   failed,
+			"results":  results,
+		})
+	})
+
 	port := fmt.Sprintf(":%s", cfg.AppPort)
 	log.Printf("DealHunter server starting on port %s", port)
 	if err := app.Listen(port); err != nil {

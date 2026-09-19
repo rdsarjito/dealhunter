@@ -124,6 +124,7 @@ func main() {
 	api := app.Group("/api/v1")
 
 	// ── Public (read-only) — tidak perlu API key ────────────────────────────
+	api.Use(middleware.RateLimitPublic())
 	api.Get("/search", searchHandler.Search)
 	api.Get("/listings/:id", listingHandler.GetByID)
 	api.Get("/watchlist", listingHandler.GetWatchlist)
@@ -136,7 +137,7 @@ func main() {
 	api.Get("/facebook/status", fbHandler.GetStatus)
 
 	// ── Protected (write) — wajib X-API-Key header ──────────────────────────
-	protected := api.Group("", middleware.RequireAPIKey())
+	protected := api.Group("", middleware.RequireAPIKey(), middleware.RateLimitWrite())
 
 	// Watchlist
 	protected.Post("/watchlist", listingHandler.AddToWatchlist)
@@ -151,8 +152,8 @@ func main() {
 	protected.Put("/alerts/:id", alertHandler.Update)
 	protected.Put("/alerts/:id/toggle", alertHandler.Toggle)
 	protected.Delete("/alerts/:id", alertHandler.Delete)
-	protected.Post("/alerts/scan-now", alertHandler.ScanNow)
-	protected.Post("/alerts/:id/scan", alertHandler.ScanSingle)
+	protected.Post("/alerts/scan-now", middleware.RateLimitScan(), alertHandler.ScanNow)
+	protected.Post("/alerts/:id/scan", middleware.RateLimitScan(), alertHandler.ScanSingle)
 
 	// Telegram Settings
 	protected.Post("/telegram/connect", telegramHandler.Connect)

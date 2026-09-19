@@ -8,7 +8,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/rdsarjito/dealhunter-backend/internal/domain/dto"
 	"github.com/rdsarjito/dealhunter-backend/internal/domain/model"
+	"github.com/rdsarjito/dealhunter-backend/internal/middleware"
 	"github.com/rdsarjito/dealhunter-backend/internal/repository"
 	"github.com/rdsarjito/dealhunter-backend/internal/service"
 	"github.com/rdsarjito/dealhunter-backend/internal/storage"
@@ -66,20 +68,37 @@ func (h *AlertHandler) GetAll(c *fiber.Ctx) error {
 }
 
 func (h *AlertHandler) Create(c *fiber.Ctx) error {
-	var a model.PriceAlert
-	if err := c.BodyParser(&a); err != nil {
+	var req dto.CreateAlertRequest
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":  false,
-			"message": "Invalid request body",
+			"message": "Format request tidak valid",
+		})
+	}
+	if err := middleware.ValidateStruct(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  false,
+			"message": err.Error(),
 		})
 	}
 
-	if a.Keyword == "" || a.MaxPrice <= 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  false,
-			"message": "Keyword dan harga maksimal wajib diisi",
-		})
+	// Map DTO ke model
+	a := model.PriceAlert{
+		Keyword:         req.Keyword,
+		MinPrice:        req.MinPrice,
+		MaxPrice:        req.MaxPrice,
+		Location:        req.Location,
+		Latitude:        req.Latitude,
+		Longitude:       req.Longitude,
+		RadiusKM:        req.RadiusKM,
+		Category:        req.Category,
+		IntervalMinutes: req.IntervalMinutes,
+		TelegramChatID:  req.TelegramChatID,
+		ThumbnailURL:    req.ThumbnailURL,
 	}
+
+	// placeholder agar blok berikutnya tetap compile (kondisi sudah ditangani validator)
+	if false { _ = a.Keyword }
 
 	if a.Location == "" {
 		a.Location = "Kebayoran Lama, Jakarta Selatan"
@@ -143,18 +162,17 @@ func (h *AlertHandler) Update(c *fiber.Ctx) error {
 		})
 	}
 
-	var req model.PriceAlert
+	var req dto.UpdateAlertRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":  false,
-			"message": "Invalid request body",
+			"message": "Format request tidak valid",
 		})
 	}
-
-	if req.Keyword == "" || req.MaxPrice <= 0 {
+	if err := middleware.ValidateStruct(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":  false,
-			"message": "Keyword dan harga maksimal wajib diisi",
+			"message": err.Error(),
 		})
 	}
 
@@ -184,6 +202,9 @@ func (h *AlertHandler) Update(c *fiber.Ctx) error {
 	}
 	if req.Longitude != nil && *req.Longitude != 0 {
 		existing.Longitude = req.Longitude
+	}
+	if req.Category != "" {
+		existing.Category = req.Category
 	}
 
 	// Upload thumbnail baru ke MinIO jika berupa base64

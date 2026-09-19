@@ -25,6 +25,36 @@ services:
       default: {}
 
   # -------------------------------------------------------------
+  # MinIO Object Storage Service (S3-compatible)
+  # -------------------------------------------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: dealhunter-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-dealhunter}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-dealhunter_minio_secret}
+      TZ: Asia/Jakarta
+    volumes:
+      - minio_data:/data
+    expose:
+      - "9000"
+    ports:
+      - "9001:9001"  # MinIO web console (akses via http://server:9001)
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      default: {}
+      edge:
+        aliases:
+          - dealhunter-minio
+
+  # -------------------------------------------------------------
   # Go Fiber Backend API Service (with Rod Scraper)
   # -------------------------------------------------------------
   backend:
@@ -36,6 +66,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      minio:
+        condition: service_started
     environment:
       APP_PORT: 8080
       APP_HOST: 0.0.0.0
@@ -46,6 +78,11 @@ services:
       DB_NAME: ${DB_NAME:-dealhunter}
       DB_SSLMODE: disable
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-dealhunter}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-dealhunter_minio_secret}
+      MINIO_BUCKET: ${MINIO_BUCKET:-dealhunter}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-https://minio.ramadhaninursarjito.tech}
       TZ: Asia/Jakarta
     expose:
       - "8080"
@@ -84,6 +121,8 @@ services:
 # -------------------------------------------------------------
 volumes:
   postgres_data:
+    driver: local
+  minio_data:
     driver: local
 
 networks:

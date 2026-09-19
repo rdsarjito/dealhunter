@@ -235,9 +235,23 @@ function AlertsContent() {
                             referrerPolicy="no-referrer"
                             className="h-full w-full object-cover"
                             loading="lazy"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }}
                           />
-                        ) : (
+                        ) : null}
+                        {(!a.thumbnail_url) ? (
                           <div className="h-full w-full flex flex-col items-center justify-center p-3 bg-gradient-to-br from-[#2B1414] via-[#1A1A1A] to-[#111111] text-white select-none">
+                            <div className="h-10 w-10 rounded-full bg-[#FF0000]/20 flex items-center justify-center text-[#FF0000] mb-2 animate-pulse">
+                              <Radio className="h-5 w-5" />
+                            </div>
+                            <span className="text-xs font-bold uppercase tracking-wider text-center text-white/90 truncate max-w-full px-2">
+                              {a.keyword}
+                            </span>
+                            <span className="text-[10px] text-white/60">
+                              {a.location || 'Jakarta'}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="h-full w-full flex-col items-center justify-center p-3 bg-gradient-to-br from-[#2B1414] via-[#1A1A1A] to-[#111111] text-white select-none hidden">
                             <div className="h-10 w-10 rounded-full bg-[#FF0000]/20 flex items-center justify-center text-[#FF0000] mb-2 animate-pulse">
                               <Radio className="h-5 w-5" />
                             </div>
